@@ -10,15 +10,15 @@ import (
 
 type (
 	ReleasePlan struct {
-		Id            string        `bson:"_id,omitempty"   json:"id,omitempty"`
-		Svc           string        `bson:"svc"             json:"svc"`
-		TargetVersion string        `bson:"targetVersion"   json:"target_version"`
-		ReleaseTime   time.Time     `bson:"releaseTime"     json:"release_time"`
-		Package       PackageInfo   `bson:"package"         json:"package"`
-		Stages        []Stage       `bson:"stages"          json:"stages"`
-		Status        PlanStatus    `bson:"status"          json:"status"`
-		CreatedAt     time.Time     `bson:"createdAt"       json:"created_at"`
-		UpdatedAt     time.Time     `bson:"updatedAt"       json:"updated_at"`
+		Id            string      `bson:"_id,omitempty"   json:"id,omitempty"`
+		Svc           string      `bson:"svc"             json:"svc"`
+		TargetVersion string      `bson:"targetVersion"   json:"target_version"`
+		ReleaseTime   time.Time   `bson:"releaseTime"     json:"release_time"`
+		Package       PackageInfo `bson:"package"         json:"package"`
+		Stages        []Stage     `bson:"stages"          json:"stages"`
+		Status        PlanStatus  `bson:"status"          json:"status"`
+		CreatedAt     time.Time   `bson:"createdAt"       json:"created_at"`
+		UpdatedAt     time.Time   `bson:"updatedAt"       json:"updated_at"`
 	}
 
 	PackageInfo struct {
@@ -29,20 +29,20 @@ type (
 	}
 
 	Stage struct {
-		Name   string       `bson:"name"   json:"name"`
-		Nodes  []StageNode  `bson:"nodes"  json:"nodes"`
-		Status StageStatus  `bson:"status" json:"status"`
-		Pacer  PacerConfig  `bson:"pacer"  json:"pacer"`
+		Name   string      `bson:"name"   json:"name"`
+		Nodes  []StageNode `bson:"nodes"  json:"nodes"`
+		Status StageStatus `bson:"status" json:"status"`
+		Pacer  PacerConfig `bson:"pacer"  json:"pacer"`
 	}
 
 	StageNode struct {
-		Host             string      `bson:"host"             json:"host"`
-		Status           NodeStatus  `bson:"status"           json:"status"`
-		CurrentVersion   string      `bson:"currentVersion"   json:"current_version"`
-		DeployingVersion string      `bson:"deployingVersion" json:"deploying_version"`
-		PrevVersion      string      `bson:"prevVersion"      json:"prev_version"`
-		LastError        string      `bson:"lastError"        json:"last_error"`
-		UpdatedAt        time.Time   `bson:"updatedAt"        json:"updated_at"`
+		Host             string     `bson:"host"             json:"host"`
+		Status           NodeStatus `bson:"status"           json:"status"`
+		CurrentVersion   string     `bson:"currentVersion"   json:"current_version"`
+		DeployingVersion string     `bson:"deployingVersion" json:"deploying_version"`
+		PrevVersion      string     `bson:"prevVersion"      json:"prev_version"`
+		LastError        string     `bson:"lastError"        json:"last_error"`
+		UpdatedAt        time.Time  `bson:"updatedAt"        json:"updated_at"`
 	}
 
 	PacerConfig struct {

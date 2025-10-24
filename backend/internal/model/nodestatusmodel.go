@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	NodeStatusRecord struct {
+	NodeDeployStatusRecord struct {
 		Id               string       `bson:"_id,omitempty"    json:"id,omitempty"`
 		Host             string       `bson:"host"             json:"host"`
 		Service          string       `bson:"service"          json:"service"`
@@ -24,12 +24,12 @@ type (
 	}
 
 	NodeStatusModel interface {
-		Insert(ctx context.Context, nodeStatus *NodeStatusRecord) error
-		Update(ctx context.Context, nodeStatus *NodeStatusRecord) error
+		Insert(ctx context.Context, nodeStatus *NodeDeployStatusRecord) error
+		Update(ctx context.Context, nodeStatus *NodeDeployStatusRecord) error
 		Delete(ctx context.Context, id string) error
-		FindById(ctx context.Context, id string) (*NodeStatusRecord, error)
-		FindByHostAndService(ctx context.Context, host, service string) (*NodeStatusRecord, error)
-		Search(ctx context.Context, cond *NodeStatusCond) ([]*NodeStatusRecord, error)
+		FindById(ctx context.Context, id string) (*NodeDeployStatusRecord, error)
+		FindByHostAndService(ctx context.Context, host, service string) (*NodeDeployStatusRecord, error)
+		Search(ctx context.Context, cond *NodeStatusCond) ([]*NodeDeployStatusRecord, error)
 		Count(ctx context.Context, cond *NodeStatusCond) (int64, error)
 	}
 
@@ -76,7 +76,7 @@ func (c *NodeStatusCond) genCond() bson.M {
 	return filter
 }
 
-func (m *defaultNodeStatusModel) Insert(ctx context.Context, nodeStatus *NodeStatusRecord) error {
+func (m *defaultNodeStatusModel) Insert(ctx context.Context, nodeStatus *NodeDeployStatusRecord) error {
 	now := time.Now()
 	nodeStatus.CreatedAt = now
 	nodeStatus.UpdatedAt = now
@@ -85,7 +85,7 @@ func (m *defaultNodeStatusModel) Insert(ctx context.Context, nodeStatus *NodeSta
 	return err
 }
 
-func (m *defaultNodeStatusModel) Update(ctx context.Context, nodeStatus *NodeStatusRecord) error {
+func (m *defaultNodeStatusModel) Update(ctx context.Context, nodeStatus *NodeDeployStatusRecord) error {
 	nodeStatus.UpdatedAt = time.Now()
 
 	_, err := m.model.UpdateOne(
@@ -101,8 +101,8 @@ func (m *defaultNodeStatusModel) Delete(ctx context.Context, id string) error {
 	return err
 }
 
-func (m *defaultNodeStatusModel) FindById(ctx context.Context, id string) (*NodeStatusRecord, error) {
-	var nodeStatus NodeStatusRecord
+func (m *defaultNodeStatusModel) FindById(ctx context.Context, id string) (*NodeDeployStatusRecord, error) {
+	var nodeStatus NodeDeployStatusRecord
 	err := m.model.FindOne(ctx, &nodeStatus, bson.M{"_id": id})
 	if err != nil {
 		return nil, err
@@ -110,8 +110,8 @@ func (m *defaultNodeStatusModel) FindById(ctx context.Context, id string) (*Node
 	return &nodeStatus, nil
 }
 
-func (m *defaultNodeStatusModel) FindByHostAndService(ctx context.Context, host, service string) (*NodeStatusRecord, error) {
-	var nodeStatus NodeStatusRecord
+func (m *defaultNodeStatusModel) FindByHostAndService(ctx context.Context, host, service string) (*NodeDeployStatusRecord, error) {
+	var nodeStatus NodeDeployStatusRecord
 	err := m.model.FindOne(ctx, &nodeStatus, bson.M{
 		"host":    host,
 		"service": service,
@@ -122,8 +122,8 @@ func (m *defaultNodeStatusModel) FindByHostAndService(ctx context.Context, host,
 	return &nodeStatus, nil
 }
 
-func (m *defaultNodeStatusModel) Search(ctx context.Context, cond *NodeStatusCond) ([]*NodeStatusRecord, error) {
-	var result []*NodeStatusRecord
+func (m *defaultNodeStatusModel) Search(ctx context.Context, cond *NodeStatusCond) ([]*NodeDeployStatusRecord, error) {
+	var result []*NodeDeployStatusRecord
 	filter := cond.genCond()
 
 	err := m.model.Find(ctx, &result, filter)

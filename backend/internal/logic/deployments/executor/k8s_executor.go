@@ -1,4 +1,4 @@
-package deploy
+package executor
 
 import (
 	"context"
@@ -10,13 +10,13 @@ import (
 
 type K8sExecutor struct {
 	config ExecutorConfig
-	status *model.NodeStatusRecord
+	status *model.NodeDeployStatusRecord
 }
 
 func NewK8sExecutor(config ExecutorConfig) *K8sExecutor {
 	return &K8sExecutor{
 		config: config,
-		status: &model.NodeStatusRecord{
+		status: &model.NodeDeployStatusRecord{
 			Host:             config.Host,
 			Service:          config.Service,
 			CurrentVersion:   config.Version,
@@ -81,7 +81,7 @@ func (k *K8sExecutor) Rollback(ctx context.Context) error {
 	return nil
 }
 
-func (k *K8sExecutor) GetStatus(ctx context.Context) (*model.NodeStatusRecord, error) {
+func (k *K8sExecutor) GetStatus(ctx context.Context) (*model.NodeDeployStatusRecord, error) {
 	return k.status, nil
 }
 

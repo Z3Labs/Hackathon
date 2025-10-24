@@ -3,11 +3,11 @@ package alert
 import (
 	"net/http"
 
+	"github.com/Z3Labs/Hackathon/backend/common/errorx"
+	"github.com/Z3Labs/Hackathon/backend/common/httpresp"
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/alert"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
-	"github.com/qbox/jarvis/common/errorx"
-	"github.com/qbox/jarvis/common/httpresp"
 
 	"github.com/zeromicro/go-zero/rest/httpx"
 )

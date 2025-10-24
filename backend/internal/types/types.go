@@ -18,19 +18,19 @@ type Machine struct {
 }
 
 type Application struct {
-	Id           string    `json:"id"`            // 应用唯一标识
-	Name         string    `json:"name"`          // 应用名称
-	DeployPath   string    `json:"deploy_path"`   // 部署路径
-	StartCmd     string    `json:"start_cmd"`     // 启动命令
-	StopCmd      string    `json:"stop_cmd"`      // 停止命令
-	Version      string    `json:"version"`       // 当前版本
-	MachineCount int       `json:"machine_count"` // 机器总数量
-	HealthCount  int       `json:"health_count"`  // 健康机器数量
-	ErrorCount   int       `json:"error_count"`   // 异常机器数量
-	AlertCount   int       `json:"alert_count"`   // 告警机器数量
-	Machines     []Machine `json:"machines"`      // 机器列表
-	CreatedAt    int64     `json:"created_at"`    // 创建时间戳
-	UpdatedAt    int64     `json:"updated_at"`    // 更新时间戳
+	Id             string    `json:"id"`             // 应用唯一标识
+	Name           string    `json:"name"`           // 应用名称
+	DeployPath     string    `json:"deploy_path"`    // 部署路径
+	StartCmd       string    `json:"start_cmd"`      // 启动命令
+	StopCmd        string    `json:"stop_cmd"`       // 停止命令
+	CurrentVersion string    `json:"currentVersion"` // 当前版本
+	MachineCount   int       `json:"machine_count"`  // 机器总数量
+	HealthCount    int       `json:"health_count"`   // 健康机器数量
+	ErrorCount     int       `json:"error_count"`    // 异常机器数量
+	AlertCount     int       `json:"alert_count"`    // 告警机器数量
+	Machines       []Machine `json:"machines"`       // 机器列表
+	CreatedAt      int64     `json:"created_at"`     // 创建时间戳
+	UpdatedAt      int64     `json:"updated_at"`     // 更新时间戳
 }
 
 type DeploymentMachine struct {
@@ -57,11 +57,10 @@ type Deployment struct {
 }
 
 type CreateAppReq struct {
-	Name       string `json:"name"`             // 应用名称
-	DeployPath string `json:"deploy_path"`      // 部署路径
-	StartCmd   string `json:"start_cmd"`        // 启动命令
-	StopCmd    string `json:"stop_cmd"`         // 停止命令
-	Version    string `json:"version,optional"` // 版本号，可选
+	Name       string `json:"name"`        // 应用名称
+	DeployPath string `json:"deploy_path"` // 部署路径
+	StartCmd   string `json:"start_cmd"`   // 启动命令
+	StopCmd    string `json:"stop_cmd"`    // 停止命令
 }
 
 type CreateAppResp struct {
@@ -74,7 +73,6 @@ type UpdateAppReq struct {
 	DeployPath string `json:"deploy_path"` // 部署路径
 	StartCmd   string `json:"start_cmd"`   // 启动命令
 	StopCmd    string `json:"stop_cmd"`    // 停止命令
-	Version    string `json:"version"`     // 版本号
 }
 
 type UpdateAppResp struct {

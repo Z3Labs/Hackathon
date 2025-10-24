@@ -58,7 +58,6 @@ export const appApi = {
     deploy_path: string
     start_cmd: string
     stop_cmd: string
-    version?: string
   }) => api.post('/apps', data),
 
   // 更新应用
@@ -67,7 +66,6 @@ export const appApi = {
     deploy_path: string
     start_cmd: string
     stop_cmd: string
-    version: string
   }) => api.put(`/apps/${id}`, data),
 
   // 获取应用列表

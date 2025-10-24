@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { appApi } from '../services/api'
-import { Application, CreateAppReq } from '../types'
+import { Application, CreateAppReq, GetAppListResp, GetAppDetailResp } from '../types'
 import { useApiRequest } from '../hooks/useApiRequest'
 import { Toaster } from 'react-hot-toast'
 import './Apps.css'
@@ -26,8 +26,7 @@ const Apps: React.FC = () => {
     name: '',
     deploy_path: '',
     start_cmd: '',
-    stop_cmd: '',
-    version: ''
+    stop_cmd: ''
   })
 
 
@@ -38,7 +37,7 @@ const Apps: React.FC = () => {
         page: pagination.page,
         page_size: pagination.pageSize,
         name: searchName || undefined
-      }),
+      }) as unknown as Promise<GetAppListResp>,
       {
         errorMessage: '获取应用列表失败'
       }
@@ -101,8 +100,7 @@ const Apps: React.FC = () => {
       name: '',
       deploy_path: '',
       start_cmd: '',
-      stop_cmd: '',
-      version: ''
+      stop_cmd: ''
     })
     setSelectedApp(null)
   }
@@ -114,8 +112,7 @@ const Apps: React.FC = () => {
       name: app.name,
       deploy_path: app.deploy_path,
       start_cmd: app.start_cmd,
-      stop_cmd: app.stop_cmd,
-      version: app.version
+      stop_cmd: app.stop_cmd
     })
     setShowEditModal(true)
   }
@@ -123,7 +120,7 @@ const Apps: React.FC = () => {
   // 打开详情模态框
   const openDetailModal = async (appId: string) => {
     const result = await request(
-      () => appApi.getAppDetail(appId),
+      () => appApi.getAppDetail(appId) as unknown as Promise<GetAppDetailResp>,
       {
         errorMessage: '获取应用详情失败'
       }
@@ -222,7 +219,7 @@ const Apps: React.FC = () => {
                 {apps.map((app) => (
                   <tr key={app.id}>
                     <td>{app.name}</td>
-                    <td>{app.version}</td>
+                    <td>{app.currentVersion}</td>
                     <td>{app.deploy_path}</td>
                     <td>
                       <div className="status-info">
@@ -325,14 +322,6 @@ const Apps: React.FC = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, stop_cmd: e.target.value }))}
                 />
               </div>
-              <div className="form-group">
-                <label>版本号</label>
-                <input
-                  type="text"
-                  value={formData.version}
-                  onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-                />
-              </div>
             </div>
             <div className="modal-footer">
               <button onClick={() => setShowCreateModal(false)}>取消</button>
@@ -383,14 +372,6 @@ const Apps: React.FC = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, stop_cmd: e.target.value }))}
                 />
               </div>
-              <div className="form-group">
-                <label>版本号</label>
-                <input
-                  type="text"
-                  value={formData.version}
-                  onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-                />
-              </div>
             </div>
             <div className="modal-footer">
               <button onClick={() => setShowEditModal(false)}>取消</button>
@@ -422,7 +403,7 @@ const Apps: React.FC = () => {
                   </div>
                   <div className="detail-item">
                     <label>版本:</label>
-                    <span>{selectedApp.version}</span>
+                    <span>{selectedApp.currentVersion}</span>
                   </div>
                   <div className="detail-item">
                     <label>部署路径:</label>

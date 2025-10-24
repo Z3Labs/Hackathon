@@ -15,7 +15,7 @@ export interface Application {
   deploy_path: string
   start_cmd: string
   stop_cmd: string
-  version: string
+  currentVersion: string
   machine_count: number
   health_count: number
   error_count: number
@@ -56,7 +56,6 @@ export interface CreateAppReq {
   deploy_path: string
   start_cmd: string
   stop_cmd: string
-  version?: string
 }
 
 export interface CreateAppResp {
@@ -69,7 +68,6 @@ export interface UpdateAppReq {
   deploy_path: string
   start_cmd: string
   stop_cmd: string
-  version: string
 }
 
 export interface UpdateAppResp {

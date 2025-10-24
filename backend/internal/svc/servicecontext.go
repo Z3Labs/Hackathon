@@ -10,6 +10,8 @@ type ServiceContext struct {
 	ApplicationModel model.ApplicationModel
 	DeploymentModel  model.DeploymentModel
 	MachineModel     model.MachineModel
+	MetricModel      model.MetricModel
+	ReportModel      model.ReportModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -18,5 +20,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		ApplicationModel: model.NewApplicationModel(c.Mongo.URL, c.Mongo.Database),
 		DeploymentModel:  model.NewDeploymentModel(c.Mongo.URL, c.Mongo.Database),
 		MachineModel:     model.NewMachineModel(c.Mongo.URL, c.Mongo.Database),
+		MetricModel:      model.NewMetricModel(c.Mongo.URL, c.Mongo.Database),
+		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
 	}
 }

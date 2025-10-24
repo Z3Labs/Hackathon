@@ -1,4 +1,4 @@
-package logic
+package deployments
 
 import (
 	"context"
@@ -9,21 +9,21 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type GetDeploymentListLogic struct {
+type UpdateDeploymentLogic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewGetDeploymentListLogic(ctx context.Context, svcCtx *svc.ServiceContext) GetDeploymentListLogic {
-	return GetDeploymentListLogic{
+func NewUpdateDeploymentLogic(ctx context.Context, svcCtx *svc.ServiceContext) UpdateDeploymentLogic {
+	return UpdateDeploymentLogic{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
 	}
 }
 
-func (l *GetDeploymentListLogic) GetDeploymentList(req *types.GetDeploymentListReq) (resp *types.GetDeploymentListResp, err error) {
+func (l *UpdateDeploymentLogic) UpdateDeployment(req *types.UpdateDeploymentReq) (resp *types.UpdateDeploymentResp, err error) {
 	// todo: add your logic here and delete this line
 
 	return

@@ -29,8 +29,8 @@ type Application struct {
 	ErrorCount   int       `json:"error_count"`   // 异常机器数量
 	AlertCount   int       `json:"alert_count"`   // 告警机器数量
 	Machines     []Machine `json:"machines"`      // 机器列表
-	CreatedAt    string    `json:"created_at"`    // 创建时间
-	UpdatedAt    string    `json:"updated_at"`    // 更新时间
+	CreatedAt    int64     `json:"created_at"`    // 创建时间戳
+	UpdatedAt    int64     `json:"updated_at"`    // 更新时间戳
 }
 
 type DeploymentMachine struct {
@@ -50,12 +50,10 @@ type Deployment struct {
 	PackageVersion  string              `json:"package_version"`  // 包版本
 	ConfigPath      string              `json:"config_path"`      // 配置文件路径
 	GrayStrategy    string              `json:"gray_strategy"`    // 灰度策略: canary-金丝雀发布, blue-green-蓝绿发布, all-全量发布
-	StartTime       string              `json:"start_time"`       // 开始时间
-	EndTime         string              `json:"end_time"`         // 结束时间
 	ReleaseMachines []DeploymentMachine `json:"release_machines"` // 发布机器列表
 	ReleaseLog      string              `json:"release_log"`      // 发布日志
-	CreatedAt       string              `json:"created_at"`       // 创建时间
-	UpdatedAt       string              `json:"updated_at"`       // 更新时间
+	CreatedAt       int64               `json:"created_at"`       // 创建时间戳
+	UpdatedAt       int64               `json:"updated_at"`       // 更新时间戳
 }
 
 type CreateAppReq struct {

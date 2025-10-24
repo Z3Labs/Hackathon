@@ -1,4 +1,4 @@
-package deploy
+package plan
 
 import (
 	"context"
@@ -6,20 +6,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Z3Labs/Hackathon/backend/internal/clients/deploy"
+	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 )
 
 type PlanManager struct {
 	releasePlanModel model.ReleasePlanModel
 	nodeStatusModel  model.NodeStatusModel
-	executorFactory  *deploy.ExecutorFactory
+	executorFactory  *executor.ExecutorFactory
 }
 
 func NewPlanManager(
 	releasePlanModel model.ReleasePlanModel,
 	nodeStatusModel model.NodeStatusModel,
-	executorFactory *deploy.ExecutorFactory,
+	executorFactory *executor.ExecutorFactory,
 ) *PlanManager {
 	return &PlanManager{
 		releasePlanModel: releasePlanModel,
@@ -147,7 +147,7 @@ func (pm *PlanManager) executeNode(ctx context.Context, plan *model.ReleasePlan,
 	node.DeployingVersion = plan.TargetVersion
 	node.UpdatedAt = time.Now()
 
-	nodeStatus := &model.NodeStatusRecord{
+	nodeStatus := &model.NodeDeployStatusRecord{
 		Host:             node.Host,
 		Service:          plan.Svc,
 		CurrentVersion:   node.CurrentVersion,
@@ -165,7 +165,7 @@ func (pm *PlanManager) executeNode(ctx context.Context, plan *model.ReleasePlan,
 		pm.nodeStatusModel.Insert(ctx, nodeStatus)
 	}
 
-	executor, err := pm.executorFactory.CreateExecutor(ctx, deploy.ExecutorConfig{
+	executor, err := pm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
 		Platform:    string(model.PlatformPhysical),
 		Host:        node.Host,
 		Service:     plan.Svc,

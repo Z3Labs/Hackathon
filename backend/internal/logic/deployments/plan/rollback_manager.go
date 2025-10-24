@@ -1,4 +1,4 @@
-package deploy
+package plan
 
 import (
 	"context"
@@ -6,20 +6,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Z3Labs/Hackathon/backend/internal/clients/deploy"
+	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 )
 
 type RollbackManager struct {
 	releasePlanModel model.ReleasePlanModel
 	nodeStatusModel  model.NodeStatusModel
-	executorFactory  *deploy.ExecutorFactory
+	executorFactory  *executor.ExecutorFactory
 }
 
 func NewRollbackManager(
 	releasePlanModel model.ReleasePlanModel,
 	nodeStatusModel model.NodeStatusModel,
-	executorFactory *deploy.ExecutorFactory,
+	executorFactory *executor.ExecutorFactory,
 ) *RollbackManager {
 	return &RollbackManager{
 		releasePlanModel: releasePlanModel,
@@ -105,7 +105,7 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, plan *model.Release
 		return fmt.Errorf("no previous version to rollback to")
 	}
 
-	executor, err := rm.executorFactory.CreateExecutor(ctx, deploy.ExecutorConfig{
+	executor, err := rm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
 		Platform:    string(nodeStatus.Platform),
 		Host:        node.Host,
 		Service:     plan.Svc,

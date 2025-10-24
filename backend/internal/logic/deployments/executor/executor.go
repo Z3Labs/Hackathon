@@ -1,4 +1,4 @@
-package deploy
+package executor
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 type Executor interface {
 	Deploy(ctx context.Context) error
 	Rollback(ctx context.Context) error
-	GetStatus(ctx context.Context) (*model.NodeStatusRecord, error)
+	GetStatus(ctx context.Context) (*model.NodeDeployStatusRecord, error)
 }
 
 type ExecutorConfig struct {

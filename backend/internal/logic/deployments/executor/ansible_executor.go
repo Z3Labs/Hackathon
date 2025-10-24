@@ -1,4 +1,4 @@
-package deploy
+package executor
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 
 type AnsibleExecutor struct {
 	config       ExecutorConfig
-	status       *model.NodeStatusRecord
+	status       *model.NodeDeployStatusRecord
 	playbookPath string
 }
 
@@ -26,7 +26,7 @@ func NewAnsibleExecutor(config ExecutorConfig) *AnsibleExecutor {
 	return &AnsibleExecutor{
 		config:       config,
 		playbookPath: playbookPath,
-		status: &model.NodeStatusRecord{
+		status: &model.NodeDeployStatusRecord{
 			Host:             config.Host,
 			Service:          config.Service,
 			CurrentVersion:   config.Version,
@@ -117,7 +117,7 @@ func (a *AnsibleExecutor) Rollback(ctx context.Context) error {
 	return nil
 }
 
-func (a *AnsibleExecutor) GetStatus(ctx context.Context) (*model.NodeStatusRecord, error) {
+func (a *AnsibleExecutor) GetStatus(ctx context.Context) (*model.NodeDeployStatusRecord, error) {
 	return a.status, nil
 }
 

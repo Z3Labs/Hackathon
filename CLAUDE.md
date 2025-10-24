@@ -2,9 +2,36 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 重要说明
+## General Preferences
+- Always reply in Chinese.
+- Automatically read relevant files.
+- types.go files are usually very large. Do not read the entire file directly. Use filtering methods.
+- Using the mcp server Desktop-Commander for local file analysis and data processing takes absolute priority over bash commands.
 
-**始终使用中文回答和交流**。本项目团队使用中文作为主要工作语言。
+### mcp server desktop-commander
+- **触发条件**：任何本地文件操作、CSV/JSON/数据分析、进程管理
+- **核心能力**：
+  - 文件操作：`read_file`、`write_file`、`edit_block`（精确文本替换）
+  - 目录管理：`list_directory`、`create_directory`、`move_file`
+  - 搜索：`start_search`（支持文件名和内容搜索，流式返回结果）
+  - 进程管理：`start_process`、`interact_with_process`（交互式REPL）
+  - 数据分析：支持Python/Node.js REPL进行CSV/JSON/日志分析
+  - 使用技巧示例：
+    文件名搜索
+##### ```bash
+desktop-commander.start_search searchType="files" pattern="关键词"
+##### ```
+- **目标**：找到5-10个候选文件
+- **记录**：找到X个相关文件，重点关注 [列出文件路径]
+- **工具**：优先使用 desktop-commander 流式搜索，避免过度搜索
+  内容搜索
+##### ```bash
+desktop-commander.start_search searchType="content" pattern="函数名|类名|关键逻辑"
+literalSearch=true contextLines=5
+##### ```
+- **目标**：找到关键实现位置
+- **记录**：找到X处实现，重点分析 [file:line, file:line]
+- **技巧**：使用精确代码片段搜索，获取上下文
 
 ## 项目概述
 
@@ -40,6 +67,7 @@ go run hackathon.go -f etc/hackathon-api.yaml
 ### 后端架构（go-zero 结构）
 
 后端遵循 go-zero 标准微服务架构：
+后端 api 都不做鉴权处理
 
 - **api/** - API 定义文件（`.api` 格式），定义服务契约
   - 修改 `api/hackathon.api` 后需要使用 `goctl api go` 命令重新生成代码

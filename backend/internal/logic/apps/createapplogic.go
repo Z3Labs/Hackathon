@@ -1,4 +1,4 @@
-package logic
+package apps
 
 import (
 	"context"

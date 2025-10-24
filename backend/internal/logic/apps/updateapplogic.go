@@ -1,4 +1,4 @@
-package logic
+package apps
 
 import (
 	"context"
@@ -9,21 +9,21 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type GetAppListLogic struct {
+type UpdateAppLogic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewGetAppListLogic(ctx context.Context, svcCtx *svc.ServiceContext) GetAppListLogic {
-	return GetAppListLogic{
+func NewUpdateAppLogic(ctx context.Context, svcCtx *svc.ServiceContext) UpdateAppLogic {
+	return UpdateAppLogic{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
 	}
 }
 
-func (l *GetAppListLogic) GetAppList(req *types.GetAppListReq) (resp *types.GetAppListResp, err error) {
+func (l *UpdateAppLogic) UpdateApp(req *types.UpdateAppReq) (resp *types.UpdateAppResp, err error) {
 	// todo: add your logic here and delete this line
 
 	return

@@ -165,30 +165,46 @@ type (
 service hackathon-api {
 	@handler Ping
 	get /ping (PingReq) returns (PingResp)
+}
 
-	// 应用管理接口
+@server(
+	group: apps
+)
+service hackathon-api {
+	@doc "创建应用"
 	@handler CreateApp
 	post /api/v1/apps (CreateAppReq) returns (CreateAppResp)
 
+	@doc "更新应用"
 	@handler UpdateApp
 	put /api/v1/apps/:id (UpdateAppReq) returns (UpdateAppResp)
 
+	@doc "获取应用列表"
 	@handler GetAppList
 	get /api/v1/apps (GetAppListReq) returns (GetAppListResp)
 
+	@doc "获取应用详情"
 	@handler GetAppDetail
 	get /api/v1/apps/:id (GetAppDetailReq) returns (GetAppDetailResp)
+}
 
-	// 发布记录管理接口
+@server(
+	group: deployments
+)
+service hackathon-api {
+	@doc "创建发布记录"
 	@handler CreateDeployment
 	post /api/v1/deployments (CreateDeploymentReq) returns (CreateDeploymentResp)
 
+	@doc "更新发布记录"
 	@handler UpdateDeployment
 	put /api/v1/deployments/:id (UpdateDeploymentReq) returns (UpdateDeploymentResp)
 
+	@doc "获取发布记录列表"
 	@handler GetDeploymentList
 	get /api/v1/deployments (GetDeploymentListReq) returns (GetDeploymentListResp)
 
+	@doc "获取发布记录详情"
 	@handler GetDeploymentDetail
 	get /api/v1/deployments/:id (GetDeploymentDetailReq) returns (GetDeploymentDetailResp)
 }

@@ -1,11 +1,11 @@
-package handler
+package deployments
 
 import (
 	"net/http"
 
 	"github.com/Z3Labs/Hackathon/backend/common/errorx"
 	"github.com/Z3Labs/Hackathon/backend/common/httpresp"
-	"github.com/Z3Labs/Hackathon/backend/internal/logic"
+	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
 
@@ -20,7 +20,7 @@ func UpdateDeploymentHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		l := logic.NewUpdateDeploymentLogic(r.Context(), svcCtx)
+		l := deployments.NewUpdateDeploymentLogic(r.Context(), svcCtx)
 		resp, err := l.UpdateDeployment(&req)
 
 		httpresp.Http(w, r, resp, err)

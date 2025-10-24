@@ -4,6 +4,8 @@ package handler
 import (
 	"net/http"
 
+	apps "github.com/Z3Labs/Hackathon/backend/internal/handler/apps"
+	deployments "github.com/Z3Labs/Hackathon/backend/internal/handler/deployments"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -17,45 +19,55 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/ping",
 				Handler: PingHandler(serverCtx),
 			},
+		},
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
 			{
 				Method:  http.MethodPost,
 				Path:    "/api/v1/apps",
-				Handler: CreateAppHandler(serverCtx),
+				Handler: apps.CreateAppHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodPut,
 				Path:    "/api/v1/apps/:id",
-				Handler: UpdateAppHandler(serverCtx),
+				Handler: apps.UpdateAppHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
 				Path:    "/api/v1/apps",
-				Handler: GetAppListHandler(serverCtx),
+				Handler: apps.GetAppListHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
 				Path:    "/api/v1/apps/:id",
-				Handler: GetAppDetailHandler(serverCtx),
+				Handler: apps.GetAppDetailHandler(serverCtx),
 			},
+		},
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
 			{
 				Method:  http.MethodPost,
 				Path:    "/api/v1/deployments",
-				Handler: CreateDeploymentHandler(serverCtx),
+				Handler: deployments.CreateDeploymentHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodPut,
 				Path:    "/api/v1/deployments/:id",
-				Handler: UpdateDeploymentHandler(serverCtx),
+				Handler: deployments.UpdateDeploymentHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
 				Path:    "/api/v1/deployments",
-				Handler: GetDeploymentListHandler(serverCtx),
+				Handler: deployments.GetDeploymentListHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,
 				Path:    "/api/v1/deployments/:id",
-				Handler: GetDeploymentDetailHandler(serverCtx),
+				Handler: deployments.GetDeploymentDetailHandler(serverCtx),
 			},
 		},
 	)

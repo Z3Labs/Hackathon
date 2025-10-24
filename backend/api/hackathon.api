@@ -1,0 +1,21 @@
+syntax = "v1"
+
+info (
+	title:   "Hackathon API"
+	desc:    "Hackathon backend API"
+	author:  "hackathon team"
+	version: "v1"
+)
+
+type (
+	HealthCheckReq {
+	}
+	HealthCheckResp {
+		Status string `json:"status"`
+	}
+)
+
+service hackathon-api {
+	@handler HealthCheck
+	get /health (HealthCheckReq) returns (HealthCheckResp)
+}

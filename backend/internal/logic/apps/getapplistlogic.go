@@ -28,22 +28,22 @@ func NewGetAppListLogic(ctx context.Context, svcCtx *svc.ServiceContext) GetAppL
 func (l *GetAppListLogic) GetAppList(req *types.GetAppListReq) (resp *types.GetAppListResp, err error) {
 	// 构建查询条件
 	cond := &model.ApplicationCond{
-		Name: req.Name,
+		Name:       req.Name,
+		Pagination: model.NewPagination(req.Page, req.PageSize),
 	}
 
-	// 获取总数
-	total, err := l.svcCtx.ApplicationModel.Count(l.ctx, cond)
+	// 获取总数（不分页）
+	countCond := &model.ApplicationCond{
+		Name: req.Name,
+	}
+	total, err := l.svcCtx.ApplicationModel.Count(l.ctx, countCond)
 	if err != nil {
 		l.Errorf("[GetAppList] ApplicationModel.Count error:%v", err)
 		return nil, errors.New("获取应用列表失败")
 	}
 
-	// 获取应用列表
+	// 获取分页应用列表
 	applications, err := l.svcCtx.ApplicationModel.Search(l.ctx, cond)
-	if err != nil {
-		l.Errorf("[GetAppList] ApplicationModel.Search error:%v", err)
-		return nil, errors.New("获取应用列表失败")
-	}
 
 	// 转换为响应格式
 	var apps []types.Application
@@ -78,22 +78,10 @@ func (l *GetAppListLogic) GetAppList(req *types.GetAppListReq) (resp *types.GetA
 		})
 	}
 
-	// 实现分页逻辑
-	start := (req.Page - 1) * req.PageSize
-	end := start + req.PageSize
-
-	var pagedApps []types.Application
-	if start < len(apps) {
-		if end > len(apps) {
-			end = len(apps)
-		}
-		pagedApps = apps[start:end]
-	}
-
 	l.Infof("[GetAppList] Successfully retrieved app list, total: %d, page: %d, pageSize: %d", total, req.Page, req.PageSize)
 
 	return &types.GetAppListResp{
-		Apps:     pagedApps,
+		Apps:     apps,
 		Total:    total,
 		Page:     req.Page,
 		PageSize: req.PageSize,

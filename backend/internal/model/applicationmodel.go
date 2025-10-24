@@ -39,10 +39,11 @@ type (
 	}
 
 	ApplicationCond struct {
-		Id     string
-		Ids    []string
-		Name   string
-		Status string
+		Id         string
+		Ids        []string
+		Name       string
+		Status     string
+		Pagination *Pagination
 	}
 )
 
@@ -105,7 +106,15 @@ func (m *defaultApplicationModel) Search(ctx context.Context, cond *ApplicationC
 	var result []*Application
 	filter := cond.genCond()
 
-	err := m.model.Find(ctx, &result, filter)
+	// 根据是否有分页参数决定查询方式
+	var err error
+	if cond.Pagination.IsEmpty() {
+		err = m.model.Find(ctx, &result, filter)
+	} else {
+		findOptions := cond.Pagination.ToFindOptions()
+		err = m.model.Find(ctx, &result, filter, findOptions)
+	}
+
 	if err != nil {
 		return nil, err
 	}

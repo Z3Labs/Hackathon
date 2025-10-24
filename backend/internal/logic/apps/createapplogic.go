@@ -33,18 +33,14 @@ func (l *CreateAppLogic) CreateApp(req *types.CreateAppReq) (resp *types.CreateA
 
 	// 创建应用对象
 	application := &model.Application{
-		Id:           appId,
-		Name:         req.Name,
-		DeployPath:   req.DeployPath,
-		StartCmd:     req.StartCmd,
-		StopCmd:      req.StopCmd,
-		MachineCount: 0,
-		HealthCount:  0,
-		ErrorCount:   0,
-		AlertCount:   0,
-		Machines:     []model.Machine{},
-		CreatedTime:  time.Now(),
-		UpdatedTime:  time.Now(),
+		Id:             appId,
+		Name:           req.Name,
+		DeployPath:     req.DeployPath,
+		StartCmd:       req.StartCmd,
+		StopCmd:        req.StopCmd,
+		CurrentVersion: "--",
+		CreatedTime:    time.Now(),
+		UpdatedTime:    time.Now(),
 	}
 
 	// 保存到数据库

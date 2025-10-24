@@ -8,14 +8,14 @@ info (
 )
 
 type (
-	HealthCheckReq {
+	PingReq {
 	}
-	HealthCheckResp {
-		Status string `json:"status"`
+	PingResp {
+		Message string `json:"message"`
 	}
 )
 
 service hackathon-api {
-	@handler HealthCheck
-	get /health (HealthCheckReq) returns (HealthCheckResp)
+	@handler Ping
+	get /ping (PingReq) returns (PingResp)
 }

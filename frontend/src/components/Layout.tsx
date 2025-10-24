@@ -6,10 +6,11 @@ const Layout: React.FC = () => {
   const location = useLocation()
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme')
-    return (savedTheme as 'light' | 'dark') || 'dark'
+    return (savedTheme as 'light' | 'dark') || 'light'
   })
 
   const menuItems = [
+    { path: '/apps', label: '应用管理' },
     { path: '/publish', label: '发布' },
     { path: '/monitor', label: '监控' }
   ]

@@ -9,22 +9,22 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type PingLogic struct {
+type UpdateAppLogic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewPingLogic(ctx context.Context, svcCtx *svc.ServiceContext) *PingLogic {
-	return &PingLogic{
+func NewUpdateAppLogic(ctx context.Context, svcCtx *svc.ServiceContext) UpdateAppLogic {
+	return UpdateAppLogic{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
 	}
 }
 
-func (l *PingLogic) Ping(req *types.PingReq) (resp *types.PingResp, err error) {
-	return &types.PingResp{
-		Message: "pong",
-	}, nil
+func (l *UpdateAppLogic) UpdateApp(req *types.UpdateAppReq) (resp *types.UpdateAppResp, err error) {
+	// todo: add your logic here and delete this line
+
+	return
 }

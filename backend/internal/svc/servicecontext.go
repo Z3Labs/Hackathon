@@ -1,7 +1,7 @@
 package svc
 
 import (
-	"hackathon/backend/internal/config"
+	"github.com/Z3Labs/Hackathon/backend/internal/config"
 )
 
 type ServiceContext struct {

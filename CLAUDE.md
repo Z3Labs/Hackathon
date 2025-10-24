@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Automatically read relevant files.
 - types.go files are usually very large. Do not read the entire file directly. Use filtering methods.
 - Using the mcp server Desktop-Commander for local file analysis and data processing takes absolute priority over bash commands.
+- For any questions regarding programming libraries, frameworks, SDKS, or apis, context7 is preferred for searching.
 
 ### mcp server desktop-commander
 - **触发条件**：任何本地文件操作、CSV/JSON/数据分析、进程管理
@@ -18,6 +19,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - 数据分析：支持Python/Node.js REPL进行CSV/JSON/日志分析
   - 使用技巧示例：
     文件名搜索
+
+### mcp server context7
+context7: 编程库/SDK/API 文档检索
+- **触发条件**：任何关于编程库、框架、SDK、API 的问题
+- **调用方式**：
+  1. 首先调用 `resolve-library-id` 获取 Context7 兼容的库 ID
+  2. 然后调用 `get-library-docs` 获取文档（可选 topic 参数聚焦）
+
 ##### ```bash
 desktop-commander.start_search searchType="files" pattern="关键词"
 ##### ```
@@ -46,14 +55,11 @@ literalSearch=true contextLines=5
 ```bash
 cd backend
 
-# 安装依赖
-go mod tidy
-
 # 从 API 定义生成代码（修改 api/hackathon.api 后执行）
-goctl api go -api api/hackathon.api -dir .
+make all
 
 # 运行服务
-go run hackathon.go -f etc/hackathon-api.yaml
+make run
 ```
 
 后端服务运行在 `http://localhost:8888`

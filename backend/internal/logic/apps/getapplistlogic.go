@@ -29,7 +29,7 @@ func (l *GetAppListLogic) GetAppList(req *types.GetAppListReq) (resp *types.GetA
 	// 构建查询条件
 	cond := &model.ApplicationCond{
 		Name:       req.Name,
-		Pagination: model.NewPagination(req.Page, req.PageSize),
+		Pagination: model.NewPaginationWithDefaultSort(req.Page, req.PageSize),
 	}
 
 	// 获取总数（不分页）

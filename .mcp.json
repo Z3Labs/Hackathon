@@ -13,6 +13,17 @@
         "-y",
         "@wonderwhy-er/desktop-commander"
       ]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp",
+        "--api-key",
+        "ctx7sk-0fbdb2ce-1fc1-4000-be07-45e7b413572f"
+      ],
+      "env": {}
     }
   }
 }

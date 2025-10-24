@@ -4,7 +4,7 @@ package handler
 import (
 	"net/http"
 
-	"hackathon/backend/internal/svc"
+	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
 )
@@ -16,6 +16,46 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodGet,
 				Path:    "/ping",
 				Handler: PingHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/v1/apps",
+				Handler: CreateAppHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/api/v1/apps/:id",
+				Handler: UpdateAppHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/v1/apps",
+				Handler: GetAppListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/v1/apps/:id",
+				Handler: GetAppDetailHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/v1/deployments",
+				Handler: CreateDeploymentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/api/v1/deployments/:id",
+				Handler: UpdateDeploymentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/v1/deployments",
+				Handler: GetDeploymentListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/v1/deployments/:id",
+				Handler: GetDeploymentDetailHandler(serverCtx),
 			},
 		},
 	)

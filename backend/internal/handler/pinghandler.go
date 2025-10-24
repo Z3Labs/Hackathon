@@ -3,10 +3,10 @@ package handler
 import (
 	"net/http"
 
+	"github.com/Z3Labs/Hackathon/backend/internal/logic"
+	"github.com/Z3Labs/Hackathon/backend/internal/svc"
+	"github.com/Z3Labs/Hackathon/backend/internal/types"
 	"github.com/zeromicro/go-zero/rest/httpx"
-	"hackathon/backend/internal/logic"
-	"hackathon/backend/internal/svc"
-	"hackathon/backend/internal/types"
 )
 
 func PingHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {

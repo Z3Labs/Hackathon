@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 
-	"hackathon/backend/internal/config"
-	"hackathon/backend/internal/handler"
-	"hackathon/backend/internal/svc"
+	"github.com/Z3Labs/Hackathon/backend/internal/config"
+	"github.com/Z3Labs/Hackathon/backend/internal/handler"
+	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"

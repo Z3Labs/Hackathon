@@ -11,11 +11,184 @@ type (
 	PingReq {
 	}
 	PingResp {
-		Message string `json:"message"`
+		Message string `json:"message"` // 响应消息
+	}
+
+	// 机器信息
+	Machine {
+		Id           string `json:"id"`            // 机器唯一标识
+		Ip           string `json:"ip"`            // IP地址
+		Port         int    `json:"port"`          // 端口号
+		HealthStatus string `json:"health_status"` // 健康状态: healthy-健康, unhealthy-不健康
+		ErrorStatus  string `json:"error_status"`  // 异常状态: normal-正常, error-异常
+		AlertStatus  string `json:"alert_status"`  // 告警状态: normal-正常, alert-告警
+	}
+
+	// 应用信息
+	Application {
+		Id           string    `json:"id"`            // 应用唯一标识
+		Name         string    `json:"name"`          // 应用名称
+		DeployPath   string    `json:"deploy_path"`   // 部署路径
+		StartCmd     string    `json:"start_cmd"`     // 启动命令
+		StopCmd      string    `json:"stop_cmd"`      // 停止命令
+		Version      string    `json:"version"`       // 当前版本
+		MachineCount int       `json:"machine_count"` // 机器总数量
+		HealthCount  int       `json:"health_count"`  // 健康机器数量
+		ErrorCount   int       `json:"error_count"`   // 异常机器数量
+		AlertCount   int       `json:"alert_count"`   // 告警机器数量
+		Machines     []Machine `json:"machines"`      // 机器列表
+		CreatedAt    string    `json:"created_at"`    // 创建时间
+		UpdatedAt    string    `json:"updated_at"`    // 更新时间
+	}
+
+	// 发布机器信息
+	DeploymentMachine {
+		Id            string `json:"id"`             // 机器唯一标识
+		Ip            string `json:"ip"`             // IP地址
+		Port          int    `json:"port"`           // 端口号
+		ReleaseStatus string `json:"release_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
+		HealthStatus  string `json:"health_status"`  // 健康状态: healthy-健康, unhealthy-不健康
+		ErrorStatus   string `json:"error_status"`   // 异常状态: normal-正常, error-异常
+		AlertStatus   string `json:"alert_status"`   // 告警状态: normal-正常, alert-告警
+	}
+
+	// 发布记录信息
+	Deployment {
+		Id              string              `json:"id"`               // 发布记录唯一标识
+		AppName         string              `json:"app_name"`         // 应用名称
+		Status          string              `json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
+		PackageVersion  string              `json:"package_version"`  // 包版本
+		ConfigPath      string              `json:"config_path"`      // 配置文件路径
+		GrayStrategy    string              `json:"gray_strategy"`    // 灰度策略: canary-金丝雀发布, blue-green-蓝绿发布, all-全量发布
+		StartTime       string              `json:"start_time"`       // 开始时间
+		EndTime         string              `json:"end_time"`         // 结束时间
+		ReleaseMachines []DeploymentMachine `json:"release_machines"` // 发布机器列表
+		ReleaseLog      string              `json:"release_log"`      // 发布日志
+		CreatedAt       string              `json:"created_at"`       // 创建时间
+		UpdatedAt       string              `json:"updated_at"`       // 更新时间
+	}
+
+	// 应用相关请求响应
+	CreateAppReq {
+		Name       string `json:"name"`             // 应用名称
+		DeployPath string `json:"deploy_path"`      // 部署路径
+		StartCmd   string `json:"start_cmd"`        // 启动命令
+		StopCmd    string `json:"stop_cmd"`         // 停止命令
+		Version    string `json:"version,optional"` // 版本号，可选
+	}
+
+	CreateAppResp {
+		Id string `json:"id"` // 创建的应用ID
+	}
+
+	UpdateAppReq {
+		Id         string `json:"id"`          // 应用ID
+		Name       string `json:"name"`        // 应用名称
+		DeployPath string `json:"deploy_path"` // 部署路径
+		StartCmd   string `json:"start_cmd"`   // 启动命令
+		StopCmd    string `json:"stop_cmd"`    // 停止命令
+		Version    string `json:"version"`     // 版本号
+	}
+
+	UpdateAppResp {
+		Success bool `json:"success"` // 更新是否成功
+	}
+
+	GetAppListReq {
+		Page     int    `form:"page,default=1"`       // 页码，默认第1页
+		PageSize int    `form:"page_size,default=10"` // 每页数量，默认10条
+		Name     string `form:"name,optional"`        // 应用名称筛选，可选
+	}
+
+	GetAppListResp {
+		Apps     []Application `json:"apps"`      // 应用列表
+		Total    int64         `json:"total"`     // 总数量
+		Page     int           `json:"page"`      // 当前页码
+		PageSize int           `json:"page_size"` // 每页数量
+	}
+
+	GetAppDetailReq {
+		Id string `path:"id"` // 应用ID
+	}
+
+	GetAppDetailResp {
+		Application Application `json:"application"` // 应用详情
+	}
+
+	// 发布记录相关请求响应
+	CreateDeploymentReq {
+		AppName        string `json:"app_name"`        // 应用名称
+		PackageVersion string `json:"package_version"` // 包版本
+		ConfigPath     string `json:"config_path"`     // 配置文件路径
+		GrayStrategy   string `json:"gray_strategy"`   // 灰度策略
+	}
+
+	CreateDeploymentResp {
+		Id string `json:"id"` // 创建的发布记录ID
+	}
+
+	UpdateDeploymentReq {
+		Id             string `json:"id"`              // 发布记录ID
+		AppName        string `json:"app_name"`        // 应用名称
+		PackageVersion string `json:"package_version"` // 包版本
+		ConfigPath     string `json:"config_path"`     // 配置文件路径
+		GrayStrategy   string `json:"gray_strategy"`   // 灰度策略
+	}
+
+	UpdateDeploymentResp {
+		Success bool `json:"success"` // 更新是否成功
+	}
+
+	GetDeploymentListReq {
+		Page     int    `form:"page,default=1"`       // 页码，默认第1页
+		PageSize int    `form:"page_size,default=10"` // 每页数量，默认10条
+		AppName  string `form:"app_name,optional"`    // 应用名称筛选，可选
+		Status   string `form:"status,optional"`      // 发布状态筛选，可选
+	}
+
+	GetDeploymentListResp {
+		Deployments []Deployment `json:"deployments"` // 发布记录列表
+		Total       int64        `json:"total"`       // 总数量
+		Page        int          `json:"page"`        // 当前页码
+		PageSize    int          `json:"page_size"`   // 每页数量
+	}
+
+	GetDeploymentDetailReq {
+		Id string `path:"id"` // 发布记录ID
+	}
+
+	GetDeploymentDetailResp {
+		Deployment Deployment `json:"deployment"` // 发布记录详情
 	}
 )
 
 service hackathon-api {
 	@handler Ping
 	get /ping (PingReq) returns (PingResp)
+
+	// 应用管理接口
+	@handler CreateApp
+	post /api/v1/apps (CreateAppReq) returns (CreateAppResp)
+
+	@handler UpdateApp
+	put /api/v1/apps/:id (UpdateAppReq) returns (UpdateAppResp)
+
+	@handler GetAppList
+	get /api/v1/apps (GetAppListReq) returns (GetAppListResp)
+
+	@handler GetAppDetail
+	get /api/v1/apps/:id (GetAppDetailReq) returns (GetAppDetailResp)
+
+	// 发布记录管理接口
+	@handler CreateDeployment
+	post /api/v1/deployments (CreateDeploymentReq) returns (CreateDeploymentResp)
+
+	@handler UpdateDeployment
+	put /api/v1/deployments/:id (UpdateDeploymentReq) returns (UpdateDeploymentResp)
+
+	@handler GetDeploymentList
+	get /api/v1/deployments (GetDeploymentListReq) returns (GetDeploymentListResp)
+
+	@handler GetDeploymentDetail
+	get /api/v1/deployments/:id (GetDeploymentDetailReq) returns (GetDeploymentDetailResp)
 }

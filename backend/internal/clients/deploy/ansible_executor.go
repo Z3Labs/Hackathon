@@ -2,11 +2,7 @@ package deploy
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,13 +12,20 @@ import (
 )
 
 type AnsibleExecutor struct {
-	config ExecutorConfig
-	status *model.NodeStatusRecord
+	config       ExecutorConfig
+	status       *model.NodeStatusRecord
+	playbookPath string
 }
 
 func NewAnsibleExecutor(config ExecutorConfig) *AnsibleExecutor {
+	playbookPath := "/workspace/backend/playbooks/deploy.yml"
+	if path := os.Getenv("ANSIBLE_PLAYBOOK_PATH"); path != "" {
+		playbookPath = path
+	}
+
 	return &AnsibleExecutor{
-		config: config,
+		config:       config,
+		playbookPath: playbookPath,
 		status: &model.NodeStatusRecord{
 			Host:             config.Host,
 			Service:          config.Service,
@@ -39,34 +42,29 @@ func (a *AnsibleExecutor) Deploy(ctx context.Context) error {
 	a.status.State = model.NodeStatusDeploying
 	a.status.UpdatedAt = time.Now()
 
-	releaseDir := fmt.Sprintf("/opt/releases/%s/%s", a.config.Service, a.config.Version)
-	if err := os.MkdirAll(releaseDir, 0755); err != nil {
-		return fmt.Errorf("failed to create release directory: %w", err)
-	}
+	extraVars := fmt.Sprintf("host=%s service_name=%s deploy_version=%s package_url=%s package_sha256=%s prev_version=%s",
+		a.config.Host,
+		a.config.Service,
+		a.config.Version,
+		a.config.PackageURL,
+		a.config.SHA256,
+		a.config.PrevVersion,
+	)
 
-	packagePath := filepath.Join(releaseDir, fmt.Sprintf("%s.tar.gz", a.config.Service))
-	if err := a.downloadPackage(ctx, a.config.PackageURL, packagePath); err != nil {
-		return fmt.Errorf("failed to download package: %w", err)
-	}
+	cmd := exec.CommandContext(ctx, "ansible-playbook",
+		a.playbookPath,
+		"-e", extraVars,
+		"-v",
+	)
 
-	if err := a.verifyChecksum(packagePath, a.config.SHA256); err != nil {
-		return fmt.Errorf("checksum verification failed: %w", err)
-	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	if err := a.extractPackage(releaseDir, packagePath); err != nil {
-		return fmt.Errorf("failed to extract package: %w", err)
-	}
-
-	if err := a.createSystemdService(); err != nil {
-		return fmt.Errorf("failed to create systemd service: %w", err)
-	}
-
-	if err := a.reloadSystemd(); err != nil {
-		return fmt.Errorf("failed to reload systemd: %w", err)
-	}
-
-	if err := a.restartService(); err != nil {
-		return fmt.Errorf("failed to restart service: %w", err)
+	if err := cmd.Run(); err != nil {
+		a.status.State = model.NodeStatusFailed
+		a.status.LastError = fmt.Sprintf("ansible-playbook execution failed: %v", err)
+		a.status.UpdatedAt = time.Now()
+		return fmt.Errorf("failed to execute ansible-playbook: %w", err)
 	}
 
 	a.status.State = model.NodeStatusSuccess
@@ -84,13 +82,31 @@ func (a *AnsibleExecutor) Rollback(ctx context.Context) error {
 	}
 
 	a.status.State = model.NodeStatusDeploying
+	a.status.UpdatedAt = time.Now()
 
-	serviceName := fmt.Sprintf("%s@%s", a.config.Service, a.config.PrevVersion)
-	cmd := exec.CommandContext(ctx, "systemctl", "restart", serviceName)
+	extraVars := fmt.Sprintf("host=%s service_name=%s deploy_version=%s package_url=%s package_sha256=%s prev_version=%s rollback=true",
+		a.config.Host,
+		a.config.Service,
+		a.config.Version,
+		a.config.PackageURL,
+		a.config.SHA256,
+		a.config.PrevVersion,
+	)
+
+	cmd := exec.CommandContext(ctx, "ansible-playbook",
+		a.playbookPath,
+		"-e", extraVars,
+		"-v",
+	)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
 	if err := cmd.Run(); err != nil {
 		a.status.State = model.NodeStatusFailed
 		a.status.LastError = fmt.Sprintf("rollback failed: %v", err)
-		return fmt.Errorf("failed to restart service for rollback: %w", err)
+		a.status.UpdatedAt = time.Now()
+		return fmt.Errorf("failed to execute rollback: %w", err)
 	}
 
 	a.status.State = model.NodeStatusRolledBack
@@ -105,83 +121,6 @@ func (a *AnsibleExecutor) GetStatus(ctx context.Context) (*model.NodeStatusRecor
 	return a.status, nil
 }
 
-func (a *AnsibleExecutor) downloadPackage(ctx context.Context, url, destPath string) error {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return err
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to download package: status %d", resp.StatusCode)
-	}
-
-	out, err := os.Create(destPath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, resp.Body)
-	return err
-}
-
-func (a *AnsibleExecutor) verifyChecksum(filePath, expectedSHA256 string) error {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return err
-	}
-
-	actualSHA256 := hex.EncodeToString(hash.Sum(nil))
-	if actualSHA256 != expectedSHA256 {
-		return fmt.Errorf("checksum mismatch: expected %s, got %s", expectedSHA256, actualSHA256)
-	}
-
-	return nil
-}
-
-func (a *AnsibleExecutor) extractPackage(destDir, packagePath string) error {
-	cmd := exec.Command("tar", "-xzf", packagePath, "-C", destDir)
-	return cmd.Run()
-}
-
-func (a *AnsibleExecutor) createSystemdService() error {
-	serviceContent := fmt.Sprintf(`[Unit]
-Description=%s service version %s
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/opt/releases/%s/%s/%s
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-`, a.config.Service, a.config.Version, a.config.Service, a.config.Version, a.config.Service)
-
-	servicePath := fmt.Sprintf("/etc/systemd/system/%s@%s.service", a.config.Service, a.config.Version)
-	return os.WriteFile(servicePath, []byte(serviceContent), 0644)
-}
-
-func (a *AnsibleExecutor) reloadSystemd() error {
-	cmd := exec.Command("systemctl", "daemon-reload")
-	return cmd.Run()
-}
-
-func (a *AnsibleExecutor) restartService() error {
-	serviceName := fmt.Sprintf("%s@%s", a.config.Service, a.config.Version)
-	cmd := exec.Command("systemctl", "restart", serviceName)
-	return cmd.Run()
+func (a *AnsibleExecutor) getPlaybookDir() string {
+	return filepath.Dir(a.playbookPath)
 }

@@ -6,20 +6,20 @@
 
 .sidebar {
   width: 200px;
-  background-color: #1a1a1a;
-  border-right: 1px solid #333;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
 }
 
 .logo {
   padding: 20px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .logo h2 {
   margin: 0;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 20px;
 }
 
@@ -31,25 +31,62 @@
 
 .menu-item {
   padding: 12px 20px;
-  color: #aaaaaa;
+  color: var(--text-secondary);
   text-decoration: none;
   transition: all 0.3s;
   border-left: 3px solid transparent;
 }
 
 .menu-item:hover {
-  background-color: #2a2a2a;
-  color: #ffffff;
+  background-color: var(--menu-hover-bg);
+  color: var(--text-primary);
 }
 
 .menu-item.active {
-  background-color: #2a2a2a;
-  color: #ffffff;
+  background-color: var(--menu-hover-bg);
+  color: var(--text-primary);
   border-left-color: #646cff;
 }
 
 .content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.content-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.content-body {
+  flex: 1;
   padding: 40px;
   overflow-y: auto;
+}
+
+.theme-toggle {
+  background: var(--button-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  transition: all 0.3s;
+}
+
+.theme-toggle:hover {
+  background: var(--button-hover-bg);
+  transform: scale(1.1);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
 }

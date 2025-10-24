@@ -1,14 +1,27 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import './Layout.css'
 
 const Layout: React.FC = () => {
   const location = useLocation()
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const savedTheme = localStorage.getItem('theme')
+    return (savedTheme as 'light' | 'dark') || 'dark'
+  })
 
   const menuItems = [
     { path: '/publish', label: '发布' },
     { path: '/monitor', label: '监控' }
   ]
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light')
+  }
 
   return (
     <div className="layout">
@@ -29,7 +42,14 @@ const Layout: React.FC = () => {
         </nav>
       </aside>
       <main className="content">
-        <Outlet />
+        <header className="content-header">
+          <button className="theme-toggle" onClick={toggleTheme} title={theme === 'light' ? '切换到暗黑模式' : '切换到明亮模式'}>
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
+        </header>
+        <div className="content-body">
+          <Outlet />
+        </div>
       </main>
     </div>
   )

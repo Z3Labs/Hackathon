@@ -621,7 +621,7 @@ const Apps: React.FC = () => {
                               }
                             }))}
                             placeholder="例如: rate(http_requests_total[5m])"
-                            rows={3}
+                            rows={6}
                           />
                         </div>
                         <div className="form-group">
@@ -683,7 +683,7 @@ const Apps: React.FC = () => {
                               }
                             }))}
                             placeholder="例如: rate(http_requests_errors_total[5m])"
-                            rows={3}
+                            rows={6}
                           />
                         </div>
                         <div className="form-group">
@@ -745,7 +745,7 @@ const Apps: React.FC = () => {
                               }
                             }))}
                             placeholder="例如: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))"
-                            rows={3}
+                            rows={6}
                           />
                         </div>
                         <div className="form-group">
@@ -987,7 +987,7 @@ const Apps: React.FC = () => {
                                   }))
                                 }}
                                 placeholder="例如: rate(http_requests_errors_total[5m]) > 0.1"
-                                rows={2}
+                                rows={5}
                               />
                             </div>
                             

@@ -7,6 +7,7 @@ import (
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
+	"github.com/Z3Labs/Hackathon/backend/internal/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -51,6 +52,13 @@ func (l *UpdateMachineLogic) UpdateMachine(req *types.UpdateMachineReq) (resp *t
 		}
 	}
 
+	// 加密密码
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+		l.Errorf("[UpdateMachine] HashPassword error:%v", err)
+		return nil, fmt.Errorf("encrypt password failed")
+	}
+
 	// 更新机器信息
 	machine := &model.Machine{
 		Id:           req.Id,
@@ -58,7 +66,7 @@ func (l *UpdateMachineLogic) UpdateMachine(req *types.UpdateMachineReq) (resp *t
 		Ip:           req.Ip,
 		Port:         req.Port,
 		Username:     req.Username,
-		Password:     req.Password,
+		Password:     hashedPassword,
 		Description:  req.Description,
 		HealthStatus: existingMachine.HealthStatus, // 保持原有状态
 		ErrorStatus:  existingMachine.ErrorStatus,  // 保持原有状态

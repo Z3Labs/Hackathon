@@ -8,6 +8,7 @@ import (
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
+	"github.com/Z3Labs/Hackathon/backend/internal/utils"
 
 	"github.com/google/uuid"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -44,6 +45,13 @@ func (l *CreateMachineLogic) CreateMachine(req *types.CreateMachineReq) (resp *t
 	// 生成机器ID
 	machineId := uuid.New().String()
 
+	// 加密密码
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+		l.Errorf("[CreateMachine] HashPassword error:%v", err)
+		return nil, fmt.Errorf("encrypt password failed")
+	}
+
 	// 创建机器对象
 	machine := &model.Machine{
 		Id:           machineId,
@@ -51,7 +59,7 @@ func (l *CreateMachineLogic) CreateMachine(req *types.CreateMachineReq) (resp *t
 		Ip:           req.Ip,
 		Port:         req.Port,
 		Username:     req.Username,
-		Password:     req.Password,
+		Password:     hashedPassword,
 		Description:  req.Description,
 		HealthStatus: model.HealthStatusHealthy, // 默认健康状态
 		ErrorStatus:  model.ErrorStatusNormal,   // 默认正常状态

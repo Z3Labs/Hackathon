@@ -1,0 +1,19 @@
+# Anthropic SDK 与 MCP 集成所需依赖
+
+# Anthropic SDK
+anthropic>=0.39.0
+
+# MCP Python SDK
+mcp>=1.0.0
+
+# 环境变量管理
+python-dotenv>=1.0.0
+
+# 异步支持
+asyncio
+
+# JSON 处理（Python 内置，无需安装）
+# json
+
+# 正则表达式（Python 内置，无需安装）
+# re

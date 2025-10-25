@@ -47,19 +47,21 @@ func (l *GetAppDetailLogic) GetAppDetail(req *types.GetAppDetailReq) (resp *type
 
 	// 构建响应
 	app := types.Application{
-		Id:             application.Id,
-		Name:           application.Name,
-		DeployPath:     application.DeployPath,
-		StartCmd:       application.StartCmd,
-		StopCmd:        application.StopCmd,
-		CurrentVersion: application.CurrentVersion,
-		MachineCount:   application.MachineCount,
-		HealthCount:    application.HealthCount,
-		ErrorCount:     application.ErrorCount,
-		AlertCount:     application.AlertCount,
-		Machines:       machines,
-		CreatedAt:      application.CreatedTime.Unix(),
-		UpdatedAt:      application.UpdatedTime.Unix(),
+		Id:               application.Id,
+		Name:             application.Name,
+		DeployPath:       application.DeployPath,
+		StartCmd:         application.StartCmd,
+		StopCmd:          application.StopCmd,
+		CurrentVersion:   application.CurrentVersion,
+		MachineCount:     application.MachineCount,
+		HealthCount:      application.HealthCount,
+		ErrorCount:       application.ErrorCount,
+		AlertCount:       application.AlertCount,
+		Machines:         machines,
+		RollbackPolicy:   convertRollbackPolicy(application.RollbackPolicy),
+		REDMetricsConfig: convertREDMetrics(application.REDMetricsConfig),
+		CreatedAt:        application.CreatedTime.Unix(),
+		UpdatedAt:        application.UpdatedTime.Unix(),
 	}
 
 	l.Infof("[GetAppDetail] Successfully retrieved app detail: %s", req.Id)

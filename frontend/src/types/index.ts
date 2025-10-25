@@ -14,6 +14,49 @@ export interface Machine {
   updated_at: number
 }
 
+// RED 指标定义
+export interface MetricDefinition {
+  metric_name: string
+  promql: string
+  labels: Record<string, string>
+  description: string
+}
+
+// 健康度阈值
+export interface HealthThreshold {
+  rate_min: number
+  error_rate_max: number
+  duration_p99_max: number
+  duration_p95_max: number
+}
+
+// RED 指标配置
+export interface REDMetrics {
+  enabled: boolean
+  rate_metric?: MetricDefinition
+  error_metric?: MetricDefinition
+  duration_metric?: MetricDefinition
+  health_threshold?: HealthThreshold
+}
+
+// Prometheus 告警规则
+export interface PrometheusAlert {
+  name: string
+  alert_expr: string
+  duration: string
+  severity: string
+  labels: Record<string, string>
+  annotations: Record<string, string>
+}
+
+// 回滚策略
+export interface RollbackPolicy {
+  enabled: boolean
+  alert_rules: PrometheusAlert[]
+  auto_rollback: boolean
+  notify_channel: string
+}
+
 // 应用信息
 export interface Application {
   id: string
@@ -27,6 +70,8 @@ export interface Application {
   error_count: number
   alert_count: number
   machines: Machine[]
+  rollback_policy?: RollbackPolicy
+  red_metrics_config?: REDMetrics
   created_at: number
   updated_at: number
 }
@@ -62,6 +107,8 @@ export interface CreateAppReq {
   deploy_path: string
   start_cmd: string
   stop_cmd: string
+  rollback_policy?: RollbackPolicy
+  red_metrics_config?: REDMetrics
 }
 
 export interface CreateAppResp {
@@ -75,6 +122,8 @@ export interface UpdateAppReq {
   start_cmd: string
   stop_cmd: string
   machine_ids?: string[]
+  rollback_policy?: RollbackPolicy
+  red_metrics_config?: REDMetrics
 }
 
 export interface UpdateAppResp {

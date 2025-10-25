@@ -39,6 +39,8 @@
         src: "{{ release_dir }}/{{ svc }}.tar.gz"
         dest: "{{ release_dir }}"
         remote_src: yes
+        extra_opts:
+          - --strip-components=1
 
     - name: Render systemd unit
       template:
@@ -49,7 +51,12 @@
     - name: Reload systemd daemon
       systemd:
         daemon_reload: yes
-
+    - name: Stop previous version if exists
+      systemd:
+        name: "{{ svc }}@{{ prev_version }}"
+        state: stopped
+      when: prev_version is defined and prev_version | length > 0
+      ignore_errors: yes
     - name: Restart service
       systemd:
         name: "{{ svc }}@{{ version }}"

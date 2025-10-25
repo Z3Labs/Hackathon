@@ -58,6 +58,7 @@ func (a *AnsibleExecutor) Deploy(ctx context.Context) error {
 		"-e", extraVars,
 		"-v",
 	)
+	fmt.Printf("Running ansible-playbook, cmd is: %v\n", cmd.String())
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

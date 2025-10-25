@@ -62,19 +62,21 @@ func (l *GetAppListLogic) GetAppList(req *types.GetAppListReq) (resp *types.GetA
 		}
 
 		apps = append(apps, types.Application{
-			Id:             app.Id,
-			Name:           app.Name,
-			DeployPath:     app.DeployPath,
-			StartCmd:       app.StartCmd,
-			StopCmd:        app.StopCmd,
-			CurrentVersion: app.CurrentVersion,
-			MachineCount:   app.MachineCount,
-			HealthCount:    app.HealthCount,
-			ErrorCount:     app.ErrorCount,
-			AlertCount:     app.AlertCount,
-			Machines:       machines,
-			CreatedAt:      app.CreatedTime.Unix(),
-			UpdatedAt:      app.UpdatedTime.Unix(),
+			Id:               app.Id,
+			Name:             app.Name,
+			DeployPath:       app.DeployPath,
+			StartCmd:         app.StartCmd,
+			StopCmd:          app.StopCmd,
+			CurrentVersion:   app.CurrentVersion,
+			MachineCount:     app.MachineCount,
+			HealthCount:      app.HealthCount,
+			ErrorCount:       app.ErrorCount,
+			AlertCount:       app.AlertCount,
+			Machines:         machines,
+			RollbackPolicy:   convertRollbackPolicy(app.RollbackPolicy),
+			REDMetricsConfig: convertREDMetrics(app.REDMetricsConfig),
+			CreatedAt:        app.CreatedTime.Unix(),
+			UpdatedAt:        app.UpdatedTime.Unix(),
 		})
 	}
 

@@ -50,4 +50,8 @@ export const deploymentService = {
   async skipNodeDeployment(id: string, nodeDeploymentIds: string[]): Promise<{ success: boolean }> {
     return api.post(`/deployments/${id}/node-deployments/skip`, { node_deployment_ids: nodeDeploymentIds });
   },
+
+  async cancelNodeDeployment(id: string, nodeDeploymentIds: string[]): Promise<{ success: boolean }> {
+    return api.post(`/deployments/${id}/node-deployments/cancel`, { node_deployment_ids: nodeDeploymentIds });
+  },
 };

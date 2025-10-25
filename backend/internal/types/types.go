@@ -144,3 +144,21 @@ type GetDeploymentDetailReq struct {
 type GetDeploymentDetailResp struct {
 	Deployment Deployment `json:"deployment"` // 发布记录详情
 }
+
+type PostAlertCallbackReq struct {
+	Key          string            `json:"key"`
+	Status       string            `json:"status"`
+	Desc         string            `json:"desc,optional,omitempty"`
+	StartsAt     string            `json:"startsAt"`
+	ReceiveAt    string            `json:"receiveAt"`
+	EndsAt       string            `json:"endsAt,optional,omitempty"`
+	Severity     string            `json:"severity"`
+	Alertname    string            `json:"alertname"`
+	GeneratorURL string            `json:"generatorUrl"`
+	NeedHandle   bool              `json:"needHandle,optional,omitempty"`
+	IsEmergent   bool              `json:"isEmergent,optional,omitempty"`
+	Labels       map[string]string `json:"labels,optional,omitempty"`
+	Annotations  map[string]string `json:"annotations,optional,omitempty"` // 关键字看 description,节点访问中心成功率低于80% 当前触发值: 50%, 然后让 AI自动分析
+	Type         int               `json:"type,,optional,omitempty"`
+	Values       float64           `json:"values"`
+}

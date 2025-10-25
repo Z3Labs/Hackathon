@@ -4,6 +4,7 @@ package handler
 import (
 	"net/http"
 
+	alert "github.com/Z3Labs/Hackathon/backend/internal/handler/alert"
 	apps "github.com/Z3Labs/Hackathon/backend/internal/handler/apps"
 	deployments "github.com/Z3Labs/Hackathon/backend/internal/handler/deployments"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
@@ -68,6 +69,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodGet,
 				Path:    "/api/v1/deployments/:id",
 				Handler: deployments.GetDeploymentDetailHandler(serverCtx),
+			},
+		},
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/v1/alerts",
+				Handler: alert.AlertCallBackHandler(serverCtx),
 			},
 		},
 	)

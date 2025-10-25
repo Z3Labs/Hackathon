@@ -156,6 +156,24 @@ type (
 	GetDeploymentDetailResp {
 		Deployment Deployment `json:"deployment"` // 发布记录详情
 	}
+
+	PostAlertCallbackReq {
+		Key          string            `json:"key"`
+		Status       string            `json:"status"`
+		Desc         string            `json:"desc,optional,omitempty"`
+		StartsAt     string            `json:"startsAt"`
+		ReceiveAt    string            `json:"receiveAt"`
+		EndsAt       string            `json:"endsAt,optional,omitempty"`
+		Severity     string            `json:"severity"`
+		Alertname    string            `json:"alertname"`
+		GeneratorURL string            `json:"generatorUrl"`
+		NeedHandle   bool              `json:"needHandle,optional,omitempty"`
+		IsEmergent   bool              `json:"isEmergent,optional,omitempty"`
+		Labels       map[string]string `json:"labels,optional,omitempty"`
+		Annotations  map[string]string `json:"annotations,optional,omitempty"` // 关键字看 description,节点访问中心成功率低于80% 当前触发值: 50%, 然后让 AI自动分析
+		Type         int               `json:"type,,optional,omitempty"`
+		Values       float64           `json:"values"`
+	}
 )
 
 service hackathon-api {
@@ -203,4 +221,13 @@ service hackathon-api {
 	@doc "获取发布记录详情"
 	@handler GetDeploymentDetail
 	get /api/v1/deployments/:id (GetDeploymentDetailReq) returns (GetDeploymentDetailResp)
+}
+
+@server(
+	group: alert
+)
+service hackathon-api {
+	@doc "告警处理"
+	@handler AlertCallBack
+	post /v1/alerts (PostAlertCallbackReq)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 
@@ -29,7 +30,7 @@ func main() {
 	handler.RegisterHandlers(server, ctx)
 
 	executorFactory := executor.NewExecutorFactory()
-	planManager := plan.NewPlanManager(ctx.ReleasePlanModel, ctx.NodeStatusModel, executorFactory)
+	planManager := plan.NewPlanManager(context.Background(), ctx, executorFactory)
 	
 	planCron := plan.NewPlanCron(planManager)
 	if err := planCron.Start(); err != nil {

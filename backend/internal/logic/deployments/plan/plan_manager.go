@@ -8,6 +8,7 @@ import (
 
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
+	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 )
 
 type PlanManager struct {
@@ -22,14 +23,14 @@ var (
 )
 
 func NewPlanManager(
-	releasePlanModel model.ReleasePlanModel,
-	nodeStatusModel model.NodeStatusModel,
+	ctx context.Context,
+	svc *svc.ServiceContext,
 	executorFactory executor.ExecutorFactoryInterface,
 ) *PlanManager {
 	once.Do(func() {
 		instance = &PlanManager{
-			releasePlanModel: releasePlanModel,
-			nodeStatusModel:  nodeStatusModel,
+			releasePlanModel: svc.ReleasePlanModel,
+			nodeStatusModel:  svc.NodeStatusModel,
 			executorFactory:  executorFactory,
 		}
 	})

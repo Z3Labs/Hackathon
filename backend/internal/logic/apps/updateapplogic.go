@@ -41,6 +41,16 @@ func (l *UpdateAppLogic) UpdateApp(req *types.UpdateAppReq) (resp *types.UpdateA
 	existingApp.StopCmd = req.StopCmd
 	existingApp.UpdatedTime = time.Now()
 
+	// 更新回滚策略配置
+	if req.RollbackPolicy != nil {
+		existingApp.RollbackPolicy = convertTypesToModelRollbackPolicy(req.RollbackPolicy)
+	}
+
+	// 更新RED指标配置
+	if req.REDMetricsConfig != nil {
+		existingApp.REDMetricsConfig = convertTypesToModelREDMetrics(req.REDMetricsConfig)
+	}
+
 	// 如果提供了机器ID列表，更新机器关联
 	if req.MachineIds != nil {
 		machines := make([]model.Machine, 0)

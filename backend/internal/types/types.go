@@ -152,6 +152,22 @@ type GetDeploymentDetailResp struct {
 	Deployment Deployment `json:"deployment"` // 发布记录详情
 }
 
+type CancelDeploymentReq struct {
+	Id string `path:"id"` // 发布记录ID
+}
+
+type CancelDeploymentResp struct {
+	Success bool `json:"success"` // 取消是否成功
+}
+
+type RollbackDeploymentReq struct {
+	Id string `path:"id"` // 发布记录ID
+}
+
+type RollbackDeploymentResp struct {
+	Success bool `json:"success"` // 回滚是否成功
+}
+
 type CreateMachineReq struct {
 	Name        string `json:"name"`        // 机器名称
 	Ip          string `json:"ip"`          // IP地址

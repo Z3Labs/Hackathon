@@ -26,4 +26,12 @@ export const deploymentService = {
   async getDeploymentDetail(id: string): Promise<GetDeploymentDetailResponse> {
     return api.get(`/deployments/${id}`);
   },
+
+  async cancelDeployment(id: string): Promise<{ success: boolean }> {
+    return api.post(`/deployments/${id}/cancel`);
+  },
+
+  async rollbackDeployment(id: string): Promise<{ success: boolean }> {
+    return api.post(`/deployments/${id}/rollback`);
+  },
 };

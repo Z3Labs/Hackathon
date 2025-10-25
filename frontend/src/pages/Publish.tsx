@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import DeploymentList from '../components/DeploymentList';
 import DeploymentForm from '../components/DeploymentForm';
 import DeploymentDetail from '../components/DeploymentDetail';
+import Breadcrumb, { BreadcrumbItem } from '../components/Breadcrumb';
 import type { Deployment } from '../types/deployment';
 
 type ViewMode = 'list' | 'create' | 'detail';
@@ -34,9 +35,21 @@ const Publish: React.FC = () => {
     setSelectedDeployment(null);
   };
 
+  const getBreadcrumb = (): BreadcrumbItem[] => {
+    const items: BreadcrumbItem[] = [{ label: '发布', path: '/publish' }];
+    
+    if (viewMode === 'create') {
+      items.push({ label: '新建发布' });
+    } else if (viewMode === 'detail') {
+      items.push({ label: '发布详情' });
+    }
+    
+    return items;
+  };
+
   return (
     <div>
-      <h1 style={{ padding: '20px', borderBottom: '1px solid #f0f0f0', margin: 0 }}>发布管理</h1>
+      <Breadcrumb items={getBreadcrumb()} />
       {viewMode === 'list' && (
         <DeploymentList
           key={refreshKey}

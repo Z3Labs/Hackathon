@@ -164,6 +164,22 @@ type (
 		Deployment Deployment `json:"deployment"` // 发布记录详情
 	}
 
+	CancelDeploymentReq {
+		Id string `path:"id"` // 发布记录ID
+	}
+
+	CancelDeploymentResp {
+		Success bool `json:"success"` // 取消是否成功
+	}
+
+	RollbackDeploymentReq {
+		Id string `path:"id"` // 发布记录ID
+	}
+
+	RollbackDeploymentResp {
+		Success bool `json:"success"` // 回滚是否成功
+	}
+
 	// 裸金属机器相关请求响应
 	CreateMachineReq {
 		Name        string `json:"name"`        // 机器名称
@@ -298,6 +314,14 @@ service hackathon-api {
 	@doc "获取发布记录详情"
 	@handler GetDeploymentDetail
 	get /api/v1/deployments/:id (GetDeploymentDetailReq) returns (GetDeploymentDetailResp)
+
+	@doc "取消发布"
+	@handler CancelDeployment
+	post /api/v1/deployments/:id/cancel (CancelDeploymentReq) returns (CancelDeploymentResp)
+
+	@doc "回滚发布"
+	@handler RollbackDeployment
+	post /api/v1/deployments/:id/rollback (RollbackDeploymentReq) returns (RollbackDeploymentResp)
 }
 
 @server(

@@ -13,6 +13,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -30,6 +31,20 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     };
 
     fetchDetail();
+  }, [deploymentId]);
+
+  useEffect(() => {
+    const countdownTimer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          refreshDetail();
+          return 5;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(countdownTimer);
   }, [deploymentId]);
 
   const getStatusText = (status: string) => {
@@ -77,6 +92,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       const response = await deploymentService.getDeploymentDetail(deploymentId);
       setDeployment(response.deployment);
       setSelectedNodeIds([]);
+      setCountdown(5);
     } catch (err) {
       console.error('刷新详情失败:', err);
       alert('刷新详情失败');
@@ -316,7 +332,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
               fontSize: '14px',
             }}
           >
-            刷新
+            刷新 ({countdown}s)
           </button>
           {canOperate && (
             <>

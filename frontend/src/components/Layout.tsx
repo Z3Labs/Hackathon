@@ -12,8 +12,7 @@ const Layout: React.FC = () => {
   const menuItems = [
     { path: '/publish', label: '发布' },
     { path: '/apps', label: '应用管理' },
-    { path: '/machines', label: '机器管理' },
-    { path: '/monitor', label: '监控' }
+    { path: '/machines', label: '机器管理' }
   ]
 
   useEffect(() => {
@@ -29,7 +28,7 @@ const Layout: React.FC = () => {
     <div className="layout">
       <aside className="sidebar">
         <div className="logo">
-          <h2>Hackathon</h2>
+          <h1>Z³ Labs</h1>
         </div>
         <nav className="menu">
           {menuItems.map(item => (

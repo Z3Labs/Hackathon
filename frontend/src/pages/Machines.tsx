@@ -3,7 +3,7 @@ import { machineApi } from '../services/api'
 import { Machine, CreateMachineReq, GetMachineListResp, GetMachineDetailResp } from '../types'
 import { useApiRequest } from '../hooks/useApiRequest'
 import { Toaster } from 'react-hot-toast'
-import Breadcrumb from '../components/Breadcrumb'
+import PageLayout from '../components/PageLayout'
 import './Apps.css'
 
 const Machines: React.FC = () => {
@@ -227,8 +227,7 @@ const Machines: React.FC = () => {
   }
 
   return (
-    <div className="apps-container">
-      <Breadcrumb items={[{ label: '机器管理' }]} />
+    <PageLayout breadcrumbItems={[{ label: '机器管理', path: '/machines' }]}>
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -241,7 +240,6 @@ const Machines: React.FC = () => {
         }}
       />
       <div className="apps-header">
-        <h1>机器管理</h1>
         <div className="apps-actions">
           <div className="search-box">
             <input
@@ -582,7 +580,7 @@ const Machines: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   )
 }
 

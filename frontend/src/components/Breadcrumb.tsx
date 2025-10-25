@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export interface BreadcrumbItem {
   label: string;
   path?: string;
+  onClick?: () => void;
 }
 
 interface BreadcrumbProps {
@@ -14,7 +15,9 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
   const navigate = useNavigate();
 
   const handleClick = (item: BreadcrumbItem) => {
-    if (item.path) {
+    if (item.onClick) {
+      item.onClick();
+    } else if (item.path) {
       navigate(item.path);
     }
   };
@@ -35,7 +38,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
           {index > 0 && (
             <span style={{ margin: '0 8px', color: '#8c8c8c' }}>{'>'}</span>
           )}
-          {item.path ? (
+          {(item.path || item.onClick) ? (
             <span
               onClick={() => handleClick(item)}
               style={{

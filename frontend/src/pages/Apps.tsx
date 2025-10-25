@@ -721,6 +721,106 @@ const Apps: React.FC = () => {
                   </table>
                 </div>
               </div>
+
+              {selectedApp.red_metrics_config && (
+                <div className="detail-section">
+                  <h4>RED 指标配置</h4>
+                  <div className="detail-grid">
+                    <div className="detail-item">
+                      <label>启用状态:</label>
+                      <span>{selectedApp.red_metrics_config.enabled ? '已启用' : '未启用'}</span>
+                    </div>
+                  </div>
+
+                  {selectedApp.red_metrics_config.enabled && (
+                    <>
+                      {selectedApp.red_metrics_config.rate_metric && (
+                        <div style={{ marginTop: '15px' }}>
+                          <h5>Rate 指标 (请求速率)</h5>
+                          <div className="detail-grid">
+                            <div className="detail-item">
+                              <label>指标名称:</label>
+                              <span>{selectedApp.red_metrics_config.rate_metric.metric_name}</span>
+                            </div>
+                            <div className="detail-item">
+                              <label>PromQL:</label>
+                              <span>{selectedApp.red_metrics_config.rate_metric.promql}</span>
+                            </div>
+                            <div className="detail-item">
+                              <label>描述:</label>
+                              <span>{selectedApp.red_metrics_config.rate_metric.description}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedApp.red_metrics_config.error_metric && (
+                        <div style={{ marginTop: '15px' }}>
+                          <h5>Error 指标 (错误率)</h5>
+                          <div className="detail-grid">
+                            <div className="detail-item">
+                              <label>指标名称:</label>
+                              <span>{selectedApp.red_metrics_config.error_metric.metric_name}</span>
+                            </div>
+                            <div className="detail-item">
+                              <label>PromQL:</label>
+                              <span>{selectedApp.red_metrics_config.error_metric.promql}</span>
+                            </div>
+                            <div className="detail-item">
+                              <label>描述:</label>
+                              <span>{selectedApp.red_metrics_config.error_metric.description}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedApp.red_metrics_config.duration_metric && (
+                        <div style={{ marginTop: '15px' }}>
+                          <h5>Duration 指标 (响应时长)</h5>
+                          <div className="detail-grid">
+                            <div className="detail-item">
+                              <label>指标名称:</label>
+                              <span>{selectedApp.red_metrics_config.duration_metric.metric_name}</span>
+                            </div>
+                            <div className="detail-item">
+                              <label>PromQL:</label>
+                              <span>{selectedApp.red_metrics_config.duration_metric.promql}</span>
+                            </div>
+                            <div className="detail-item">
+                              <label>描述:</label>
+                              <span>{selectedApp.red_metrics_config.duration_metric.description}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedApp.red_metrics_config.health_threshold && (
+                        <div style={{ marginTop: '15px' }}>
+                          <h5>健康度阈值</h5>
+                          <div className="detail-grid">
+                            <div className="detail-item">
+                              <label>最低请求速率:</label>
+                              <span>{selectedApp.red_metrics_config.health_threshold.rate_min} req/s</span>
+                            </div>
+                            <div className="detail-item">
+                              <label>最大错误率:</label>
+                              <span>{selectedApp.red_metrics_config.health_threshold.error_rate_max}%</span>
+                            </div>
+                            <div className="detail-item">
+                              <label>P99 响应时长上限:</label>
+                              <span>{selectedApp.red_metrics_config.health_threshold.duration_p99_max}ms</span>
+                            </div>
+                            <div className="detail-item">
+                              <label>P95 响应时长上限:</label>
+                              <span>{selectedApp.red_metrics_config.health_threshold.duration_p95_max}ms</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
             <div className="modal-footer">
               <button onClick={() => setShowDetailModal(false)}>关闭</button>

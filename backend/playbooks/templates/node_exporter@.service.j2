@@ -1,0 +1,13 @@
+[Unit]
+Description={{ svc }} service version {{ version }}
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/releases/{{ svc }}/{{ version }}/{{ svc }} \
+  --web.listen-address=127.0.0.1:9301
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

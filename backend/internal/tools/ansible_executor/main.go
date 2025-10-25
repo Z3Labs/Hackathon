@@ -14,23 +14,23 @@ import (
 
 func main() {
 	var (
-		action      string
-		host        string
-		service     string
-		version     string
-		prevVersion string
-		packageURL  string
-		sha256      string
+		action       string
+		host         string
+		service      string
+		version      string
+		prevVersion  string
+		packageURL   string
+		sha256       string
 		playbookPath string
-		timeout     int
+		timeout      int
 	)
 
 	flag.StringVar(&action, "action", "deploy", "操作类型: deploy, rollback, status")
 	flag.StringVar(&host, "host", "", "目标主机地址 (必填)")
 	flag.StringVar(&service, "service", "", "服务名称 (必填)")
 	flag.StringVar(&version, "version", "", "部署版本 (必填)")
-	flag.StringVar(&prevVersion, "prev-version", "", "上一个版本 (rollback 时必填)")
-	flag.StringVar(&packageURL, "package-url", "", "软件包 URL (必填)")
+	flag.StringVar(&prevVersion, "prev_version", "", "上一个版本 (rollback 时必填)")
+	flag.StringVar(&packageURL, "package_url", "", "软件包 URL (必填)")
 	flag.StringVar(&sha256, "sha256", "", "软件包 SHA256 (必填)")
 	flag.StringVar(&playbookPath, "playbook", "/workspace/backend/playbooks/deploy.yml", "Ansible playbook 路径")
 	flag.IntVar(&timeout, "timeout", 600, "执行超时时间（秒）")
@@ -45,7 +45,7 @@ func main() {
 	if action == "deploy" || action == "rollback" {
 		if version == "" || packageURL == "" || sha256 == "" {
 			flag.Usage()
-			log.Fatal("错误: deploy 和 rollback 操作需要 version, package-url, sha256 参数")
+			log.Fatalf("错误: deploy 和 rollback 操作需要 version(%s), package_url(%s), sha256 参数(%s)", version, packageURL, sha256)
 		}
 	}
 

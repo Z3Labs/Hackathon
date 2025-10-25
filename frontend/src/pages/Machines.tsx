@@ -3,6 +3,7 @@ import { machineApi } from '../services/api'
 import { Machine, CreateMachineReq, GetMachineListResp, GetMachineDetailResp } from '../types'
 import { useApiRequest } from '../hooks/useApiRequest'
 import { Toaster } from 'react-hot-toast'
+import Breadcrumb from '../components/Breadcrumb'
 import './Apps.css'
 
 const Machines: React.FC = () => {
@@ -30,6 +31,9 @@ const Machines: React.FC = () => {
     description: ''
   })
 
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
+  const [testMessage, setTestMessage] = useState('')
+
   const fetchMachines = async () => {
     const result = await request(
       () => machineApi.getMachineList({
@@ -56,21 +60,44 @@ const Machines: React.FC = () => {
     fetchMachines()
   }, [pagination.page, pagination.pageSize, searchName, searchIp])
 
-  const handleCreateMachine = async () => {
-    const result = await request(
-      () => machineApi.createMachine(formData),
-      {
-        successMessage: '机器创建成功',
-        errorMessage: '创建机器失败',
-        showSuccessToast: true
-      }
-    )
-    
-    if (result) {
-      setShowCreateModal(false)
-      resetForm()
-      fetchMachines()
+  const handleTestConnectionInModal = async () => {
+    if (!formData.name || !formData.ip || !formData.username || !formData.password) {
+      alert('请填写完整的机器信息')
+      return
     }
+
+    setTestStatus('testing')
+    setTestMessage('')
+
+    try {
+      const tempMachine = await machineApi.createMachine({ ...formData })
+      const testResult = await machineApi.testMachineConnection(tempMachine.id) as unknown as { success: boolean; message: string }
+      
+      if (testResult.success) {
+        setTestStatus('success')
+        setTestMessage('连接测试成功')
+      } else {
+        setTestStatus('failed')
+        setTestMessage(testResult.message || '连接测试失败')
+        await machineApi.deleteMachine(tempMachine.id)
+      }
+    } catch (err) {
+      setTestStatus('failed')
+      setTestMessage('连接测试失败')
+    }
+  }
+
+  const handleCreateMachine = async () => {
+    if (testStatus !== 'success') {
+      alert('请先测试连接并且测试通过后才能创建机器')
+      return
+    }
+
+    setShowCreateModal(false)
+    resetForm()
+    setTestStatus('idle')
+    setTestMessage('')
+    fetchMachines()
   }
 
   const handleUpdateMachine = async () => {
@@ -109,9 +136,11 @@ const Machines: React.FC = () => {
     }
   }
 
-  const handleTestConnection = async (id: string) => {
+  const handleTestConnectionInDetail = async () => {
+    if (!selectedMachine) return
+    
     const result = await request(
-      () => machineApi.testMachineConnection(id) as unknown as Promise<{ success: boolean; message: string }>,
+      () => machineApi.testMachineConnection(selectedMachine.id) as unknown as Promise<{ success: boolean; message: string }>,
       {
         successMessage: '连接测试成功',
         errorMessage: '连接测试失败',
@@ -134,6 +163,8 @@ const Machines: React.FC = () => {
       description: ''
     })
     setSelectedMachine(null)
+    setTestStatus('idle')
+    setTestMessage('')
   }
 
   const openEditModal = (machine: Machine) => {
@@ -197,6 +228,7 @@ const Machines: React.FC = () => {
 
   return (
     <div className="apps-container">
+      <Breadcrumb items={[{ label: '机器管理' }]} />
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -286,12 +318,6 @@ const Machines: React.FC = () => {
                           onClick={() => openDetailModal(machine.id)}
                         >
                           详情
-                        </button>
-                        <button 
-                          className="btn btn-sm btn-success"
-                          onClick={() => handleTestConnection(machine.id)}
-                        >
-                          测试
                         </button>
                         <button 
                           className="btn btn-sm btn-warning"
@@ -389,9 +415,25 @@ const Machines: React.FC = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 />
               </div>
+              <div className="form-group">
+                <button 
+                  className="btn btn-success" 
+                  onClick={handleTestConnectionInModal}
+                  disabled={testStatus === 'testing'}
+                  style={{ width: '100%' }}
+                >
+                  {testStatus === 'testing' ? '测试中...' : '测试连接'}
+                </button>
+                {testStatus === 'success' && (
+                  <div style={{ color: '#52c41a', marginTop: '8px' }}>{testMessage}</div>
+                )}
+                {testStatus === 'failed' && (
+                  <div style={{ color: '#ff4d4f', marginTop: '8px' }}>{testMessage}</div>
+                )}
+              </div>
             </div>
             <div className="modal-footer">
-              <button onClick={() => setShowCreateModal(false)}>取消</button>
+              <button onClick={() => { setShowCreateModal(false); resetForm(); }}>取消</button>
               <button className="btn-primary" onClick={handleCreateMachine}>创建</button>
             </div>
           </div>
@@ -534,6 +576,7 @@ const Machines: React.FC = () => {
               </div>
             </div>
             <div className="modal-footer">
+              <button className="btn btn-success" onClick={handleTestConnectionInDetail}>测试连接</button>
               <button onClick={() => setShowDetailModal(false)}>关闭</button>
             </div>
           </div>

@@ -76,6 +76,44 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
     return new Date(timestamp * 1000).toLocaleString('zh-CN');
   };
 
+  const handleCancel = async (e: React.MouseEvent, deployment: Deployment) => {
+    e.stopPropagation();
+    if (!confirm('确定要取消这个发布吗？')) return;
+    
+    try {
+      await deploymentService.cancelDeployment(deployment.id);
+      alert('取消成功');
+      fetchDeployments();
+    } catch (err) {
+      alert('取消失败');
+      console.error(err);
+    }
+  };
+
+  const handleRollback = async (e: React.MouseEvent, deployment: Deployment) => {
+    e.stopPropagation();
+    
+    const hasDeployingMachine = deployment.release_machines?.some(
+      (m) => m.release_status === 'deploying'
+    );
+    
+    if (hasDeployingMachine) {
+      alert('存在发布中的设备，无法回滚');
+      return;
+    }
+    
+    if (!confirm('确定要回滚这个发布吗？')) return;
+    
+    try {
+      await deploymentService.rollbackDeployment(deployment.id);
+      alert('回滚成功');
+      fetchDeployments();
+    } catch (err) {
+      alert('回滚失败');
+      console.error(err);
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -171,22 +209,54 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
                   <td style={{ padding: '12px' }}>{deployment.release_machines?.length || 0}</td>
                   <td style={{ padding: '12px' }}>{formatTime(deployment.created_at)}</td>
                   <td style={{ padding: '12px' }}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectDeployment?.(deployment);
-                      }}
-                      style={{
-                        padding: '4px 12px',
-                        background: '#1890ff',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      查看详情
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectDeployment?.(deployment);
+                        }}
+                        style={{
+                          padding: '4px 12px',
+                          background: '#1890ff',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        查看详情
+                      </button>
+                      {(deployment.status === 'pending' || deployment.status === 'deploying') && (
+                        <button
+                          onClick={(e) => handleCancel(e, deployment)}
+                          style={{
+                            padding: '4px 12px',
+                            background: '#ff4d4f',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          取消
+                        </button>
+                      )}
+                      {deployment.status === 'deploying' && (
+                        <button
+                          onClick={(e) => handleRollback(e, deployment)}
+                          style={{
+                            padding: '4px 12px',
+                            background: '#faad14',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          回滚
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

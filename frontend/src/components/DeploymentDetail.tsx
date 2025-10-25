@@ -11,6 +11,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const [deployment, setDeployment] = useState<Deployment | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -67,6 +68,98 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
 
   const formatTime = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleString('zh-CN');
+  };
+
+  const refreshDetail = async () => {
+    try {
+      const response = await deploymentService.getDeploymentDetail(deploymentId);
+      setDeployment(response.deployment);
+    } catch (err) {
+      console.error('刷新详情失败:', err);
+    }
+  };
+
+  const handleDeploy = async (nodeId: string) => {
+    setActionLoading(nodeId);
+    try {
+      await deploymentService.deployNodeDeployment(deploymentId, [nodeId]);
+      await refreshDetail();
+      alert('发布操作成功');
+    } catch (err) {
+      console.error('发布失败:', err);
+      alert('发布操作失败');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRetry = async (nodeId: string) => {
+    setActionLoading(nodeId);
+    try {
+      await deploymentService.retryNodeDeployment(deploymentId, [nodeId]);
+      await refreshDetail();
+      alert('重试操作成功');
+    } catch (err) {
+      console.error('重试失败:', err);
+      alert('重试操作失败');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSkip = async (nodeId: string) => {
+    if (!confirm('确定要跳过该设备吗?')) return;
+    setActionLoading(nodeId);
+    try {
+      await deploymentService.skipNodeDeployment(deploymentId, [nodeId]);
+      await refreshDetail();
+      alert('跳过操作成功');
+    } catch (err) {
+      console.error('跳过失败:', err);
+      alert('跳过操作失败');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRollback = async (nodeId: string) => {
+    if (!confirm('确定要回滚该设备吗?')) return;
+    setActionLoading(nodeId);
+    try {
+      await deploymentService.rollbackNodeDeployment(deploymentId, [nodeId]);
+      await refreshDetail();
+      alert('回滚操作成功');
+    } catch (err) {
+      console.error('回滚失败:', err);
+      alert('回滚操作失败');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const getNodeActions = (node: NodeDeployment) => {
+    const actions = [];
+    const cannotOperate = ['canceled', 'rolled_back'].includes(deployment?.status || '');
+
+    if (cannotOperate) return [];
+
+    if (node.node_deploy_status === 'pending') {
+      actions.push(
+        { label: '发布', onClick: () => handleDeploy(node.id), color: '#1890ff' },
+        { label: '跳过', onClick: () => handleSkip(node.id), color: '#8c8c8c' }
+      );
+    } else if (node.node_deploy_status === 'failed') {
+      actions.push(
+        { label: '重试', onClick: () => handleRetry(node.id), color: '#faad14' },
+        { label: '跳过', onClick: () => handleSkip(node.id), color: '#8c8c8c' }
+      );
+    } else if (node.node_deploy_status === 'success') {
+      actions.push(
+        { label: '回滚', onClick: () => handleRollback(node.id), color: '#722ed1' }
+      );
+    }
+
+    return actions;
   };
 
   if (loading) {
@@ -176,31 +269,61 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
               <th style={{ padding: '12px', textAlign: 'left' }}>IP 地址</th>
               <th style={{ padding: '12px', textAlign: 'left' }}>发布状态</th>
               <th style={{ padding: '12px', textAlign: 'left' }}>发布日志</th>
+              <th style={{ padding: '12px', textAlign: 'left' }}>操作</th>
             </tr>
           </thead>
           <tbody>
-            {deployment.node_deployments.map((machine: NodeDeployment) => (
-              <tr key={machine.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                <td style={{ padding: '12px' }}>{machine.id}</td>
-                <td style={{ padding: '12px' }}>{machine.ip}</td>
-                <td style={{ padding: '12px' }}>
-                  <span
-                    style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      background: getStatusColor(machine.node_deploy_status),
-                      color: 'white',
-                      fontSize: '12px',
-                    }}
-                  >
-                    {getStatusText(machine.node_deploy_status)}
-                  </span>
-                </td>
-                <td style={{ padding: '12px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {machine.release_log || '-'}
-                </td>
-              </tr>
-            ))}
+            {deployment.node_deployments.map((machine: NodeDeployment) => {
+              const actions = getNodeActions(machine);
+              return (
+                <tr key={machine.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                  <td style={{ padding: '12px' }}>{machine.id}</td>
+                  <td style={{ padding: '12px' }}>{machine.ip}</td>
+                  <td style={{ padding: '12px' }}>
+                    <span
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        background: getStatusColor(machine.node_deploy_status),
+                        color: 'white',
+                        fontSize: '12px',
+                      }}
+                    >
+                      {getStatusText(machine.node_deploy_status)}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {machine.release_log || '-'}
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    {actions.length > 0 ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {actions.map((action, index) => (
+                          <button
+                            key={index}
+                            onClick={action.onClick}
+                            disabled={actionLoading === machine.id}
+                            style={{
+                              padding: '4px 12px',
+                              border: 'none',
+                              borderRadius: '4px',
+                              background: actionLoading === machine.id ? '#d9d9d9' : action.color,
+                              color: 'white',
+                              cursor: actionLoading === machine.id ? 'not-allowed' : 'pointer',
+                              fontSize: '12px',
+                            }}
+                          >
+                            {actionLoading === machine.id ? '处理中...' : action.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <span style={{ color: '#8c8c8c' }}>-</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       ) : (

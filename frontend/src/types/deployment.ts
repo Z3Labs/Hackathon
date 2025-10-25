@@ -1,22 +1,18 @@
-export interface DeploymentMachine {
+export interface NodeDeployment {
   id: string;
   ip: string;
-  port: number;
-  release_status: 'pending' | 'deploying' | 'success' | 'failed';
-  health_status: 'healthy' | 'unhealthy';
-  error_status: 'normal' | 'error';
-  alert_status: 'normal' | 'alert';
+  node_deploy_status: 'pending' | 'deploying' | 'success' | 'failed' | 'skipped' | 'rolled_back';
+  release_log: string;
 }
 
 export interface Deployment {
   id: string;
   app_name: string;
-  status: 'pending' | 'deploying' | 'success' | 'failed' | 'rolled_back';
+  status: 'pending' | 'deploying' | 'success' | 'failed' | 'rolled_back' | 'canceled';
   package_version: string;
   config_path: string;
   gray_strategy: 'canary' | 'blue-green' | 'all';
-  release_machines: DeploymentMachine[];
-  release_log: string;
+  node_deployments: NodeDeployment[];
   created_at: number;
   updated_at: number;
 }

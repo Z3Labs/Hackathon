@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { deploymentService } from '../services/deployment';
-import type { Deployment, DeploymentMachine } from '../types/deployment';
+import type { Deployment, NodeDeployment } from '../types/deployment';
 
 interface DeploymentDetailProps {
   deploymentId: string;
@@ -37,11 +37,8 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       success: '成功',
       failed: '失败',
       rolled_back: '已回滚',
-      normal: '正常',
-      error: '异常',
-      healthy: '健康',
-      unhealthy: '不健康',
-      alert: '告警',
+      canceled: '已取消',
+      skipped: '已跳过',
     };
     return statusMap[status] || status;
   };
@@ -53,11 +50,8 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       success: '#52c41a',
       failed: '#f5222d',
       rolled_back: '#722ed1',
-      normal: '#52c41a',
-      error: '#f5222d',
-      healthy: '#52c41a',
-      unhealthy: '#f5222d',
-      alert: '#faad14',
+      canceled: '#8c8c8c',
+      skipped: '#d9d9d9',
     };
     return colorMap[status] || '#d9d9d9';
   };
@@ -160,7 +154,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
           </div>
           <div>
             <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>机器数量</div>
-            <div>{deployment.release_machines?.length || 0}</div>
+            <div>{deployment.node_deployments?.length || 0}</div>
           </div>
           <div>
             <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>创建时间</div>
@@ -174,76 +168,36 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       </div>
 
       <h3 style={{ marginBottom: '16px' }}>发布机器列表</h3>
-      {deployment.release_machines && deployment.release_machines.length > 0 ? (
+      {deployment.node_deployments && deployment.node_deployments.length > 0 ? (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
               <th style={{ padding: '12px', textAlign: 'left' }}>机器 ID</th>
               <th style={{ padding: '12px', textAlign: 'left' }}>IP 地址</th>
-              <th style={{ padding: '12px', textAlign: 'left' }}>端口</th>
               <th style={{ padding: '12px', textAlign: 'left' }}>发布状态</th>
-              <th style={{ padding: '12px', textAlign: 'left' }}>健康状态</th>
-              <th style={{ padding: '12px', textAlign: 'left' }}>异常状态</th>
-              <th style={{ padding: '12px', textAlign: 'left' }}>告警状态</th>
+              <th style={{ padding: '12px', textAlign: 'left' }}>发布日志</th>
             </tr>
           </thead>
           <tbody>
-            {deployment.release_machines.map((machine: DeploymentMachine) => (
+            {deployment.node_deployments.map((machine: NodeDeployment) => (
               <tr key={machine.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
                 <td style={{ padding: '12px' }}>{machine.id}</td>
                 <td style={{ padding: '12px' }}>{machine.ip}</td>
-                <td style={{ padding: '12px' }}>{machine.port}</td>
                 <td style={{ padding: '12px' }}>
                   <span
                     style={{
                       padding: '4px 8px',
                       borderRadius: '4px',
-                      background: getStatusColor(machine.release_status),
+                      background: getStatusColor(machine.node_deploy_status),
                       color: 'white',
                       fontSize: '12px',
                     }}
                   >
-                    {getStatusText(machine.release_status)}
+                    {getStatusText(machine.node_deploy_status)}
                   </span>
                 </td>
-                <td style={{ padding: '12px' }}>
-                  <span
-                    style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      background: getStatusColor(machine.health_status),
-                      color: 'white',
-                      fontSize: '12px',
-                    }}
-                  >
-                    {getStatusText(machine.health_status)}
-                  </span>
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <span
-                    style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      background: getStatusColor(machine.error_status),
-                      color: 'white',
-                      fontSize: '12px',
-                    }}
-                  >
-                    {getStatusText(machine.error_status)}
-                  </span>
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <span
-                    style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      background: getStatusColor(machine.alert_status),
-                      color: 'white',
-                      fontSize: '12px',
-                    }}
-                  >
-                    {getStatusText(machine.alert_status)}
-                  </span>
+                <td style={{ padding: '12px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {machine.release_log || '-'}
                 </td>
               </tr>
             ))}
@@ -251,27 +205,6 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
         </table>
       ) : (
         <div style={{ padding: '20px', textAlign: 'center', color: '#8c8c8c' }}>暂无发布机器</div>
-      )}
-
-      {deployment.release_log && (
-        <>
-          <h3 style={{ marginTop: '20px', marginBottom: '16px' }}>发布日志</h3>
-          <div
-            style={{
-              background: '#000',
-              color: '#0f0',
-              padding: '16px',
-              borderRadius: '4px',
-              fontFamily: 'monospace',
-              fontSize: '12px',
-              whiteSpace: 'pre-wrap',
-              maxHeight: '400px',
-              overflow: 'auto',
-            }}
-          >
-            {deployment.release_log}
-          </div>
-        </>
       )}
     </div>
   );

@@ -34,4 +34,8 @@ export const deploymentService = {
   async rollbackDeployment(id: string): Promise<{ success: boolean }> {
     return api.post(`/deployments/${id}/rollback`);
   },
+
+  async rollbackNodeDeployment(id: string, nodeDeploymentIds: string[]): Promise<{ success: boolean }> {
+    return api.post(`/deployments/${id}/node-deployments`, { node_deployment_ids: nodeDeploymentIds });
+  },
 };

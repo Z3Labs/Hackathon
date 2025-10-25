@@ -10,9 +10,9 @@ const Layout: React.FC = () => {
   })
 
   const menuItems = [
+    { path: '/publish', label: '发布' },
     { path: '/apps', label: '应用管理' },
     { path: '/machines', label: '机器管理' },
-    { path: '/publish', label: '发布' },
     { path: '/monitor', label: '监控' }
   ]
 

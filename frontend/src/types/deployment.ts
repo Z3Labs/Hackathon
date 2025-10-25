@@ -11,7 +11,7 @@ export interface Deployment {
   status: 'pending' | 'deploying' | 'success' | 'failed' | 'rolled_back' | 'canceled';
   package_version: string;
   config_path: string;
-  gray_strategy: 'canary' | 'blue-green' | 'all';
+  gray_machine_id: string;
   node_deployments: NodeDeployment[];
   created_at: number;
   updated_at: number;
@@ -21,7 +21,7 @@ export interface CreateDeploymentRequest {
   app_name: string;
   package_version: string;
   config_path: string;
-  gray_strategy: 'canary' | 'blue-green' | 'all';
+  gray_machine_id?: string;
 }
 
 export interface UpdateDeploymentRequest {
@@ -29,7 +29,7 @@ export interface UpdateDeploymentRequest {
   app_name: string;
   package_version: string;
   config_path: string;
-  gray_strategy: 'canary' | 'blue-green' | 'all';
+  gray_machine_id?: string;
 }
 
 export interface GetDeploymentListRequest {
@@ -46,8 +46,18 @@ export interface GetDeploymentListResponse {
   page_size: number;
 }
 
+export interface Report {
+  id: string;
+  deployment_id: string;
+  content: string;
+  status: 'generating' | 'completed' | 'failed';
+  created_at: number;
+  updated_at: number;
+}
+
 export interface GetDeploymentDetailResponse {
   deployment: Deployment;
+  report?: Report | null;
 }
 
 export interface CreateDeploymentResponse {

@@ -6,7 +6,7 @@
     svc: "{{ service_name }}"
     version: "{{ deploy_version }}"
     package_url: "{{ package_url }}"
-    package_sha256: "{{ package_sha256 }}"
+    package_md5sum: "{{ package_md5sum}}"
     release_dir: "/opt/releases/{{ svc }}/{{ version }}"
     systemd_unit: "/etc/systemd/system/{{ svc }}@{{ version }}.service"
     prev_version: "{{ prev_version }}"
@@ -28,15 +28,15 @@
         dest: "{{ release_dir }}/{{ svc }}.tar.gz"
         mode: '0644'
 
-    - name: Verify SHA256 checksum
-      shell: "sha256sum {{ release_dir }}/{{ svc }}.tar.gz | awk '{print $1}'"
-      register: sha256sum_out
+    - name: Verify md5 checksum
+      shell: "md5sum {{ release_dir }}/{{ svc }}.tar.gz | awk '{print $1}'"
+      register: md5sum_out 
       changed_when: false
 
     - name: Fail if checksum mismatch
       fail:
-        msg: "SHA256 checksum mismatch for {{ svc }} version {{ version }}"
-      when: sha256sum_out.stdout != package_sha256
+        msg: "md5 checksum mismatch for {{ svc }} version {{ version }}"
+      when: md5sum_out.stdout != package_md5sum
 
     - name: Extract package
       unarchive:

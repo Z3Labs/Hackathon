@@ -21,7 +21,7 @@ type ExecutorConfig struct {
 	Version     string
 	PrevVersion string
 	PackageURL  string
-	SHA256      string
+	MD5         string
 	Namespace   string
 	Deployment  string
 	ImageURL    string

@@ -11,13 +11,17 @@ NC='\033[0m' # No Color
 
 # 镜像信息
 IMAGE_NAME="diagnosis-service"
-IMAGE_TAG="${1:-latest}"  # 默认 tag 为 latest，可通过参数指定
+IMAGE_TAG="${1:-latest}"  # 默认 tag 为 latest，可通过第一个参数指定
+PLATFORM="${2:-}"         # 可选的平台参数（如 linux/amd64）
 FULL_IMAGE_NAME="${IMAGE_NAME}:${IMAGE_TAG}"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}构建 AI 诊断服务 Docker 镜像${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo -e "${GREEN}镜像名称: ${FULL_IMAGE_NAME}${NC}"
+if [ -n "$PLATFORM" ]; then
+    echo -e "${GREEN}目标平台: ${PLATFORM}${NC}"
+fi
 echo ""
 
 # 获取脚本所在目录
@@ -37,7 +41,11 @@ done
 # 构建镜像
 echo ""
 echo -e "${BLUE}开始构建镜像...${NC}"
-docker build -t "$FULL_IMAGE_NAME" .
+if [ -n "$PLATFORM" ]; then
+    docker build --platform "$PLATFORM" -t "$FULL_IMAGE_NAME" .
+else
+    docker build -t "$FULL_IMAGE_NAME" .
+fi
 
 # 检查构建结果
 if [ $? -eq 0 ]; then
@@ -69,6 +77,11 @@ if [ $? -eq 0 ]; then
         exit 1
     fi
     
+    echo ""
+    echo -e "${BLUE}构建参数说明:${NC}"
+    echo -e "  默认构建: ${GREEN}./build-docker.sh${NC}"
+    echo -e "  指定标签: ${GREEN}./build-docker.sh v1.0${NC}"
+    echo -e "  跨平台构建: ${GREEN}./build-docker.sh latest linux/amd64${NC}"
     echo ""
     echo -e "${BLUE}使用方法:${NC}"
     echo -e "  启动容器: ${GREEN}docker run -d --name diagnosis-service ${FULL_IMAGE_NAME}${NC}"

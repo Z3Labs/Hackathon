@@ -298,18 +298,47 @@
   box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.1);
 }
 
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  line-height: 1.5;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #646cff;
+  box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.1);
+}
+
+.form-group textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
 /* 详情页面样式 */
 .detail-section {
   margin-bottom: 30px;
+  padding: 20px;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 .detail-section h4 {
-  margin: 0 0 15px 0;
+  margin: 0 0 20px 0;
   color: var(--text-primary);
   font-size: 16px;
   font-weight: 600;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border-color);
 }
 
 .detail-grid {

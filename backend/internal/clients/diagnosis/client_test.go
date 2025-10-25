@@ -127,7 +127,7 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 		ReceiveAt:    "2025-01-15T14:23:16Z",
 		EndsAt:       "",
 		Values:       92.5,
-		GeneratorURL: "http://150.158.152.112:9300/graph?g0.expr=...",
+		GeneratorURL: "http://127.0.0.1:9300/graph?g0.expr=...",
 		NeedHandle:   true,
 		IsEmergent:   true,
 		Labels: map[string]string{

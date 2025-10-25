@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { deploymentService } from '../services/deployment';
-import type { Deployment, NodeDeployment } from '../types/deployment';
+import type { Deployment, NodeDeployment, Report } from '../types/deployment';
 
 interface DeploymentDetailProps {
   deploymentId: string;
@@ -14,6 +14,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [countdown, setCountdown] = useState(5);
+  const [report, setReport] = useState<Report | null>(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -22,6 +23,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       try {
         const response = await deploymentService.getDeploymentDetail(deploymentId);
         setDeployment(response.deployment);
+        setReport(response.report ?? null);
       } catch (err) {
         setError('获取发布详情失败');
         console.error(err);
@@ -73,13 +75,10 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     return colorMap[status] || '#d9d9d9';
   };
 
-  const getGrayStrategyText = (strategy: string) => {
-    const strategyMap: Record<string, string> = {
-      canary: '金丝雀发布',
-      'blue-green': '蓝绿发布',
-      all: '全量发布',
-    };
-    return strategyMap[strategy] || strategy;
+  const getGrayMachineInfo = (machineId: string) => {
+    if (!machineId || !deployment?.node_deployments) return '未设置';
+    const machine = deployment.node_deployments.find(m => m.id === machineId);
+    return machine ? `${machine.id} (${machine.ip})` : machineId;
   };
 
   const formatTime = (timestamp: number) => {
@@ -91,6 +90,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     try {
       const response = await deploymentService.getDeploymentDetail(deploymentId);
       setDeployment(response.deployment);
+      setReport(response.report ?? null);
       setCountdown(5);
     } catch (err) {
       console.error('刷新详情失败:', err);
@@ -98,6 +98,82 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderReportSection = () => {
+    if (!report) {
+      return (
+        <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0 }}>诊断报告</h3>
+            <span style={{ color: '#8c8c8c', fontSize: 12 }}>暂无报告</span>
+          </div>
+          <div style={{ color: '#8c8c8c' }}>当发布触发异常或完成分析后将自动生成诊断报告。</div>
+        </div>
+      );
+    }
+
+    const statusColor: Record<Report['status'], string> = {
+      generating: '#1890ff',
+      completed: '#52c41a',
+      failed: '#f5222d',
+    };
+    const statusText: Record<Report['status'], string> = {
+      generating: '报告生成中...',
+      completed: '报告生成完成',
+      failed: '报告生成失败',
+    };
+
+    return (
+      <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0 }}>诊断报告</h3>
+          <span
+            style={{
+              padding: '4px 8px',
+              borderRadius: 4,
+              background: statusColor[report.status],
+              color: '#fff',
+              fontSize: 12,
+            }}
+          >
+            {statusText[report.status]}
+          </span>
+        </div>
+
+        {report.status === 'generating' && (
+          <div style={{ marginTop: 12, color: '#8c8c8c', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="spin" style={{ width: 16, height: 16, border: '2px solid #1890ff', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 1s linear infinite' }} />
+            报告生成中，请稍候...
+          </div>
+        )}
+
+        {report.status === 'failed' && (
+          <div style={{ marginTop: 12, color: '#f5222d' }}>
+            生成失败，请稍后重试或刷新页面。
+          </div>
+        )}
+
+        {report.status === 'completed' && (
+          <div style={{
+            marginTop: 12,
+            background: '#fafafa',
+            border: '1px solid #f0f0f0',
+            borderRadius: 6,
+            padding: 12,
+            whiteSpace: 'pre-wrap',
+            lineHeight: 1.7,
+            color: '#262626',
+          }}>
+            {report.content}
+          </div>
+        )}
+
+        <div style={{ marginTop: 8, color: '#8c8c8c', fontSize: 12 }}>
+          更新时间：{new Date((report.updated_at || report.created_at) * 1000).toLocaleString('zh-CN')}
+        </div>
+      </div>
+    );
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -281,8 +357,8 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
             <div style={{ fontWeight: 'bold' }}>{deployment.package_version}</div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>灰度策略</div>
-            <div>{getGrayStrategyText(deployment.gray_strategy)}</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>灰度设备</div>
+            <div>{getGrayMachineInfo(deployment.gray_machine_id)}</div>
           </div>
           <div>
             <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>发布状态</div>
@@ -319,7 +395,9 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      {renderReportSection()}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0' }}>
         <h3 style={{ margin: 0 }}>发布机器列表</h3>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button

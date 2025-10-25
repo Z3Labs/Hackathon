@@ -58,6 +58,8 @@ export const appApi = {
     deploy_path: string
     start_cmd: string
     stop_cmd: string
+    rollback_policy?: any
+    red_metrics_config?: any
   }) => api.post('/apps', data),
 
   // 更新应用
@@ -68,6 +70,8 @@ export const appApi = {
     start_cmd: string
     stop_cmd: string
     machine_ids?: string[]
+    rollback_policy?: any
+    red_metrics_config?: any
   }) => api.put(`/apps/${id}`, data),
 
   // 获取应用列表
@@ -91,7 +95,7 @@ export const deploymentApi = {
     app_name: string
     package_version: string
     config_path: string
-    gray_strategy: string
+    gray_machine_id?: string
   }) => api.post('/deployments', data),
 
   // 更新发布记录
@@ -99,7 +103,7 @@ export const deploymentApi = {
     app_name: string
     package_version: string
     config_path: string
-    gray_strategy: string
+    gray_machine_id?: string
   }) => api.put(`/deployments/${id}`, data),
 
   // 获取发布记录列表

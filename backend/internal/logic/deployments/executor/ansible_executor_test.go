@@ -24,7 +24,7 @@ func TestNewAnsibleExecutor(t *testing.T) {
 				Version:     "v1.0.0",
 				PrevVersion: "v0.9.0",
 				PackageURL:  "http://example.com/package.tar.gz",
-				SHA256:      "abc123",
+				MD5:         "abc123",
 			},
 			envPlaybook:  "",
 			wantPlaybook: "/workspace/backend/playbooks/deploy.yml",
@@ -127,7 +127,7 @@ func TestAnsibleExecutor_Deploy_StatusUpdates(t *testing.T) {
 		Version:     "v1.0.0",
 		PrevVersion: "v0.9.0",
 		PackageURL:  "http://example.com/package.tar.gz",
-		SHA256:      "abc123",
+		MD5:         "abc123",
 	}
 
 	executor := NewAnsibleExecutor(config)
@@ -168,7 +168,7 @@ func TestAnsibleExecutor_Deploy_Failure(t *testing.T) {
 		Version:     "v1.0.0",
 		PrevVersion: "v0.9.0",
 		PackageURL:  "http://example.com/package.tar.gz",
-		SHA256:      "abc123",
+		MD5:         "abc123",
 	}
 
 	executor := NewAnsibleExecutor(config)
@@ -205,7 +205,7 @@ func TestAnsibleExecutor_Rollback_Success(t *testing.T) {
 		Version:     "v1.0.0",
 		PrevVersion: "v0.9.0",
 		PackageURL:  "http://example.com/package.tar.gz",
-		SHA256:      "abc123",
+		MD5:         "abc123",
 	}
 
 	executor := NewAnsibleExecutor(config)
@@ -269,7 +269,7 @@ func TestAnsibleExecutor_Rollback_Failure(t *testing.T) {
 		Version:     "v1.0.0",
 		PrevVersion: "v0.9.0",
 		PackageURL:  "http://example.com/package.tar.gz",
-		SHA256:      "abc123",
+		MD5:         "abc123",
 	}
 
 	executor := NewAnsibleExecutor(config)

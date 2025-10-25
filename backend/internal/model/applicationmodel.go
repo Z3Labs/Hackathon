@@ -21,10 +21,13 @@ type (
 		ErrorCount       int             `bson:"errorCount"       json:"error_count"`        // 异常机器数量
 		AlertCount       int             `bson:"alertCount"       json:"alert_count"`        // 告警机器数量
 		Machines         []Machine       `bson:"machines"         json:"machines"`           // 机器列表
+		UpStreamAppIds   []string        `bson:"upStreamAppIds" json:"up_stream_ids"`        // 上游应用
+		DownstreamAppIds []string        `bson:"downStreamAppIds" json:"down_stream_ids"`    // 下游服务
 		RollbackPolicy   *RollbackPolicy `bson:"rollbackPolicy"   json:"rollback_policy"`    // 回滚策略配置
-		REDMetricsConfig *REDMetrics     `bson:"redMetricsConfig" json:"red_metrics_config"` // RED指标配置
-		CreatedTime      time.Time       `bson:"createdTime"      json:"createdTime"`        // 创建时间
-		UpdatedTime      time.Time       `bson:"updatedTime"      json:"updatedTime"`        // 更新时间
+		REDMetricsConfig *REDMetrics     `bson:"redMetricsConfig" json:"red_metrics_config"` // RED指标配置,在做基于 AI 的异常分析时可以使用这些指标
+
+		CreatedTime time.Time `bson:"createdTime"      json:"createdTime"` // 创建时间
+		UpdatedTime time.Time `bson:"updatedTime"      json:"updatedTime"` // 更新时间
 	}
 
 	RollbackPolicy struct {

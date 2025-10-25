@@ -21,7 +21,7 @@ type ServiceContext struct {
 func NewServiceContext(c config.Config) *ServiceContext {
 	var qiniuClient *qiniu.Client
 	if c.Qiniu.AccessKey != "" && c.Qiniu.SecretKey != "" && c.Qiniu.Bucket != "" {
-		qiniuClient = qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket)
+		qiniuClient = qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket, c.Qiniu.DownloadHost)
 	}
 
 	return &ServiceContext{
@@ -37,7 +37,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 func NewUTServiceContext(c config.Config) *ServiceContext {
 	var qiniuClient *qiniu.Client
 	if c.Qiniu.AccessKey != "" && c.Qiniu.SecretKey != "" && c.Qiniu.Bucket != "" {
-		qiniuClient = qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket)
+		qiniuClient = qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket, c.Qiniu.DownloadHost)
 	}
 
 	svc := &ServiceContext{

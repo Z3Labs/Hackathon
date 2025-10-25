@@ -10,8 +10,12 @@
     release_dir: "/opt/releases/{{ svc }}/{{ version }}"
     systemd_unit: "/etc/systemd/system/{{ svc }}@{{ version }}.service"
     prev_version: "{{ prev_version }}"
+
   tasks:
 
+    # ---------------------------
+    # ✅ 部署新版本
+    # ---------------------------
     - name: Ensure release directory exists
       file:
         path: "{{ release_dir }}"
@@ -51,20 +55,33 @@
     - name: Reload systemd daemon
       systemd:
         daemon_reload: yes
+
     - name: Stop previous version if exists
       systemd:
         name: "{{ svc }}@{{ prev_version }}"
         state: stopped
       when: prev_version is defined and prev_version | length > 0
       ignore_errors: yes
-    - name: Restart service
+
+    - name: Start new version
       systemd:
         name: "{{ svc }}@{{ version }}"
-        state: restarted
+        state: started
         enabled: yes
 
-    - name: Rollback service to previous version
-      systemd:
-        name: "{{ svc }}@{{ prev_version }}"
-        state: started
+    # ---------------------------
+    # 🔁 Rollback section
+    # ---------------------------
+    - block:
+        - name: Stop current version before rollback
+          systemd:
+            name: "{{ svc }}@{{ version }}"
+            state: stopped
+          ignore_errors: yes
+
+        - name: Start previous version
+          systemd:
+            name: "{{ svc }}@{{ prev_version }}"
+            state: started
+            enabled: yes
       when: rollback | default(false)

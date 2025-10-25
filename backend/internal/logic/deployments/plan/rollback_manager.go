@@ -158,3 +158,30 @@ func (rm *RollbackManager) containsHost(hosts []string, host string) bool {
 func (rm *RollbackManager) GetRollbackStatus(ctx context.Context, planID string) (*model.ReleasePlan, error) {
 	return rm.releasePlanModel.FindById(ctx, planID)
 }
+
+func (rm *RollbackManager) ContinueRollingBackPlans(ctx context.Context) error {
+	plans, err := rm.releasePlanModel.Search(ctx, &model.ReleasePlanCond{
+		Status: model.PlanStatusRollingBack,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to search rolling back plans: %w", err)
+	}
+
+	for _, plan := range plans {
+		var nodesToRollback []model.StageNode
+		for i := range plan.Stages {
+			for j := range plan.Stages[i].Nodes {
+				node := &plan.Stages[i].Nodes[j]
+				if node.Status == model.NodeStatusFailed || node.Status == model.NodeStatusSuccess {
+					nodesToRollback = append(nodesToRollback, *node)
+				}
+			}
+		}
+
+		if len(nodesToRollback) > 0 {
+			go rm.executeRollback(context.Background(), plan, nodesToRollback)
+		}
+	}
+
+	return nil
+}

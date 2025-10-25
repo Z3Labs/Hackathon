@@ -264,3 +264,25 @@ func (pm *PlanManager) ProcessPendingPlans(ctx context.Context) error {
 
 	return nil
 }
+
+func (pm *PlanManager) ContinueDeployingPlans(ctx context.Context) error {
+	statuses := []model.PlanStatus{
+		model.PlanStatusDeploying,
+		model.PlanStatusPartialSuccess,
+	}
+
+	for _, status := range statuses {
+		plans, err := pm.releasePlanModel.Search(ctx, &model.ReleasePlanCond{
+			Status: status,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to search plans with status %s: %w", status, err)
+		}
+
+		for _, plan := range plans {
+			go pm.executeStages(context.Background(), plan)
+		}
+	}
+
+	return nil
+}

@@ -8,22 +8,33 @@ import (
 )
 
 type PlanCron struct {
-	cron        *cron.Cron
-	planManager *PlanManager
+	cron            *cron.Cron
+	planManager     *PlanManager
+	rollbackManager *RollbackManager
 }
 
-func NewPlanCron(planManager *PlanManager) *PlanCron {
+func NewPlanCron(planManager *PlanManager, rollbackManager *RollbackManager) *PlanCron {
 	return &PlanCron{
-		cron:        cron.New(),
-		planManager: planManager,
+		cron:            cron.New(),
+		planManager:     planManager,
+		rollbackManager: rollbackManager,
 	}
 }
 
 func (pc *PlanCron) Start() error {
 	_, err := pc.cron.AddFunc("@every 1m", func() {
 		ctx := context.Background()
+		
 		if err := pc.planManager.ProcessPendingPlans(ctx); err != nil {
-			fmt.Printf("cron job error: %v\n", err)
+			fmt.Printf("process pending plans error: %v\n", err)
+		}
+		
+		if err := pc.planManager.ContinueDeployingPlans(ctx); err != nil {
+			fmt.Printf("continue deploying plans error: %v\n", err)
+		}
+		
+		if err := pc.rollbackManager.ContinueRollingBackPlans(ctx); err != nil {
+			fmt.Printf("continue rolling back plans error: %v\n", err)
 		}
 	})
 	if err != nil {
@@ -31,7 +42,7 @@ func (pc *PlanCron) Start() error {
 	}
 
 	pc.cron.Start()
-	fmt.Println("Plan cron job started, will check pending plans every minute")
+	fmt.Println("Plan cron job started, will process plans every minute")
 	return nil
 }
 

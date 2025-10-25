@@ -583,12 +583,25 @@ const Apps: React.FC = () => {
                   {formData.red_metrics_config?.enabled && (
                     <>
                       {/* Rate 指标配置 */}
-                      <div className="detail-section" style={{ marginTop: '20px' }}>
-                        <h4>Rate (请求速率) 指标</h4>
-                        <div className="form-group">
-                          <label>指标名称</label>
+                      <div className="detail-section" style={{ 
+                        marginTop: '24px', 
+                        padding: '20px',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '8px',
+                        border: '1px solid #e9ecef'
+                      }}>
+                        <h4 style={{ marginBottom: '20px', fontSize: '16px', fontWeight: '600' }}>Rate (请求速率) 指标</h4>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>指标名称</label>
                           <input
                             type="text"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.rate_metric?.metric_name || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -606,9 +619,16 @@ const Apps: React.FC = () => {
                             placeholder="例如: http_requests_total"
                           />
                         </div>
-                        <div className="form-group">
-                          <label>PromQL 查询语句</label>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>PromQL 查询语句</label>
                           <textarea
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.rate_metric?.promql || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -624,10 +644,17 @@ const Apps: React.FC = () => {
                             rows={3}
                           />
                         </div>
-                        <div className="form-group">
-                          <label>描述</label>
+                        <div className="form-group" style={{ marginBottom: '0' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>描述</label>
                           <input
                             type="text"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.rate_metric?.description || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -645,12 +672,25 @@ const Apps: React.FC = () => {
                       </div>
 
                       {/* Error 指标配置 */}
-                      <div className="detail-section" style={{ marginTop: '20px' }}>
-                        <h4>Error (错误率) 指标</h4>
-                        <div className="form-group">
-                          <label>指标名称</label>
+                      <div className="detail-section" style={{ 
+                        marginTop: '24px', 
+                        padding: '20px',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '8px',
+                        border: '1px solid #e9ecef'
+                      }}>
+                        <h4 style={{ marginBottom: '20px', fontSize: '16px', fontWeight: '600' }}>Error (错误率) 指标</h4>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>指标名称</label>
                           <input
                             type="text"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.error_metric?.metric_name || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -668,9 +708,16 @@ const Apps: React.FC = () => {
                             placeholder="例如: http_requests_errors_total"
                           />
                         </div>
-                        <div className="form-group">
-                          <label>PromQL 查询语句</label>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>PromQL 查询语句</label>
                           <textarea
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.error_metric?.promql || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -686,10 +733,17 @@ const Apps: React.FC = () => {
                             rows={3}
                           />
                         </div>
-                        <div className="form-group">
-                          <label>描述</label>
+                        <div className="form-group" style={{ marginBottom: '0' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>描述</label>
                           <input
                             type="text"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.error_metric?.description || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -707,12 +761,25 @@ const Apps: React.FC = () => {
                       </div>
 
                       {/* Duration 指标配置 */}
-                      <div className="detail-section" style={{ marginTop: '20px' }}>
-                        <h4>Duration (响应时长) 指标</h4>
-                        <div className="form-group">
-                          <label>指标名称</label>
+                      <div className="detail-section" style={{ 
+                        marginTop: '24px', 
+                        padding: '20px',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '8px',
+                        border: '1px solid #e9ecef'
+                      }}>
+                        <h4 style={{ marginBottom: '20px', fontSize: '16px', fontWeight: '600' }}>Duration (响应时长) 指标</h4>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>指标名称</label>
                           <input
                             type="text"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.duration_metric?.metric_name || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -730,9 +797,16 @@ const Apps: React.FC = () => {
                             placeholder="例如: http_request_duration_seconds"
                           />
                         </div>
-                        <div className="form-group">
-                          <label>PromQL 查询语句</label>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>PromQL 查询语句</label>
                           <textarea
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.duration_metric?.promql || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -748,10 +822,17 @@ const Apps: React.FC = () => {
                             rows={3}
                           />
                         </div>
-                        <div className="form-group">
-                          <label>描述</label>
+                        <div className="form-group" style={{ marginBottom: '0' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>描述</label>
                           <input
                             type="text"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.duration_metric?.description || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -769,13 +850,26 @@ const Apps: React.FC = () => {
                       </div>
 
                       {/* 健康度阈值配置 */}
-                      <div className="detail-section" style={{ marginTop: '20px' }}>
-                        <h4>健康度阈值</h4>
-                        <div className="form-group">
-                          <label>最低请求速率 (rate_min)</label>
+                      <div className="detail-section" style={{ 
+                        marginTop: '24px', 
+                        padding: '20px',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '8px',
+                        border: '1px solid #e9ecef'
+                      }}>
+                        <h4 style={{ marginBottom: '20px', fontSize: '16px', fontWeight: '600' }}>健康度阈值</h4>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>最低请求速率 (rate_min)</label>
                           <input
                             type="number"
                             step="0.01"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.health_threshold?.rate_min || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -793,11 +887,18 @@ const Apps: React.FC = () => {
                             placeholder="例如: 10"
                           />
                         </div>
-                        <div className="form-group">
-                          <label>最大错误率 (error_rate_max)</label>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>最大错误率 (error_rate_max)</label>
                           <input
                             type="number"
                             step="0.001"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.health_threshold?.error_rate_max || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -812,11 +913,18 @@ const Apps: React.FC = () => {
                             placeholder="例如: 0.05 (5%)"
                           />
                         </div>
-                        <div className="form-group">
-                          <label>P99 响应时长上限 (秒)</label>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>P99 响应时长上限 (秒)</label>
                           <input
                             type="number"
                             step="0.01"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.health_threshold?.duration_p99_max || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
@@ -831,11 +939,18 @@ const Apps: React.FC = () => {
                             placeholder="例如: 1.0"
                           />
                         </div>
-                        <div className="form-group">
-                          <label>P95 响应时长上限 (秒)</label>
+                        <div className="form-group" style={{ marginBottom: '0' }}>
+                          <label style={{ 
+                            display: 'block', 
+                            marginBottom: '8px', 
+                            fontSize: '14px', 
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>P95 响应时长上限 (秒)</label>
                           <input
                             type="number"
                             step="0.01"
+                            style={{ width: '100%' }}
                             value={formData.red_metrics_config?.health_threshold?.duration_p95_max || ''}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,

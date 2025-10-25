@@ -91,7 +91,6 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     try {
       const response = await deploymentService.getDeploymentDetail(deploymentId);
       setDeployment(response.deployment);
-      setSelectedNodeIds([]);
       setCountdown(5);
     } catch (err) {
       console.error('刷新详情失败:', err);
@@ -103,7 +102,10 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
 
   const handleSelectAll = (checked: boolean) => {
     if (checked && deployment?.node_deployments) {
-      setSelectedNodeIds(deployment.node_deployments.map(node => node.id));
+      const selectableNodeIds = deployment.node_deployments
+        .filter(node => node.node_deploy_status !== 'deploying')
+        .map(node => node.id);
+      setSelectedNodeIds(selectableNodeIds);
     } else {
       setSelectedNodeIds([]);
     }
@@ -422,7 +424,10 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
               <th style={{ padding: '12px', textAlign: 'left', width: '50px' }}>
                 <input
                   type="checkbox"
-                  checked={selectedNodeIds.length === deployment.node_deployments.length}
+                  checked={
+                    deployment.node_deployments.filter(n => n.node_deploy_status !== 'deploying').length > 0 &&
+                    selectedNodeIds.length === deployment.node_deployments.filter(n => n.node_deploy_status !== 'deploying').length
+                  }
                   onChange={(e) => handleSelectAll(e.target.checked)}
                   disabled={!canOperate}
                   style={{ cursor: canOperate ? 'pointer' : 'not-allowed' }}
@@ -442,8 +447,8 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                     type="checkbox"
                     checked={selectedNodeIds.includes(machine.id)}
                     onChange={(e) => handleSelectNode(machine.id, e.target.checked)}
-                    disabled={!canOperate}
-                    style={{ cursor: canOperate ? 'pointer' : 'not-allowed' }}
+                    disabled={!canOperate || machine.node_deploy_status === 'deploying'}
+                    style={{ cursor: canOperate && machine.node_deploy_status !== 'deploying' ? 'pointer' : 'not-allowed' }}
                   />
                 </td>
                 <td style={{ padding: '12px' }}>{machine.id}</td>

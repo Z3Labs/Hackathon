@@ -7,6 +7,7 @@ import (
 	alert "github.com/Z3Labs/Hackathon/backend/internal/handler/alert"
 	apps "github.com/Z3Labs/Hackathon/backend/internal/handler/apps"
 	deployments "github.com/Z3Labs/Hackathon/backend/internal/handler/deployments"
+	machines "github.com/Z3Labs/Hackathon/backend/internal/handler/machines"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -69,6 +70,41 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodGet,
 				Path:    "/api/v1/deployments/:id",
 				Handler: deployments.GetDeploymentDetailHandler(serverCtx),
+			},
+		},
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/v1/machines",
+				Handler: machines.CreateMachineHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/api/v1/machines/:id",
+				Handler: machines.UpdateMachineHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/v1/machines",
+				Handler: machines.GetMachineListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/v1/machines/:id",
+				Handler: machines.GetMachineDetailHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/api/v1/machines/:id",
+				Handler: machines.DeleteMachineHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/v1/machines/:id/test",
+				Handler: machines.TestMachineConnectionHandler(serverCtx),
 			},
 		},
 	)

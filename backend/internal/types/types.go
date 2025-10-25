@@ -10,27 +10,33 @@ type PingResp struct {
 
 type Machine struct {
 	Id           string `json:"id"`            // 机器唯一标识
+	Name         string `json:"name"`          // 机器名称
 	Ip           string `json:"ip"`            // IP地址
-	Port         int    `json:"port"`          // 端口号
+	Port         int    `json:"port"`          // SSH端口号
+	Username     string `json:"username"`      // SSH用户名
+	Password     string `json:"password"`      // SSH密码
+	Description  string `json:"description"`   // 机器描述
 	HealthStatus string `json:"health_status"` // 健康状态: healthy-健康, unhealthy-不健康
 	ErrorStatus  string `json:"error_status"`  // 异常状态: normal-正常, error-异常
 	AlertStatus  string `json:"alert_status"`  // 告警状态: normal-正常, alert-告警
+	CreatedAt    int64  `json:"created_at"`    // 创建时间戳
+	UpdatedAt    int64  `json:"updated_at"`    // 更新时间戳
 }
 
 type Application struct {
-	Id           string    `json:"id"`            // 应用唯一标识
-	Name         string    `json:"name"`          // 应用名称
-	DeployPath   string    `json:"deploy_path"`   // 部署路径
-	StartCmd     string    `json:"start_cmd"`     // 启动命令
-	StopCmd      string    `json:"stop_cmd"`      // 停止命令
-	Version      string    `json:"version"`       // 当前版本
-	MachineCount int       `json:"machine_count"` // 机器总数量
-	HealthCount  int       `json:"health_count"`  // 健康机器数量
-	ErrorCount   int       `json:"error_count"`   // 异常机器数量
-	AlertCount   int       `json:"alert_count"`   // 告警机器数量
-	Machines     []Machine `json:"machines"`      // 机器列表
-	CreatedAt    int64     `json:"created_at"`    // 创建时间戳
-	UpdatedAt    int64     `json:"updated_at"`    // 更新时间戳
+	Id             string    `json:"id"`             // 应用唯一标识
+	Name           string    `json:"name"`           // 应用名称
+	DeployPath     string    `json:"deploy_path"`    // 部署路径
+	StartCmd       string    `json:"start_cmd"`      // 启动命令
+	StopCmd        string    `json:"stop_cmd"`       // 停止命令
+	CurrentVersion string    `json:"currentVersion"` // 当前版本
+	MachineCount   int       `json:"machine_count"`  // 机器总数量
+	HealthCount    int       `json:"health_count"`   // 健康机器数量
+	ErrorCount     int       `json:"error_count"`    // 异常机器数量
+	AlertCount     int       `json:"alert_count"`    // 告警机器数量
+	Machines       []Machine `json:"machines"`       // 机器列表
+	CreatedAt      int64     `json:"created_at"`     // 创建时间戳
+	UpdatedAt      int64     `json:"updated_at"`     // 更新时间戳
 }
 
 type DeploymentMachine struct {
@@ -57,11 +63,10 @@ type Deployment struct {
 }
 
 type CreateAppReq struct {
-	Name       string `json:"name"`             // 应用名称
-	DeployPath string `json:"deploy_path"`      // 部署路径
-	StartCmd   string `json:"start_cmd"`        // 启动命令
-	StopCmd    string `json:"stop_cmd"`         // 停止命令
-	Version    string `json:"version,optional"` // 版本号，可选
+	Name       string `json:"name"`        // 应用名称
+	DeployPath string `json:"deploy_path"` // 部署路径
+	StartCmd   string `json:"start_cmd"`   // 启动命令
+	StopCmd    string `json:"stop_cmd"`    // 停止命令
 }
 
 type CreateAppResp struct {
@@ -74,7 +79,6 @@ type UpdateAppReq struct {
 	DeployPath string `json:"deploy_path"` // 部署路径
 	StartCmd   string `json:"start_cmd"`   // 启动命令
 	StopCmd    string `json:"stop_cmd"`    // 停止命令
-	Version    string `json:"version"`     // 版本号
 }
 
 type UpdateAppResp struct {
@@ -145,6 +149,75 @@ type GetDeploymentDetailReq struct {
 
 type GetDeploymentDetailResp struct {
 	Deployment Deployment `json:"deployment"` // 发布记录详情
+}
+
+type CreateMachineReq struct {
+	Name        string `json:"name"`        // 机器名称
+	Ip          string `json:"ip"`          // IP地址
+	Port        int    `json:"port"`        // SSH端口号
+	Username    string `json:"username"`    // SSH用户名
+	Password    string `json:"password"`    // SSH密码
+	Description string `json:"description"` // 机器描述
+}
+
+type CreateMachineResp struct {
+	Id string `json:"id"` // 创建的机器ID
+}
+
+type UpdateMachineReq struct {
+	Id          string `json:"id"`          // 机器ID
+	Name        string `json:"name"`        // 机器名称
+	Ip          string `json:"ip"`          // IP地址
+	Port        int    `json:"port"`        // SSH端口号
+	Username    string `json:"username"`    // SSH用户名
+	Password    string `json:"password"`    // SSH密码
+	Description string `json:"description"` // 机器描述
+}
+
+type UpdateMachineResp struct {
+	Success bool `json:"success"` // 更新是否成功
+}
+
+type GetMachineListReq struct {
+	Page         int    `form:"page,default=1"`         // 页码，默认第1页
+	PageSize     int    `form:"page_size,default=10"`   // 每页数量，默认10条
+	Name         string `form:"name,optional"`          // 机器名称筛选，可选
+	Ip           string `form:"ip,optional"`            // IP地址筛选，可选
+	HealthStatus string `form:"health_status,optional"` // 健康状态筛选，可选
+	ErrorStatus  string `form:"error_status,optional"`  // 异常状态筛选，可选
+	AlertStatus  string `form:"alert_status,optional"`  // 告警状态筛选，可选
+}
+
+type GetMachineListResp struct {
+	Machines []Machine `json:"machines"`  // 机器列表
+	Total    int64     `json:"total"`     // 总数量
+	Page     int       `json:"page"`      // 当前页码
+	PageSize int       `json:"page_size"` // 每页数量
+}
+
+type GetMachineDetailReq struct {
+	Id string `path:"id"` // 机器ID
+}
+
+type GetMachineDetailResp struct {
+	Machine Machine `json:"machine"` // 机器详情
+}
+
+type DeleteMachineReq struct {
+	Id string `path:"id"` // 机器ID
+}
+
+type DeleteMachineResp struct {
+	Success bool `json:"success"` // 删除是否成功
+}
+
+type TestMachineConnectionReq struct {
+	Id string `path:"id"` // 机器ID
+}
+
+type TestMachineConnectionResp struct {
+	Success bool   `json:"success"` // 连接是否成功
+	Message string `json:"message"` // 连接结果消息
 }
 
 type PostAlertCallbackReq struct {

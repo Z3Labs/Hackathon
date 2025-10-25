@@ -2,8 +2,8 @@ Name: hackathon-api
 Host: 0.0.0.0
 Port: 8888
 
-MongoDB:
-  URI: mongodb://localhost:27017
+Mongo:
+  URL: mongodb://localhost:27017
   Database: hackathon
 
 AI:

@@ -23,6 +23,7 @@ go build -o ansible-executor-tool
 ./ansible-executor-tool \
   -action=deploy \
   -host=192.168.1.100 \
+  -ip=192.168.1.100 \
   -service=my-service \
   -version=v1.2.0 \
   -prev-version=v1.1.0 \
@@ -59,6 +60,7 @@ go build -o ansible-executor-tool
 |------|------|----------|--------|
 | `-action` | 操作类型: deploy, rollback, status | 否 | deploy |
 | `-host` | 目标主机地址 | 是 | - |
+| `-ip` | 目标机器 IP (用于 ansible -i 参数) | 否 | - |
 | `-service` | 服务名称 | 是 | - |
 | `-version` | 部署版本 | deploy/rollback时必填 | - |
 | `-prev-version` | 上一个版本 | rollback时必填 | - |

@@ -181,6 +181,7 @@ func (pm *PlanManager) executeNode(ctx context.Context, plan *model.ReleasePlan,
 	executor, err := pm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
 		Platform:    string(model.PlatformPhysical),
 		Host:        node.Host,
+		IP:          node.IP,
 		Service:     plan.Svc,
 		Version:     plan.TargetVersion,
 		PrevVersion: node.PrevVersion,

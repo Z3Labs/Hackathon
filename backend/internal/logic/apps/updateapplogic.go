@@ -38,7 +38,6 @@ func (l *UpdateAppLogic) UpdateApp(req *types.UpdateAppReq) (resp *types.UpdateA
 	existingApp.DeployPath = req.DeployPath
 	existingApp.StartCmd = req.StartCmd
 	existingApp.StopCmd = req.StopCmd
-	existingApp.Version = req.Version
 	existingApp.UpdatedTime = time.Now()
 
 	// 保存到数据库

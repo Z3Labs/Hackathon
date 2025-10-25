@@ -11,8 +11,12 @@ import (
 type (
 	Machine struct {
 		Id           string       `bson:"_id"          json:"id,omitempty"`  // mongo id
+		Name         string       `bson:"name"         json:"name"`          // 机器名称
 		Ip           string       `bson:"ip"           json:"ip"`            // IP地址
 		Port         int          `bson:"port"         json:"port"`          // 端口号
+		Username     string       `bson:"username"     json:"username"`      // SSH用户名
+		Password     string       `bson:"password"     json:"password"`      // SSH密码
+		Description  string       `bson:"description"  json:"description"`   // 机器描述
 		HealthStatus HealthStatus `bson:"healthStatus" json:"health_status"` // 健康状态
 		ErrorStatus  ErrorStatus  `bson:"errorStatus"  json:"error_status"`  // 异常状态
 		AlertStatus  AlertStatus  `bson:"alertStatus"  json:"alert_status"`  // 告警状态
@@ -36,6 +40,7 @@ type (
 	MachineCond struct {
 		Id           string
 		Ids          []string
+		Name         string
 		Ip           string
 		HealthStatus string
 		ErrorStatus  string
@@ -56,6 +61,10 @@ func (c *MachineCond) genCond() bson.M {
 		filter["_id"] = c.Id
 	} else if len(c.Ids) > 0 {
 		filter["_id"] = bson.M{"$in": c.Ids}
+	}
+
+	if c.Name != "" {
+		filter["name"] = bson.M{"$regex": c.Name, "$options": "i"} // 支持模糊查询
 	}
 
 	if c.Ip != "" {

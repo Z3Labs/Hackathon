@@ -38,6 +38,7 @@ type (
 
 	StageNode struct {
 		Host             string     `bson:"host"             json:"host"`
+		IP               string     `bson:"ip"               json:"ip"`
 		Status           NodeStatus `bson:"status"           json:"status"`
 		CurrentVersion   string     `bson:"currentVersion"   json:"current_version"`
 		DeployingVersion string     `bson:"deployingVersion" json:"deploying_version"`

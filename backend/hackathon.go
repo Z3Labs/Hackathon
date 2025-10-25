@@ -8,8 +8,11 @@ import (
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
 	"github.com/Z3Labs/Hackathon/backend/internal/handler"
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments"
+	"github.com/Z3Labs/Hackathon/backend/internal/metrics"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
 )
@@ -27,6 +30,15 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
+
+	collector := metrics.NewDeploymentCollector(ctx.DeploymentModel)
+	prometheus.MustRegister(collector)
+	
+	server.AddRoute(rest.Route{
+		Method:  "GET",
+		Path:    "/metrics",
+		Handler: promhttp.Handler().ServeHTTP,
+	})
 
 	deploymentManager := deployments.NewDeploymentManager(context.Background(), ctx)
 	rollbackManager := deployments.NewRollbackManager(context.Background(), ctx)

@@ -8,7 +8,7 @@ info (
 )
 
 type (
-	PingReq  struct{}
+	PingReq  {}
 	PingResp {
 		Message string `json:"message"` // 响应消息
 	}
@@ -260,6 +260,12 @@ type (
 	CancelNodeDeploymentResp {
 		Success bool `json:"success"` // 取消是否成功
 	}
+	GetAppVersionsReq {
+		AppName string `form:"app_name"` // 应用名称
+	}
+	GetAppVersionsResp {
+		Versions []string `json:"versions"` // 版本列表，按降序排列
+	}
 )
 
 service hackathon-api {
@@ -286,6 +292,10 @@ service hackathon-api {
 	@doc "获取应用详情"
 	@handler GetAppDetail
 	get /api/v1/apps/:id (GetAppDetailReq) returns (GetAppDetailResp)
+
+	@doc "获取应用可用版本列表"
+	@handler GetAppVersions
+	get /api/v1/apps/versions (GetAppVersionsReq) returns (GetAppVersionsResp)
 }
 
 @server (

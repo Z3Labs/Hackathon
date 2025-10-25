@@ -13,3 +13,9 @@ AI:
   Timeout: 120                      # 超时时间（秒），MCP 模式需要更长时间
   UseMCP: ${AI_USE_MCP:true}       # 是否启用 MCP 模式（默认 true）
   PrometheusURL: ${PROMETHEUS_URL}  # Prometheus 地址（MCP 模式需要）
+
+Qiniu:
+  AccessKey: ${QINIU_ACCESS_KEY}    # 七牛云 AccessKey
+  SecretKey: ${QINIU_SECRET_KEY}    # 七牛云 SecretKey
+  Bucket: ${QINIU_BUCKET:niulink-materials}  # 七牛云存储桶名称，默认 niulink-materials
+  Domain: ${QINIU_DOMAIN}           # 七牛云域名

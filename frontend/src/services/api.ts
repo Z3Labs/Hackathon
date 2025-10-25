@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: 'http://localhost:8888/api/v1', // 后端API地址
+  baseURL: '/api/v1', // 使用相对路径，通过nginx代理
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

@@ -6,6 +6,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/stores/mon"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type (
@@ -101,7 +102,9 @@ func (m *defaultReleasePlanModel) Insert(ctx context.Context, plan *ReleasePlan)
 	now := time.Now()
 	plan.CreatedAt = now
 	plan.UpdatedAt = now
-
+	if plan.Id == "" {
+		plan.Id = primitive.NewObjectID().String()
+	}
 	_, err := m.model.InsertOne(ctx, plan)
 	return err
 }

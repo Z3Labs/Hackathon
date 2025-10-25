@@ -8,6 +8,7 @@ import (
 
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
+	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 )
 
 type RollbackManager struct {
@@ -16,14 +17,12 @@ type RollbackManager struct {
 	executorFactory  executor.ExecutorFactoryInterface
 }
 
-func NewRollbackManager(
-	releasePlanModel model.ReleasePlanModel,
-	nodeStatusModel model.NodeStatusModel,
+func NewRollbackManager(ctx context.Context, svcCtx *svc.ServiceContext,
 	executorFactory executor.ExecutorFactoryInterface,
 ) *RollbackManager {
 	return &RollbackManager{
-		releasePlanModel: releasePlanModel,
-		nodeStatusModel:  nodeStatusModel,
+		releasePlanModel: svcCtx.ReleasePlanModel,
+		nodeStatusModel:  svcCtx.NodeStatusModel,
 		executorFactory:  executorFactory,
 	}
 }

@@ -11,10 +11,10 @@ import (
 
 func TestRollbackManager_RollbackPlan_Success(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svc := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
-
-	rm := NewRollbackManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	ctx = context.Background()
+	rm := NewRollbackManager(ctx, svc, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -45,8 +45,8 @@ func TestRollbackManager_RollbackPlan_Success(t *testing.T) {
 		Stages:        stages,
 		Status:        model.PlanStatusFailed,
 	}
-	releasePlanModel.Insert(ctx, plan)
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	svc.ReleasePlanModel.Insert(ctx, plan)
+	defer cleanupTestData(t, ctx, svc.ReleasePlanModel, plan.Id)
 
 	nodeStatus := &model.NodeDeployStatusRecord{
 		Host:           "host1",
@@ -56,7 +56,7 @@ func TestRollbackManager_RollbackPlan_Success(t *testing.T) {
 		Platform:       model.PlatformPhysical,
 		State:          model.NodeStatusFailed,
 	}
-	nodeStatusModel.Insert(ctx, nodeStatus)
+	svc.NodeStatusModel.Insert(ctx, nodeStatus)
 
 	err := rm.RollbackPlan(ctx, plan.Id, nil)
 	if err != nil {
@@ -77,10 +77,10 @@ func TestRollbackManager_RollbackPlan_Success(t *testing.T) {
 
 func TestRollbackManager_RollbackPlan_WithSpecificHosts(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svc := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	rm := NewRollbackManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	rm := NewRollbackManager(ctx, svc, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -117,10 +117,10 @@ func TestRollbackManager_RollbackPlan_WithSpecificHosts(t *testing.T) {
 		Stages:        stages,
 		Status:        model.PlanStatusFailed,
 	}
-	releasePlanModel.Insert(ctx, plan)
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	svc.ReleasePlanModel.Insert(ctx, plan)
+	defer cleanupTestData(t, ctx, svc.ReleasePlanModel, plan.Id)
 
-	nodeStatusModel.Insert(ctx, &model.NodeDeployStatusRecord{
+	svc.NodeStatusModel.Insert(ctx, &model.NodeDeployStatusRecord{
 		Host:           "host1",
 		Service:        "test-service",
 		CurrentVersion: "v1.0.0",
@@ -129,7 +129,7 @@ func TestRollbackManager_RollbackPlan_WithSpecificHosts(t *testing.T) {
 		State:          model.NodeStatusFailed,
 	})
 
-	nodeStatusModel.Insert(ctx, &model.NodeDeployStatusRecord{
+	svc.NodeStatusModel.Insert(ctx, &model.NodeDeployStatusRecord{
 		Host:           "host2",
 		Service:        "test-service",
 		CurrentVersion: "v1.0.0",
@@ -157,10 +157,10 @@ func TestRollbackManager_RollbackPlan_WithSpecificHosts(t *testing.T) {
 
 func TestRollbackManager_RollbackPlan_InvalidStatus(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svc := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	rm := NewRollbackManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	rm := NewRollbackManager(context.Background(), svc, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -186,8 +186,8 @@ func TestRollbackManager_RollbackPlan_InvalidStatus(t *testing.T) {
 		Stages:        stages,
 		Status:        model.PlanStatusPending,
 	}
-	releasePlanModel.Insert(ctx, plan)
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	svc.ReleasePlanModel.Insert(ctx, plan)
+	defer cleanupTestData(t, ctx, svc.ReleasePlanModel, plan.Id)
 
 	err := rm.RollbackPlan(ctx, plan.Id, nil)
 	if err == nil {
@@ -197,10 +197,10 @@ func TestRollbackManager_RollbackPlan_InvalidStatus(t *testing.T) {
 
 func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svc := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	rm := NewRollbackManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	rm := NewRollbackManager(ctx, svc, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -231,8 +231,8 @@ func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 		Stages:        stages,
 		Status:        model.PlanStatusFailed,
 	}
-	releasePlanModel.Insert(ctx, plan)
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	svc.ReleasePlanModel.Insert(ctx, plan)
+	defer cleanupTestData(t, ctx, svc.ReleasePlanModel, plan.Id)
 
 	nodeStatus := &model.NodeDeployStatusRecord{
 		Host:           "host1",
@@ -242,7 +242,7 @@ func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 		Platform:       model.PlatformPhysical,
 		State:          model.NodeStatusFailed,
 	}
-	nodeStatusModel.Insert(ctx, nodeStatus)
+	svc.NodeStatusModel.Insert(ctx, nodeStatus)
 
 	err := rm.RollbackPlan(ctx, plan.Id, nil)
 	if err != nil {
@@ -256,17 +256,17 @@ func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 		t.Fatalf("GetRollbackStatus failed: %v", err)
 	}
 
-	if updatedPlan.Status != model.PlanStatusFailed {
-		t.Errorf("expected status=failed, got %s", updatedPlan.Status)
+	if updatedPlan.Status != model.PlanStatusRolledBack {
+		t.Errorf("expected status=rolledback, got %s", updatedPlan.Status)
 	}
 }
 
 func TestRollbackManager_RollbackPlan_NoNodesToRollback(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svc := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	rm := NewRollbackManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	rm := NewRollbackManager(ctx, svc, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -292,8 +292,8 @@ func TestRollbackManager_RollbackPlan_NoNodesToRollback(t *testing.T) {
 		Stages:        stages,
 		Status:        model.PlanStatusFailed,
 	}
-	releasePlanModel.Insert(ctx, plan)
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	svc.ReleasePlanModel.Insert(ctx, plan)
+	defer cleanupTestData(t, ctx, svc.ReleasePlanModel, plan.Id)
 
 	err := rm.RollbackPlan(ctx, plan.Id, nil)
 	if err == nil {

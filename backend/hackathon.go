@@ -36,7 +36,7 @@ func main() {
 	
 	server.AddRoute(rest.Route{
 		Method:  "GET",
-		Path:    "/metrics",
+		Path:    "/deploy/metrics",
 		Handler: promhttp.Handler().ServeHTTP,
 	})
 

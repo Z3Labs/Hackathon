@@ -16,6 +16,7 @@ type Executor interface {
 type ExecutorConfig struct {
 	Platform    string
 	Host        string
+	IP          string
 	Service     string
 	Version     string
 	PrevVersion string

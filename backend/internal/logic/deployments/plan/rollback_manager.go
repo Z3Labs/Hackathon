@@ -107,6 +107,7 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, plan *model.Release
 	executor, err := rm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
 		Platform:    string(nodeStatus.Platform),
 		Host:        node.Host,
+		IP:          node.IP,
 		Service:     plan.Svc,
 		Version:     nodeStatus.CurrentVersion,
 		PrevVersion: nodeStatus.PrevVersion,

@@ -39,6 +39,7 @@ func TestRollbackManager_RollbackPlan_Success(t *testing.T) {
 	plan := &model.ReleasePlan{
 		Svc:           "test-service",
 		TargetVersion: "v1.0.0",
+		Platform:      "mock",
 		Package:       pkg,
 		Stages:        stages,
 		Status:        model.PlanStatusFailed,
@@ -110,6 +111,7 @@ func TestRollbackManager_RollbackPlan_WithSpecificHosts(t *testing.T) {
 	plan := &model.ReleasePlan{
 		Svc:           "test-service",
 		TargetVersion: "v1.0.0",
+		Platform:      "mock",
 		Package:       pkg,
 		Stages:        stages,
 		Status:        model.PlanStatusFailed,
@@ -178,6 +180,7 @@ func TestRollbackManager_RollbackPlan_InvalidStatus(t *testing.T) {
 	plan := &model.ReleasePlan{
 		Svc:           "test-service",
 		TargetVersion: "v1.0.0",
+		Platform:      "mock",
 		Package:       pkg,
 		Stages:        stages,
 		Status:        model.PlanStatusPending,
@@ -222,6 +225,7 @@ func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 	plan := &model.ReleasePlan{
 		Svc:           "test-service",
 		TargetVersion: "v1.0.0",
+		Platform:      "mock",
 		Package:       pkg,
 		Stages:        stages,
 		Status:        model.PlanStatusFailed,
@@ -282,6 +286,7 @@ func TestRollbackManager_RollbackPlan_NoNodesToRollback(t *testing.T) {
 	plan := &model.ReleasePlan{
 		Svc:           "test-service",
 		TargetVersion: "v1.0.0",
+		Platform:      "mock",
 		Package:       pkg,
 		Stages:        stages,
 		Status:        model.PlanStatusFailed,

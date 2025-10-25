@@ -11,15 +11,16 @@ import (
 
 type (
 	ReleasePlan struct {
-		Id            string      `bson:"_id,omitempty"   json:"id,omitempty"`
-		Svc           string      `bson:"svc"             json:"svc"`
-		TargetVersion string      `bson:"targetVersion"   json:"target_version"`
-		ReleaseTime   time.Time   `bson:"releaseTime"     json:"release_time"`
-		Package       PackageInfo `bson:"package"         json:"package"`
-		Stages        []Stage     `bson:"stages"          json:"stages"`
-		Status        PlanStatus  `bson:"status"          json:"status"`
-		CreatedAt     time.Time   `bson:"createdAt"       json:"created_at"`
-		UpdatedAt     time.Time   `bson:"updatedAt"       json:"updated_at"`
+		Id            string       `bson:"_id,omitempty"   json:"id,omitempty"`
+		Svc           string       `bson:"svc"             json:"svc"`
+		TargetVersion string       `bson:"targetVersion"   json:"target_version"`
+		Platform      PlatformType `bson:"platform"        json:"platform"`
+		ReleaseTime   time.Time    `bson:"releaseTime"     json:"release_time"`
+		Package       PackageInfo  `bson:"package"         json:"package"`
+		Stages        []Stage      `bson:"stages"          json:"stages"`
+		Status        PlanStatus   `bson:"status"          json:"status"`
+		CreatedAt     time.Time    `bson:"createdAt"       json:"created_at"`
+		UpdatedAt     time.Time    `bson:"updatedAt"       json:"updated_at"`
 	}
 
 	PackageInfo struct {

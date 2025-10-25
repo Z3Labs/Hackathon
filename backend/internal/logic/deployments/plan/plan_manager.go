@@ -13,13 +13,13 @@ import (
 type PlanManager struct {
 	releasePlanModel model.ReleasePlanModel
 	nodeStatusModel  model.NodeStatusModel
-	executorFactory  *executor.ExecutorFactory
+	executorFactory  executor.ExecutorFactoryInterface
 }
 
 func NewPlanManager(
 	releasePlanModel model.ReleasePlanModel,
 	nodeStatusModel model.NodeStatusModel,
-	executorFactory *executor.ExecutorFactory,
+	executorFactory executor.ExecutorFactoryInterface,
 ) *PlanManager {
 	return &PlanManager{
 		releasePlanModel: releasePlanModel,

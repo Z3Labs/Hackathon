@@ -3,6 +3,7 @@ package svc
 import (
 	"context"
 
+	"github.com/Z3Labs/Hackathon/backend/common/qiniu"
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 )
@@ -14,9 +15,15 @@ type ServiceContext struct {
 	MachineModel     model.MachineModel
 	ReportModel      model.ReportModel
 	NodeStatusModel  model.NodeStatusModel
+	QiniuClient      *qiniu.Client
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
+	var qiniuClient *qiniu.Client
+	if c.Qiniu.AccessKey != "" && c.Qiniu.SecretKey != "" && c.Qiniu.Bucket != "" {
+		qiniuClient = qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket)
+	}
+
 	return &ServiceContext{
 		Config:           c,
 		ApplicationModel: model.NewApplicationModel(c.Mongo.URL, c.Mongo.Database),
@@ -24,9 +31,15 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		MachineModel:     model.NewMachineModel(c.Mongo.URL, c.Mongo.Database),
 		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
 		NodeStatusModel:  model.NewNodeStatusModel(c.Mongo.URL, c.Mongo.Database),
+		QiniuClient:      qiniuClient,
 	}
 }
 func NewUTServiceContext(c config.Config) *ServiceContext {
+	var qiniuClient *qiniu.Client
+	if c.Qiniu.AccessKey != "" && c.Qiniu.SecretKey != "" && c.Qiniu.Bucket != "" {
+		qiniuClient = qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket)
+	}
+
 	svc := &ServiceContext{
 		Config:           c,
 		ApplicationModel: model.NewApplicationModel(c.Mongo.URL, c.Mongo.Database),
@@ -34,6 +47,7 @@ func NewUTServiceContext(c config.Config) *ServiceContext {
 		MachineModel:     model.NewMachineModel(c.Mongo.URL, c.Mongo.Database),
 		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
 		NodeStatusModel:  model.NewNodeStatusModel(c.Mongo.URL, c.Mongo.Database),
+		QiniuClient:      qiniuClient,
 	}
 	svc.NodeStatusModel.DeleteMany(context.Background(), &model.NodeStatusCond{})
 	return svc

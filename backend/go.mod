@@ -4,19 +4,25 @@ go 1.21
 
 require (
 	github.com/google/uuid v1.4.0
+	github.com/qiniu/go-sdk/v7 v7.25.4
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/zeromicro/go-zero v1.6.0
 	go.mongodb.org/mongo-driver v1.12.1
 	golang.org/x/crypto v0.14.0
+	golang.org/x/mod v0.8.0
 )
 
 require (
+	github.com/BurntSushi/toml v1.3.2 // indirect
+	github.com/alex-ant/gomath v0.0.0-20160516115720-89013a210a82 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/fatih/color v1.15.0 // indirect
+	github.com/gammazero/toposort v0.1.1 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -58,4 +64,5 @@ require (
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	modernc.org/fileutil v1.0.0 // indirect
 )

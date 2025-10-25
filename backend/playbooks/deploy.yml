@@ -1,6 +1,6 @@
 ---
 - name: Node Executor Playbook
-  hosts: "{{ host }}"
+  hosts: all
   become: yes
   vars:
     svc: "{{ service_name }}"

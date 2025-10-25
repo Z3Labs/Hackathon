@@ -32,6 +32,7 @@ type (
 		FindByHostAndService(ctx context.Context, host, service string) (*NodeDeployStatusRecord, error)
 		Search(ctx context.Context, cond *NodeStatusCond) ([]*NodeDeployStatusRecord, error)
 		Count(ctx context.Context, cond *NodeStatusCond) (int64, error)
+		DeleteMany(ctx context.Context, cond *NodeStatusCond) error
 	}
 
 	defaultNodeStatusModel struct {
@@ -140,4 +141,8 @@ func (m *defaultNodeStatusModel) Search(ctx context.Context, cond *NodeStatusCon
 func (m *defaultNodeStatusModel) Count(ctx context.Context, cond *NodeStatusCond) (int64, error) {
 	count, err := m.model.CountDocuments(ctx, cond.genCond())
 	return count, err
+}
+func (m *defaultNodeStatusModel) DeleteMany(ctx context.Context, cond *NodeStatusCond) error {
+	_, err := m.model.DeleteMany(ctx, cond.genCond())
+	return err
 }

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/Z3Labs/Hackathon/backend/internal/clients/prom"
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
 	"github.com/Z3Labs/Hackathon/backend/internal/handler"
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments"
@@ -43,7 +44,17 @@ func main() {
 	deploymentManager := deployments.NewDeploymentManager(context.Background(), ctx)
 	rollbackManager := deployments.NewRollbackManager(context.Background(), ctx)
 	
-	deploymentCron := deployments.NewDeploymentCron(deploymentManager, rollbackManager)
+	var alertMonitor *deployments.AlertMonitor
+	if c.AI.PrometheusURL != "" {
+		promClient := prom.NewVMClient(prom.NewDefaultConfig(c.AI.PrometheusURL))
+		alertMonitor = deployments.NewAlertMonitor(ctx, promClient)
+		deploymentManager.SetAlertMonitor(alertMonitor)
+		fmt.Println("Alert monitor initialized with Prometheus URL:", c.AI.PrometheusURL)
+	} else {
+		fmt.Println("Alert monitor disabled: no Prometheus URL configured")
+	}
+	
+	deploymentCron := deployments.NewDeploymentCron(deploymentManager, rollbackManager, alertMonitor)
 	if err := deploymentCron.Start(); err != nil {
 		panic(fmt.Sprintf("failed to start deployment cron: %v", err))
 	}

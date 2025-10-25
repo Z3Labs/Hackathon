@@ -12,11 +12,13 @@ import (
 )
 
 type DeploymentManager struct {
-	deploymentModel model.DeploymentModel
-	nodeStatusModel model.NodeStatusModel
-	executorFactory executor.ExecutorFactoryInterface
-	taskRegistry    map[string]context.CancelFunc
-	taskMutex       sync.RWMutex
+	deploymentModel  model.DeploymentModel
+	nodeStatusModel  model.NodeStatusModel
+	applicationModel model.ApplicationModel
+	executorFactory  executor.ExecutorFactoryInterface
+	taskRegistry     map[string]context.CancelFunc
+	taskMutex        sync.RWMutex
+	alertMonitor     *AlertMonitor
 }
 
 var (
@@ -30,13 +32,18 @@ func NewDeploymentManager(
 ) *DeploymentManager {
 	once.Do(func() {
 		instance = &DeploymentManager{
-			deploymentModel: svc.DeploymentModel,
-			nodeStatusModel: svc.NodeStatusModel,
-			executorFactory: executor.NewExecutorFactory(),
-			taskRegistry:    make(map[string]context.CancelFunc),
+			deploymentModel:  svc.DeploymentModel,
+			nodeStatusModel:  svc.NodeStatusModel,
+			applicationModel: svc.ApplicationModel,
+			executorFactory:  executor.NewExecutorFactory(),
+			taskRegistry:     make(map[string]context.CancelFunc),
 		}
 	})
 	return instance
+}
+
+func (dm *DeploymentManager) SetAlertMonitor(monitor *AlertMonitor) {
+	dm.alertMonitor = monitor
 }
 
 func GetDeploymentManager() *DeploymentManager {
@@ -85,6 +92,15 @@ func (dm *DeploymentManager) ExecuteDeployment(ctx context.Context, deploymentID
 	deployment.Status = model.DeploymentStatusDeploying
 	if err := dm.deploymentModel.Update(ctx, deployment); err != nil {
 		return fmt.Errorf("failed to update deployment status: %w", err)
+	}
+
+	if dm.alertMonitor != nil {
+		app, err := dm.applicationModel.FindById(ctx, deployment.AppName)
+		if err == nil && app.RollbackPolicy != nil && app.RollbackPolicy.Enabled {
+			if err := dm.alertMonitor.StartMonitoring(ctx, deployment, app); err != nil {
+				fmt.Printf("failed to start alert monitoring for deployment %s: %v\n", deploymentID, err)
+			}
+		}
 	}
 
 	taskCtx, cancel := context.WithCancel(context.Background())

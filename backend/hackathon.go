@@ -31,7 +31,7 @@ func main() {
 
 	executorFactory := executor.NewExecutorFactory()
 	planManager := plan.NewPlanManager(context.Background(), ctx, executorFactory)
-	rollbackManager := plan.NewRollbackManager(ctx.ReleasePlanModel, ctx.NodeStatusModel, executorFactory)
+	rollbackManager := plan.NewRollbackManager(context.Background(), ctx, executorFactory)
 	
 	planCron := plan.NewPlanCron(planManager, rollbackManager)
 	if err := planCron.Start(); err != nil {

@@ -32,10 +32,11 @@ const (
 	AlertStatusNormal AlertStatus = "normal" // 正常
 	AlertStatusAlert  AlertStatus = "alert"  // 告警
 
-	ReleaseStatusPending   ReleaseStatus = "pending"   // 待发布
-	ReleaseStatusDeploying ReleaseStatus = "deploying" // 发布中
-	ReleaseStatusSuccess   ReleaseStatus = "success"   // 成功
-	ReleaseStatusFailed    ReleaseStatus = "failed"    // 失败
+	ReleaseStatusPending    ReleaseStatus = "pending"     // 待发布
+	ReleaseStatusDeploying  ReleaseStatus = "deploying"   // 发布中
+	ReleaseStatusSuccess    ReleaseStatus = "success"     // 成功
+	ReleaseStatusRolledBack ReleaseStatus = "rolled_back" // 已回滚
+	ReleaseStatusFailed     ReleaseStatus = "failed"      // 失败
 
 	DeploymentStatusPending    DeploymentStatus = "pending"     // 待发布
 	DeploymentStatusDeploying  DeploymentStatus = "deploying"   // 发布中

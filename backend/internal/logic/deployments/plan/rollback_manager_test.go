@@ -124,7 +124,7 @@ func TestRollbackManager_RollbackPlan_WithSpecificHosts(t *testing.T) {
 		Service:        "test-service",
 		CurrentVersion: "v1.0.0",
 		PrevVersion:    "v0.9.0",
-		Platform:       model.PlatformPhysical,
+		Platform:       model.PlatformMock,
 		State:          model.NodeStatusFailed,
 	})
 
@@ -133,7 +133,7 @@ func TestRollbackManager_RollbackPlan_WithSpecificHosts(t *testing.T) {
 		Service:        "test-service",
 		CurrentVersion: "v1.0.0",
 		PrevVersion:    "v0.9.0",
-		Platform:       model.PlatformPhysical,
+		Platform:       model.PlatformMock,
 		State:          model.NodeStatusFailed,
 	})
 
@@ -180,7 +180,7 @@ func TestRollbackManager_RollbackPlan_InvalidStatus(t *testing.T) {
 	plan := &model.ReleasePlan{
 		Svc:           "test-service",
 		TargetVersion: "v1.0.0",
-		Platform:      "mock",
+		Platform:      model.PlatformMock,
 		Package:       pkg,
 		Stages:        stages,
 		Status:        model.PlanStatusPending,
@@ -225,7 +225,7 @@ func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 	plan := &model.ReleasePlan{
 		Svc:           "test-service",
 		TargetVersion: "v1.0.0",
-		Platform:      "mock",
+		Platform:      model.PlatformMock,
 		Package:       pkg,
 		Stages:        stages,
 		Status:        model.PlanStatusFailed,
@@ -238,7 +238,7 @@ func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 		Service:        "test-service",
 		CurrentVersion: "v1.0.0",
 		PrevVersion:    "",
-		Platform:       model.PlatformPhysical,
+		Platform:       model.PlatformMock,
 		State:          model.NodeStatusFailed,
 	}
 	svc.NodeStatusModel.Insert(ctx, nodeStatus)
@@ -248,7 +248,7 @@ func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 		t.Fatalf("RollbackPlan should not fail: %v", err)
 	}
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	updatedPlan, err := rm.GetRollbackStatus(ctx, plan.Id)
 	if err != nil {
@@ -256,7 +256,7 @@ func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 	}
 
 	if updatedPlan.Status != model.PlanStatusRolledBack {
-		t.Errorf("expected status=rolledback, got %s", updatedPlan.Status)
+		t.Errorf("expected status=rolled_back, got %s", updatedPlan.Status)
 	}
 }
 

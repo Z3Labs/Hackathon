@@ -9,12 +9,12 @@ import (
 )
 
 type MockExecutor struct {
-	config        ExecutorConfig
-	deployCalled  bool
+	config         ExecutorConfig
+	deployCalled   bool
 	rollbackCalled bool
-	deployError   error
-	rollbackError error
-	mu            sync.Mutex
+	deployError    error
+	rollbackError  error
+	mu             sync.Mutex
 }
 
 func NewMockExecutor(config ExecutorConfig) *MockExecutor {
@@ -58,7 +58,7 @@ func (m *MockExecutor) GetStatus(ctx context.Context) (*model.NodeDeployStatusRe
 		CurrentVersion:   m.config.Version,
 		DeployingVersion: "",
 		PrevVersion:      m.config.PrevVersion,
-		Platform:         model.PlatformPhysical,
+		Platform:         model.PlatformMock,
 		State:            model.NodeStatusSuccess,
 	}, nil
 }
@@ -89,7 +89,7 @@ func NewMockExecutorFactory() ExecutorFactoryInterface {
 func (f *MockExecutorFactory) CreateExecutor(ctx context.Context, config ExecutorConfig) (Executor, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	
+
 	key := fmt.Sprintf("%s-%s", config.Host, config.Service)
 	executor := NewMockExecutor(config)
 	f.executors[key] = executor

@@ -67,6 +67,7 @@ const (
 	NodeStatusFailed     NodeStatus = "failed"      // 失败
 	NodeStatusRolledBack NodeStatus = "rolled_back" // 已回滚
 
+	PlatformMock     PlatformType = "mock"     // !!! 仅测试使用
 	PlatformPhysical PlatformType = "physical" // 物理机
 	PlatformK8s      PlatformType = "k8s"      // K8s
 )

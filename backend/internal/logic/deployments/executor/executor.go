@@ -44,6 +44,8 @@ func (f *ExecutorFactory) CreateExecutor(ctx context.Context, config ExecutorCon
 		return NewAnsibleExecutor(config), nil
 	case string(model.PlatformK8s):
 		return NewK8sExecutor(config), nil
+	case string(model.PlatformMock): // mock 使用模拟执行器
+		return NewMockExecutor(config), nil
 	default:
 		return nil, fmt.Errorf("unsupported platform: %s", config.Platform)
 	}

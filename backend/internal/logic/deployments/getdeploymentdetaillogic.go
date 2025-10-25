@@ -40,6 +40,12 @@ func (l *GetDeploymentDetailLogic) GetDeploymentDetail(req *types.GetDeploymentD
 			Ip:               machine.Ip,
 			NodeDeployStatus: string(machine.NodeDeployStatus),
 			ReleaseLog:       machine.ReleaseLog,
+			CurrentVersion:   machine.CurrentVersion,
+			DeployingVersion: machine.DeployingVersion,
+			PrevVersion:      machine.PrevVersion,
+			Platform:         string(machine.Platform),
+			UpdatedAt:        machine.UpdatedAt.Unix(),
+			CreatedAt:        machine.CreatedAt.Unix(),
 		})
 	}
 

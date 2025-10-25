@@ -13,7 +13,6 @@ import (
 
 type DeploymentManager struct {
 	deploymentModel  model.DeploymentModel
-	nodeStatusModel  model.NodeStatusModel
 	applicationModel model.ApplicationModel
 	executorFactory  executor.ExecutorFactoryInterface
 	taskRegistry     map[string]context.CancelFunc
@@ -33,7 +32,6 @@ func NewDeploymentManager(
 	once.Do(func() {
 		instance = &DeploymentManager{
 			deploymentModel:  svc.DeploymentModel,
-			nodeStatusModel:  svc.NodeStatusModel,
 			applicationModel: svc.ApplicationModel,
 			executorFactory:  executor.NewExecutorFactory(),
 			taskRegistry:     make(map[string]context.CancelFunc),
@@ -220,29 +218,15 @@ func (dm *DeploymentManager) executeNode(ctx context.Context, deployment *model.
 
 	node := &deployment.NodeDeployments[nodeIndex]
 	node.NodeDeployStatus = model.NodeDeploymentStatusDeploying
+	node.DeployingVersion = deployment.PackageVersion
+	node.Platform = deployment.Platform
+	node.UpdatedAt = time.Now()
+	if node.CreatedAt.IsZero() {
+		node.CreatedAt = time.Now()
+	}
 
 	if err := dm.deploymentModel.Update(context.Background(), deployment); err != nil {
 		return fmt.Errorf("failed to update node status: %w", err)
-	}
-
-	nodeStatus := &model.NodeDeployStatusRecord{
-		Host:             node.Id,
-		Service:          deployment.AppName,
-		CurrentVersion:   "",
-		DeployingVersion: deployment.PackageVersion,
-		PrevVersion:      "",
-		Platform:         deployment.Platform,
-		State:            model.NodeStatusDeploying,
-	}
-
-	existing, _ := dm.nodeStatusModel.FindByHostAndService(context.Background(), node.Id, deployment.AppName)
-	if existing != nil {
-		nodeStatus.Id = existing.Id
-		nodeStatus.CurrentVersion = existing.CurrentVersion
-		nodeStatus.PrevVersion = existing.PrevVersion
-		dm.nodeStatusModel.Update(context.Background(), nodeStatus)
-	} else {
-		dm.nodeStatusModel.Insert(context.Background(), nodeStatus)
 	}
 
 	executor, err := dm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
@@ -251,7 +235,7 @@ func (dm *DeploymentManager) executeNode(ctx context.Context, deployment *model.
 		IP:          node.Ip,
 		Service:     deployment.AppName,
 		Version:     deployment.PackageVersion,
-		PrevVersion: nodeStatus.PrevVersion,
+		PrevVersion: node.PrevVersion,
 		PackageURL:  deployment.Package.URL,
 		MD5:         deployment.Package.MD5,
 	})
@@ -259,9 +243,7 @@ func (dm *DeploymentManager) executeNode(ctx context.Context, deployment *model.
 	if err != nil {
 		node.NodeDeployStatus = model.NodeDeploymentStatusFailed
 		node.ReleaseLog = err.Error()
-		nodeStatus.State = model.NodeStatusFailed
-		nodeStatus.LastError = err.Error()
-		dm.nodeStatusModel.Update(context.Background(), nodeStatus)
+		node.UpdatedAt = time.Now()
 		dm.deploymentModel.Update(context.Background(), deployment)
 		return err
 	}
@@ -270,38 +252,31 @@ func (dm *DeploymentManager) executeNode(ctx context.Context, deployment *model.
 		if ctx.Err() != nil {
 			node.NodeDeployStatus = model.NodeDeploymentStatusFailed
 			node.ReleaseLog = "deployment canceled"
-			nodeStatus.State = model.NodeStatusFailed
-			nodeStatus.LastError = "deployment canceled"
-			dm.nodeStatusModel.Update(context.Background(), nodeStatus)
+			node.UpdatedAt = time.Now()
 			dm.deploymentModel.Update(context.Background(), deployment)
 			return ctx.Err()
 		}
 
 		node.NodeDeployStatus = model.NodeDeploymentStatusFailed
 		node.ReleaseLog = err.Error()
-		nodeStatus.State = model.NodeStatusFailed
-		nodeStatus.LastError = err.Error()
-		dm.nodeStatusModel.Update(context.Background(), nodeStatus)
+		node.UpdatedAt = time.Now()
 
 		if rollbackErr := executor.Rollback(ctx); rollbackErr != nil {
 			node.ReleaseLog = fmt.Sprintf("deploy failed: %s, rollback failed: %s", err.Error(), rollbackErr.Error())
-			nodeStatus.LastError = node.ReleaseLog
 		} else {
 			node.NodeDeployStatus = model.NodeDeploymentStatusRolledBack
-			nodeStatus.State = model.NodeStatusRolledBack
 		}
-		dm.nodeStatusModel.Update(ctx, nodeStatus)
+		node.UpdatedAt = time.Now()
 		dm.deploymentModel.Update(context.Background(), deployment)
 		return err
 	}
 
 	node.NodeDeployStatus = model.NodeDeploymentStatusSuccess
 	node.ReleaseLog = "deployment successful"
-	nodeStatus.State = model.NodeStatusSuccess
-	nodeStatus.CurrentVersion = deployment.PackageVersion
-	nodeStatus.PrevVersion = nodeStatus.CurrentVersion
-	nodeStatus.DeployingVersion = ""
-	dm.nodeStatusModel.Update(ctx, nodeStatus)
+	node.PrevVersion = node.CurrentVersion
+	node.CurrentVersion = deployment.PackageVersion
+	node.DeployingVersion = ""
+	node.UpdatedAt = time.Now()
 	dm.deploymentModel.Update(context.Background(), deployment)
 
 	return nil

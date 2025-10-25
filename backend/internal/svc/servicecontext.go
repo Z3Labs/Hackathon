@@ -1,8 +1,6 @@
 package svc
 
 import (
-	"context"
-
 	"github.com/Z3Labs/Hackathon/backend/common/qiniu"
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
@@ -14,7 +12,6 @@ type ServiceContext struct {
 	DeploymentModel  model.DeploymentModel
 	MachineModel     model.MachineModel
 	ReportModel      model.ReportModel
-	NodeStatusModel  model.NodeStatusModel
 	QiniuClient      *qiniu.Client
 }
 
@@ -30,7 +27,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		DeploymentModel:  model.NewDeploymentModel(c.Mongo.URL, c.Mongo.Database),
 		MachineModel:     model.NewMachineModel(c.Mongo.URL, c.Mongo.Database),
 		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
-		NodeStatusModel:  model.NewNodeStatusModel(c.Mongo.URL, c.Mongo.Database),
 		QiniuClient:      qiniuClient,
 	}
 }
@@ -46,9 +42,7 @@ func NewUTServiceContext(c config.Config) *ServiceContext {
 		DeploymentModel:  model.NewDeploymentModel(c.Mongo.URL, c.Mongo.Database),
 		MachineModel:     model.NewMachineModel(c.Mongo.URL, c.Mongo.Database),
 		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
-		NodeStatusModel:  model.NewNodeStatusModel(c.Mongo.URL, c.Mongo.Database),
 		QiniuClient:      qiniuClient,
 	}
-	svc.NodeStatusModel.DeleteMany(context.Background(), &model.NodeStatusCond{})
 	return svc
 }

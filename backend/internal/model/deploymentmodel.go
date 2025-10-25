@@ -38,10 +38,16 @@ type (
 
 	// 发布机器信息（嵌套结构体）
 	NodeDeployment struct {
-		Id               string               `bson:"id"            json:"id"`             // 机器唯一标识
-		Ip               string               `bson:"ip"            json:"ip"`             // IP地址
-		NodeDeployStatus NodeDeploymentStatus `bson:"releaseStatus" json:"release_status"` // 节点发布状态
-		ReleaseLog       string               `bson:"releaseLog"    json:"release_log"`    // 发布日志
+		Id               string               `bson:"id"               json:"id"`               // 机器唯一标识
+		Ip               string               `bson:"ip"               json:"ip"`               // IP地址
+		NodeDeployStatus NodeDeploymentStatus `bson:"releaseStatus"    json:"release_status"`   // 节点发布状态
+		ReleaseLog       string               `bson:"releaseLog"       json:"release_log"`      // 发布日志
+		CurrentVersion   string               `bson:"currentVersion"   json:"current_version"`  // 当前版本
+		DeployingVersion string               `bson:"deployingVersion" json:"deploying_version"` // 正在部署的版本
+		PrevVersion      string               `bson:"prevVersion"      json:"prev_version"`     // 之前版本
+		Platform         PlatformType         `bson:"platform"         json:"platform"`         // 平台类型
+		UpdatedAt        time.Time            `bson:"updatedAt"        json:"updated_at"`       // 更新时间
+		CreatedAt        time.Time            `bson:"createdAt"        json:"created_at"`       // 创建时间
 	}
 
 	DeploymentModel interface {

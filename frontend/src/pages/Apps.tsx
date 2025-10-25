@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { appApi } from '../services/api'
-import { Application, CreateAppReq, GetAppListResp, GetAppDetailResp } from '../types'
+import { appApi, machineApi } from '../services/api'
+import { Application, Machine, CreateAppReq, GetAppListResp, GetAppDetailResp, GetMachineListResp } from '../types'
 import { useApiRequest } from '../hooks/useApiRequest'
 import { Toaster } from 'react-hot-toast'
 import './Apps.css'
@@ -11,7 +11,10 @@ const Apps: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [showMachineListModal, setShowMachineListModal] = useState(false)
+  const [isMachineEditMode, setIsMachineEditMode] = useState(false)
   const [selectedApp, setSelectedApp] = useState<Application | null>(null)
+  const [availableMachines, setAvailableMachines] = useState<Machine[]>([])
+  const [selectedMachineIds, setSelectedMachineIds] = useState<string[]>([])
   const [searchName, setSearchName] = useState('')
   const [pagination, setPagination] = useState({
     page: 1,
@@ -144,8 +147,73 @@ const Apps: React.FC = () => {
     
     if (result) {
       setSelectedApp(result.application)
+      setIsMachineEditMode(false)
       setShowMachineListModal(true)
     }
+  }
+
+  // 进入编辑模式
+  const enterMachineEditMode = async () => {
+    // 获取所有可用机器
+    const result = await request(
+      () => machineApi.getMachineList({ page: 1, page_size: 1000 }) as unknown as Promise<GetMachineListResp>,
+      {
+        errorMessage: '获取机器列表失败'
+      }
+    )
+    
+    if (result) {
+      setAvailableMachines(result.machines || [])
+      // 设置当前已选中的机器ID
+      setSelectedMachineIds(selectedApp?.machines?.map(m => m.id) || [])
+      setIsMachineEditMode(true)
+    }
+  }
+
+  // 保存机器关联
+  const saveMachineAssociations = async () => {
+    if (!selectedApp) return
+    
+    const result = await request(
+      () => appApi.updateApp(selectedApp.id, {
+        name: selectedApp.name,
+        deploy_path: selectedApp.deploy_path,
+        start_cmd: selectedApp.start_cmd,
+        stop_cmd: selectedApp.stop_cmd,
+        machine_ids: selectedMachineIds
+      }),
+      {
+        successMessage: '机器关联更新成功',
+        errorMessage: '更新机器关联失败',
+        showSuccessToast: true
+      }
+    )
+    
+    if (result) {
+      setIsMachineEditMode(false)
+      // 重新获取应用详情
+      const updatedApp = await request(
+        () => appApi.getAppDetail(selectedApp.id) as unknown as Promise<GetAppDetailResp>,
+        {
+          errorMessage: '获取应用详情失败'
+        }
+      )
+      if (updatedApp) {
+        setSelectedApp(updatedApp.application)
+      }
+      fetchApps()
+    }
+  }
+
+  // 切换机器选择
+  const toggleMachineSelection = (machineId: string) => {
+    setSelectedMachineIds(prev => {
+      if (prev.includes(machineId)) {
+        return prev.filter(id => id !== machineId)
+      } else {
+        return [...prev, machineId]
+      }
+    })
   }
 
   // 获取状态颜色
@@ -412,84 +480,122 @@ const Apps: React.FC = () => {
               <button onClick={() => setShowMachineListModal(false)}>×</button>
             </div>
             <div className="modal-body">
-              <div className="detail-section">
-                <h4>机器状态统计</h4>
-                <div className="status-stats">
-                  <div className="stat-item">
-                    <span className="stat-label">总机器数:</span>
-                    <span className="stat-value">{selectedApp.machine_count}</span>
+              {!isMachineEditMode ? (
+                <>
+                  <div className="detail-section">
+                    <h4>机器状态统计</h4>
+                    <div className="status-stats">
+                      <div className="stat-item">
+                        <span className="stat-label">总机器数:</span>
+                        <span className="stat-value">{selectedApp.machine_count}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-label">健康机器:</span>
+                        <span className="stat-value" style={{ color: getStatusColor('healthy') }}>
+                          {selectedApp.health_count}
+                        </span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-label">异常机器:</span>
+                        <span className="stat-value" style={{ color: getStatusColor('error') }}>
+                          {selectedApp.error_count}
+                        </span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-label">告警机器:</span>
+                        <span className="stat-value" style={{ color: getStatusColor('alert') }}>
+                          {selectedApp.alert_count}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">健康机器:</span>
-                    <span className="stat-value" style={{ color: getStatusColor('healthy') }}>
-                      {selectedApp.health_count}
-                    </span>
+
+                  <div className="detail-section">
+                    <h4>机器列表</h4>
+                    {selectedApp.machines && selectedApp.machines.length > 0 ? (
+                      <div className="machines-table">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>机器名称</th>
+                              <th>IP地址</th>
+                              <th>端口</th>
+                              <th>描述</th>
+                              <th>健康状态</th>
+                              <th>异常状态</th>
+                              <th>告警状态</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedApp.machines.map((machine) => (
+                              <tr key={machine.id}>
+                                <td>{machine.name}</td>
+                                <td>{machine.ip}</td>
+                                <td>{machine.port}</td>
+                                <td>{machine.description}</td>
+                                <td>
+                                  <span style={{ color: getStatusColor(machine.health_status) }}>
+                                    {getStatusText(machine.health_status)}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span style={{ color: getStatusColor(machine.error_status) }}>
+                                    {getStatusText(machine.error_status)}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span style={{ color: getStatusColor(machine.alert_status) }}>
+                                    {getStatusText(machine.alert_status)}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="empty-state">暂无关联机器</div>
+                    )}
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">异常机器:</span>
-                    <span className="stat-value" style={{ color: getStatusColor('error') }}>
-                      {selectedApp.error_count}
-                    </span>
+                </>
+              ) : (
+                <div className="detail-section">
+                  <h4>选择关联机器</h4>
+                  <div className="machine-selection">
+                    {availableMachines.map((machine) => (
+                      <div key={machine.id} className="machine-checkbox-item">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={selectedMachineIds.includes(machine.id)}
+                            onChange={() => toggleMachineSelection(machine.id)}
+                          />
+                          <span className="machine-info">
+                            <strong>{machine.name}</strong> - {machine.ip}:{machine.port}
+                            {machine.description && <span className="machine-desc"> ({machine.description})</span>}
+                          </span>
+                        </label>
+                      </div>
+                    ))}
                   </div>
-                  <div className="stat-item">
-                    <span className="stat-label">告警机器:</span>
-                    <span className="stat-value" style={{ color: getStatusColor('alert') }}>
-                      {selectedApp.alert_count}
-                    </span>
+                  <div style={{ marginTop: '10px', color: '#666' }}>
+                    已选择 {selectedMachineIds.length} 台机器
                   </div>
                 </div>
-              </div>
-
-              <div className="detail-section">
-                <h4>机器列表</h4>
-                {selectedApp.machines && selectedApp.machines.length > 0 ? (
-                  <div className="machines-table">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>机器名称</th>
-                          <th>IP地址</th>
-                          <th>端口</th>
-                          <th>描述</th>
-                          <th>健康状态</th>
-                          <th>异常状态</th>
-                          <th>告警状态</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedApp.machines.map((machine) => (
-                          <tr key={machine.id}>
-                            <td>{machine.name}</td>
-                            <td>{machine.ip}</td>
-                            <td>{machine.port}</td>
-                            <td>{machine.description}</td>
-                            <td>
-                              <span style={{ color: getStatusColor(machine.health_status) }}>
-                                {getStatusText(machine.health_status)}
-                              </span>
-                            </td>
-                            <td>
-                              <span style={{ color: getStatusColor(machine.error_status) }}>
-                                {getStatusText(machine.error_status)}
-                              </span>
-                            </td>
-                            <td>
-                              <span style={{ color: getStatusColor(machine.alert_status) }}>
-                                {getStatusText(machine.alert_status)}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="empty-state">暂无关联机器</div>
-                )}
-              </div>
+              )}
             </div>
             <div className="modal-footer">
-              <button onClick={() => setShowMachineListModal(false)}>关闭</button>
+              {!isMachineEditMode ? (
+                <>
+                  <button className="btn-primary" onClick={enterMachineEditMode}>编辑机器关联</button>
+                  <button onClick={() => setShowMachineListModal(false)}>关闭</button>
+                </>
+              ) : (
+                <>
+                  <button className="btn-primary" onClick={saveMachineAssociations}>保存</button>
+                  <button onClick={() => setIsMachineEditMode(false)}>取消</button>
+                </>
+              )}
             </div>
           </div>
         </div>

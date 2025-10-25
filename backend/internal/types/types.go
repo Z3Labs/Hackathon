@@ -74,11 +74,12 @@ type CreateAppResp struct {
 }
 
 type UpdateAppReq struct {
-	Id         string `json:"id"`          // 应用ID
-	Name       string `json:"name"`        // 应用名称
-	DeployPath string `json:"deploy_path"` // 部署路径
-	StartCmd   string `json:"start_cmd"`   // 启动命令
-	StopCmd    string `json:"stop_cmd"`    // 停止命令
+	Id         string   `json:"id"`           // 应用ID
+	Name       string   `json:"name"`         // 应用名称
+	DeployPath string   `json:"deploy_path"`  // 部署路径
+	StartCmd   string   `json:"start_cmd"`    // 启动命令
+	StopCmd    string   `json:"stop_cmd"`     // 停止命令
+	MachineIds []string `json:"machine_ids"`  // 关联的机器ID列表
 }
 
 type UpdateAppResp struct {

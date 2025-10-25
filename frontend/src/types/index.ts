@@ -74,6 +74,7 @@ export interface UpdateAppReq {
   deploy_path: string
   start_cmd: string
   stop_cmd: string
+  machine_ids?: string[]
 }
 
 export interface UpdateAppResp {

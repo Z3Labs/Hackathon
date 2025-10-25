@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/Z3Labs/Hackathon/backend/internal/model"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
 
@@ -39,6 +40,40 @@ func (l *UpdateAppLogic) UpdateApp(req *types.UpdateAppReq) (resp *types.UpdateA
 	existingApp.StartCmd = req.StartCmd
 	existingApp.StopCmd = req.StopCmd
 	existingApp.UpdatedTime = time.Now()
+
+	// 如果提供了机器ID列表，更新机器关联
+	if req.MachineIds != nil {
+		machines := make([]model.Machine, 0)
+		for _, machineId := range req.MachineIds {
+			machine, err := l.svcCtx.MachineModel.FindById(l.ctx, machineId)
+			if err != nil {
+				l.Errorf("[UpdateApp] MachineModel.FindById error:%v, machineId:%s", err, machineId)
+				continue
+			}
+			machines = append(machines, *machine)
+		}
+		existingApp.Machines = machines
+
+		// 更新机器统计
+		existingApp.MachineCount = len(machines)
+		healthCount := 0
+		errorCount := 0
+		alertCount := 0
+		for _, m := range machines {
+			if m.HealthStatus == "healthy" {
+				healthCount++
+			}
+			if m.ErrorStatus == "error" {
+				errorCount++
+			}
+			if m.AlertStatus == "alert" {
+				alertCount++
+			}
+		}
+		existingApp.HealthCount = healthCount
+		existingApp.ErrorCount = errorCount
+		existingApp.AlertCount = alertCount
+	}
 
 	// 保存到数据库
 	err = l.svcCtx.ApplicationModel.Update(l.ctx, existingApp)

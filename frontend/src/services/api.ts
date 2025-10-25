@@ -66,6 +66,7 @@ export const appApi = {
     deploy_path: string
     start_cmd: string
     stop_cmd: string
+    machine_ids?: string[]
   }) => api.put(`/apps/${id}`, data),
 
   // 获取应用列表

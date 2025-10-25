@@ -10,6 +10,9 @@ run:
 all:
 	make gen && make format
 
+docker:
+	chmod +x ./internal/clients/diagnosis/py/build-docker.sh && ./internal/clients/diagnosis/py/build-docker.sh
+
 model:
 	@if [ -z "$(type)" ]; then \
 		echo "Error: type parameter is required"; \

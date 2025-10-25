@@ -46,6 +46,29 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ 镜像构建成功!${NC}"
     echo -e "${GREEN}========================================${NC}"
     echo -e "${GREEN}镜像名称: ${FULL_IMAGE_NAME}${NC}"
+    
+    # 保存镜像为压缩包
+    OUTPUT_FILE="${IMAGE_NAME}-${IMAGE_TAG}.tar.gz"
+    echo ""
+    echo -e "${BLUE}正在保存镜像为压缩包...${NC}"
+    echo -e "${BLUE}输出文件: ${OUTPUT_FILE}${NC}"
+    
+    docker save "$FULL_IMAGE_NAME" | gzip > "$OUTPUT_FILE"
+    
+    if [ $? -eq 0 ]; then
+        FILE_SIZE=$(du -h "$OUTPUT_FILE" | cut -f1)
+        echo -e "${GREEN}✓ 镜像已保存为压缩包!${NC}"
+        echo -e "${GREEN}文件路径: $(pwd)/${OUTPUT_FILE}${NC}"
+        echo -e "${GREEN}文件大小: ${FILE_SIZE}${NC}"
+        echo ""
+        echo -e "${BLUE}在其他机器上加载镜像:${NC}"
+        echo -e "  ${GREEN}docker load < ${OUTPUT_FILE}${NC}"
+        echo -e "  或者: ${GREEN}gunzip -c ${OUTPUT_FILE} | docker load${NC}"
+    else
+        echo -e "${RED}✗ 保存镜像失败${NC}"
+        exit 1
+    fi
+    
     echo ""
     echo -e "${BLUE}使用方法:${NC}"
     echo -e "  启动容器: ${GREEN}docker run -d --name diagnosis-service ${FULL_IMAGE_NAME}${NC}"

@@ -26,6 +26,10 @@ type ExecutorConfig struct {
 	ImageURL    string
 }
 
+type ExecutorFactoryInterface interface {
+	CreateExecutor(ctx context.Context, config ExecutorConfig) (Executor, error)
+}
+
 type ExecutorFactory struct {
 }
 

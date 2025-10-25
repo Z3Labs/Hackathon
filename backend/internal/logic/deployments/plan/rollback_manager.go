@@ -13,13 +13,13 @@ import (
 type RollbackManager struct {
 	releasePlanModel model.ReleasePlanModel
 	nodeStatusModel  model.NodeStatusModel
-	executorFactory  *executor.ExecutorFactory
+	executorFactory  executor.ExecutorFactoryInterface
 }
 
 func NewRollbackManager(
 	releasePlanModel model.ReleasePlanModel,
 	nodeStatusModel model.NodeStatusModel,
-	executorFactory *executor.ExecutorFactory,
+	executorFactory executor.ExecutorFactoryInterface,
 ) *RollbackManager {
 	return &RollbackManager{
 		releasePlanModel: releasePlanModel,

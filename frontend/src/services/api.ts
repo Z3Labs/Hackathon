@@ -58,6 +58,8 @@ export const appApi = {
     deploy_path: string
     start_cmd: string
     stop_cmd: string
+    rollback_policy?: any
+    red_metrics_config?: any
   }) => api.post('/apps', data),
 
   // 更新应用
@@ -68,6 +70,8 @@ export const appApi = {
     start_cmd: string
     stop_cmd: string
     machine_ids?: string[]
+    rollback_policy?: any
+    red_metrics_config?: any
   }) => api.put(`/apps/${id}`, data),
 
   // 获取应用列表

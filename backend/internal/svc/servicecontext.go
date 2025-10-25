@@ -3,6 +3,7 @@ package svc
 import (
 	"context"
 
+	"github.com/Z3Labs/Hackathon/backend/common/qiniu"
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 )
@@ -15,6 +16,7 @@ type ServiceContext struct {
 	ReportModel      model.ReportModel
 	ReleasePlanModel model.ReleasePlanModel
 	NodeStatusModel  model.NodeStatusModel
+	QiniuClient      *qiniu.Client
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -26,6 +28,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
 		ReleasePlanModel: model.NewReleasePlanModel(c.Mongo.URL, c.Mongo.Database),
 		NodeStatusModel:  model.NewNodeStatusModel(c.Mongo.URL, c.Mongo.Database),
+		QiniuClient:      qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket),
 	}
 }
 func NewUTServiceContext(c config.Config) *ServiceContext {
@@ -37,6 +40,7 @@ func NewUTServiceContext(c config.Config) *ServiceContext {
 		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
 		ReleasePlanModel: model.NewReleasePlanModel(c.Mongo.URL, c.Mongo.Database),
 		NodeStatusModel:  model.NewNodeStatusModel(c.Mongo.URL, c.Mongo.Database),
+		QiniuClient:      qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket),
 	}
 	svc.ReleasePlanModel.DeleteMany(context.Background(), &model.ReleasePlanCond{})
 	svc.NodeStatusModel.DeleteMany(context.Background(), &model.NodeStatusCond{})

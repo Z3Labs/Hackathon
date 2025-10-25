@@ -79,6 +79,9 @@ export const appApi = {
 
   // 获取应用详情
   getAppDetail: (id: string) => api.get(`/apps/${id}`),
+
+  // 获取应用版本列表
+  getAppVersions: (appName: string) => api.get('/apps/versions', { params: { app_name: appName } }),
 }
 
 // 发布记录相关接口

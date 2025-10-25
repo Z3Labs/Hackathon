@@ -19,6 +19,8 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
   const [error, setError] = useState<string | null>(null);
   const [apps, setApps] = useState<Array<{ id: string; name: string }>>([]);
   const [loadingApps, setLoadingApps] = useState(true);
+  const [versions, setVersions] = useState<string[]>([]);
+  const [loadingVersions, setLoadingVersions] = useState(false);
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -51,8 +53,23 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
     }
   };
 
-  const handleChange = (field: keyof CreateDeploymentRequest, value: string) => {
+  const handleChange = async (field: keyof CreateDeploymentRequest, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    
+    if (field === 'app_name' && value) {
+      setLoadingVersions(true);
+      setVersions([]);
+      setFormData((prev) => ({ ...prev, package_version: '' }));
+      try {
+        const response = await appApi.getAppVersions(value);
+        setVersions(response.versions || []);
+      } catch (err) {
+        console.error('获取版本列表失败', err);
+        setVersions([]);
+      } finally {
+        setLoadingVersions(false);
+      }
+    }
   };
 
   return (
@@ -88,19 +105,27 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
             包版本 <span style={{ color: '#ff4d4f' }}>*</span>
           </label>
-          <input
-            type="text"
+          <select
             value={formData.package_version}
             onChange={(e) => handleChange('package_version', e.target.value)}
             required
-            placeholder="例如: v1.0.0"
+            disabled={!formData.app_name || loadingVersions || versions.length === 0}
             style={{
               width: '100%',
               padding: '8px',
               border: '1px solid #d9d9d9',
               borderRadius: '4px',
             }}
-          />
+          >
+            <option value="">
+              {!formData.app_name ? '请先选择应用' : loadingVersions ? '加载中...' : versions.length === 0 ? '暂无版本' : '请选择版本'}
+            </option>
+            {versions.map((version) => (
+              <option key={version} value={version}>
+                {version}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div style={{ marginBottom: '16px' }}>

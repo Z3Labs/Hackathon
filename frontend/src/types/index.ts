@@ -1,11 +1,17 @@
 // 机器信息
 export interface Machine {
   id: string
+  name: string
   ip: string
   port: number
+  username: string
+  password: string
+  description: string
   health_status: string // healthy-健康, unhealthy-不健康
   error_status: string  // normal-正常, error-异常
   alert_status: string  // normal-正常, alert-告警
+  created_at: number
+  updated_at: number
 }
 
 // 应用信息
@@ -93,4 +99,74 @@ export interface GetAppDetailReq {
 
 export interface GetAppDetailResp {
   application: Application
+}
+
+// 机器相关请求响应类型
+export interface CreateMachineReq {
+  name: string
+  ip: string
+  port: number
+  username: string
+  password: string
+  description: string
+}
+
+export interface CreateMachineResp {
+  id: string
+}
+
+export interface UpdateMachineReq {
+  id: string
+  name: string
+  ip: string
+  port: number
+  username: string
+  password: string
+  description: string
+}
+
+export interface UpdateMachineResp {
+  success: boolean
+}
+
+export interface GetMachineListReq {
+  page?: number
+  page_size?: number
+  name?: string
+  ip?: string
+  health_status?: string
+  error_status?: string
+  alert_status?: string
+}
+
+export interface GetMachineListResp {
+  machines: Machine[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export interface GetMachineDetailReq {
+  id: string
+}
+
+export interface GetMachineDetailResp {
+  machine: Machine
+}
+
+export interface DeleteMachineReq {
+  id: string
+}
+
+export interface DeleteMachineResp {
+  success: boolean
+}
+
+export interface TestMachineConnectionReq {
+  id: string
+}
+
+export interface TestMachineConnectionResp {
+  success: boolean
+  message: string
 }

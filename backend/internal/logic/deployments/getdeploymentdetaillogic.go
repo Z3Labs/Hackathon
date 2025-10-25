@@ -56,9 +56,26 @@ func (l *GetDeploymentDetailLogic) GetDeploymentDetail(req *types.GetDeploymentD
 		UpdatedAt:       deployment.UpdatedTime,
 	}
 
+	// 查询诊断报告
+	var reportResp *types.Report
+
+	report, err := l.svcCtx.ReportModel.FindByDeploymentId(l.ctx, deployment.Id)
+	if err == nil && report != nil {
+		// 找到报告，转换为响应类型
+		reportResp = &types.Report{
+			Id:           report.Id,
+			DeploymentId: report.DeploymentId,
+			Content:      report.Content,
+			Status:       string(report.Status),
+			CreatedAt:    report.CreatedTime.Unix(),
+			UpdatedAt:    report.UpdatedTime.Unix(),
+		}
+	}
+
 	l.Infof("[GetDeploymentDetail] Successfully retrieved deployment detail: %s", req.Id)
 
 	return &types.GetDeploymentDetailResp{
 		Deployment: deploymentDetail,
+		Report:     reportResp,
 	}, nil
 }

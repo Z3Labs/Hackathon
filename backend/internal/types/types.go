@@ -158,7 +158,17 @@ type GetDeploymentDetailReq struct {
 }
 
 type GetDeploymentDetailResp struct {
-	Deployment Deployment `json:"deployment"` // 发布记录详情
+	Deployment Deployment `json:"deployment"`       // 发布记录详情
+	Report     *Report    `json:"report,omitempty"` // 诊断报告（可能为空）
+}
+
+type Report struct {
+	Id           string `json:"id"`            // 报告唯一标识
+	DeploymentId string `json:"deployment_id"` // 关联的部署ID
+	Content      string `json:"content"`       // AI 生成的报告内容
+	Status       string `json:"status"`        // 报告生成状态: generating-生成中, completed-生成完成, failed-生成失败
+	CreatedAt    int64  `json:"created_at"`    // 创建时间戳
+	UpdatedAt    int64  `json:"updated_at"`    // 更新时间戳
 }
 
 type CancelDeploymentReq struct {

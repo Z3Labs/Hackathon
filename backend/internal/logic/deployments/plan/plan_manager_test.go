@@ -22,7 +22,7 @@ func setupTestDB(t *testing.T) *svc.ServiceContext {
 			Database: testDB,
 		},
 	}
-	return svc.NewServiceContext(cfg)
+	return svc.NewUTServiceContext(cfg)
 }
 
 func cleanupTestData(t *testing.T, ctx context.Context, releasePlanModel model.ReleasePlanModel, planID string) {
@@ -54,7 +54,7 @@ func TestPlanManager_CreateReleasePlan(t *testing.T) {
 		},
 	}
 
-	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", "mock", pkg, stages)
+	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", model.PlatformMock, pkg, stages)
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestPlanManager_ExecutePlan_Success(t *testing.T) {
 		},
 	}
 
-	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", "mock", pkg, stages)
+	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", model.PlatformMock, pkg, stages)
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
@@ -150,7 +150,7 @@ func TestPlanManager_ExecutePlan_WithMultipleStages(t *testing.T) {
 		},
 	}
 
-	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", "mock", pkg, stages)
+	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", model.PlatformMock, pkg, stages)
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
@@ -204,7 +204,7 @@ func TestPlanManager_ExecutePlan_WithBatching(t *testing.T) {
 		},
 	}
 
-	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", "mock", pkg, stages)
+	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", model.PlatformMock, pkg, stages)
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
@@ -250,7 +250,7 @@ func TestPlanManager_ExecutePlan_InvalidStatus(t *testing.T) {
 		},
 	}
 
-	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", "mock", pkg, stages)
+	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", model.PlatformMock, pkg, stages)
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
@@ -288,7 +288,7 @@ func TestPlanManager_CancelPlan(t *testing.T) {
 		},
 	}
 
-	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", "mock", pkg, stages)
+	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", model.PlatformMock, pkg, stages)
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
@@ -332,7 +332,7 @@ func TestPlanManager_CancelPlan_InvalidStatus(t *testing.T) {
 		},
 	}
 
-	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", "mock", pkg, stages)
+	plan, err := pm.CreateReleasePlan(ctx, "test-service", "v1.0.0", model.PlatformMock, pkg, stages)
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}

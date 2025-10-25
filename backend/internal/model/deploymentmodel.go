@@ -16,9 +16,42 @@ type (
 		PackageVersion  string           `bson:"packageVersion"  json:"package_version"`  // 包版本
 		ConfigPath      string           `bson:"configPath"      json:"config_path"`      // 配置文件路径
 		GrayStrategy    string           `bson:"grayStrategy"    json:"gray_strategy"`    // 灰度策略
+		Platform        PlatformType     `bson:"platform"        json:"platform"`         // 平台类型
+		Package         PackageInfo      `bson:"package"         json:"package"`          // 包信息
+		Stages          []Stage          `bson:"stages"          json:"stages"`           // 分阶段部署配置
 		NodeDeployments []NodeDeployment `bson:"nodeDeployments" json:"node_deployments"` // 发布机器列表
 		CreatedTime     int64            `bson:"createdTime"     json:"createdTime"`      // 创建时间戳
 		UpdatedTime     int64            `bson:"updatedTime"     json:"updatedTime"`      // 更新时间戳
+	}
+
+	PackageInfo struct {
+		URL       string    `bson:"url"       json:"url"`
+		SHA256    string    `bson:"sha256"    json:"sha256"`
+		Size      int64     `bson:"size"      json:"size"`
+		CreatedAt time.Time `bson:"createdAt" json:"created_at"`
+	}
+
+	Stage struct {
+		Name   string      `bson:"name"   json:"name"`
+		Nodes  []StageNode `bson:"nodes"  json:"nodes"`
+		Status StageStatus `bson:"status" json:"status"`
+		Pacer  PacerConfig `bson:"pacer"  json:"pacer"`
+	}
+
+	StageNode struct {
+		Host             string     `bson:"host"             json:"host"`
+		IP               string     `bson:"ip"               json:"ip"`
+		Status           NodeStatus `bson:"status"           json:"status"`
+		CurrentVersion   string     `bson:"currentVersion"   json:"current_version"`
+		DeployingVersion string     `bson:"deployingVersion" json:"deploying_version"`
+		PrevVersion      string     `bson:"prevVersion"      json:"prev_version"`
+		LastError        string     `bson:"lastError"        json:"last_error"`
+		UpdatedAt        time.Time  `bson:"updatedAt"        json:"updated_at"`
+	}
+
+	PacerConfig struct {
+		BatchSize       int `bson:"batchSize"       json:"batch_size"`
+		IntervalSeconds int `bson:"intervalSeconds" json:"interval_seconds"`
 	}
 
 	// 发布机器信息（嵌套结构体）

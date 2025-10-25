@@ -7,7 +7,7 @@ import (
 
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
 	"github.com/Z3Labs/Hackathon/backend/internal/handler"
-	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/plan"
+	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 
 	"github.com/zeromicro/go-zero/core/conf"
@@ -28,14 +28,14 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 
-	planManager := plan.NewPlanManager(context.Background(), ctx)
-	rollbackManager := plan.NewRollbackManager(context.Background(), ctx)
+	deploymentManager := deployments.NewDeploymentManager(context.Background(), ctx)
+	rollbackManager := deployments.NewRollbackManager(context.Background(), ctx)
 	
-	planCron := plan.NewPlanCron(planManager, rollbackManager)
-	if err := planCron.Start(); err != nil {
-		panic(fmt.Sprintf("failed to start plan cron: %v", err))
+	deploymentCron := deployments.NewDeploymentCron(deploymentManager, rollbackManager)
+	if err := deploymentCron.Start(); err != nil {
+		panic(fmt.Sprintf("failed to start deployment cron: %v", err))
 	}
-	defer planCron.Stop()
+	defer deploymentCron.Stop()
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()

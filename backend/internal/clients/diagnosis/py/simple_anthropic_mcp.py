@@ -36,13 +36,16 @@ async def simple_diagnosis(
     print(f"[MCP] 启动 Prometheus MCP Server...")
     print(f"[MCP] Prometheus URL: {prometheus_url}")
     
+    # 在容器内直接启动 MCP Server 进程（Python 实现）
     server_params = StdioServerParameters(
-        command="docker",
+        command="python",
         args=[
-            "run", "-i", "--rm",
-            "-e", f"PROMETHEUS_URL={prometheus_url}",
-            "ghcr.io/pab1it0/prometheus-mcp-server:latest",
+            "-m", "prometheus_mcp_server.main",
         ],
+        env={
+            "PROMETHEUS_URL": prometheus_url,
+            "PROMETHEUS_MCP_SERVER_TRANSPORT": "stdio",  # 使用 stdio 传输模式
+        }
     )
     
     async with stdio_client(server_params) as (read, write):
@@ -92,7 +95,7 @@ async def simple_diagnosis(
                 
                 response = await client.messages.create(
                     model=model,
-                    max_tokens=4096,
+                    max_tokens=32000,
                     messages=messages,
                     tools=tools,
                 )

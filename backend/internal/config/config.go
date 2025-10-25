@@ -20,7 +20,6 @@ type AIConfig struct {
 	APIKey        string // API 密钥，从环境变量读取
 	Model         string `json:",default=gpt-4"` // 模型名称
 	Timeout       int    `json:",default=30"`    // 超时时间（秒）
-	UseMCP        bool   `json:",default=false"` // 是否使用 MCP 模式
 	PrometheusURL string `json:",optional"`      // Prometheus URL（MCP 模式需要）
 }
 

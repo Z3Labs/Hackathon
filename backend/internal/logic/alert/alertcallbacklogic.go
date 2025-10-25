@@ -3,6 +3,7 @@ package alert
 import (
 	"context"
 
+	"github.com/Z3Labs/Hackathon/backend/internal/clients/diagnosis"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
 
@@ -24,7 +25,10 @@ func NewAlertCallBackLogic(ctx context.Context, svcCtx *svc.ServiceContext) Aler
 }
 
 func (l *AlertCallBackLogic) AlertCallBack(req *types.PostAlertCallbackReq) error {
-	// todo: add your logic here and delete this line
+
+	// TODO 其它逻辑
+
+	diagnosis.New(l.ctx, l.svcCtx, l.svcCtx.Config.AI).GenerateReport(req)
 
 	return nil
 }

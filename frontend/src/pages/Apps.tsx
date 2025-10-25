@@ -10,6 +10,7 @@ const Apps: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
+  const [showMachineListModal, setShowMachineListModal] = useState(false)
   const [selectedApp, setSelectedApp] = useState<Application | null>(null)
   const [searchName, setSearchName] = useState('')
   const [pagination, setPagination] = useState({
@@ -132,6 +133,21 @@ const Apps: React.FC = () => {
     }
   }
 
+  // 打开机器列表模态框
+  const openMachineListModal = async (appId: string) => {
+    const result = await request(
+      () => appApi.getAppDetail(appId) as unknown as Promise<GetAppDetailResp>,
+      {
+        errorMessage: '获取应用机器列表失败'
+      }
+    )
+    
+    if (result) {
+      setSelectedApp(result.application)
+      setShowMachineListModal(true)
+    }
+  }
+
   // 获取状态颜色
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -245,6 +261,12 @@ const Apps: React.FC = () => {
                           onClick={() => openDetailModal(app.id)}
                         >
                           详情
+                        </button>
+                        <button 
+                          className="btn btn-sm btn-success"
+                          onClick={() => openMachineListModal(app.id)}
+                        >
+                          机器列表
                         </button>
                         <button 
                           className="btn btn-sm btn-warning"
@@ -376,6 +398,98 @@ const Apps: React.FC = () => {
             <div className="modal-footer">
               <button onClick={() => setShowEditModal(false)}>取消</button>
               <button className="btn-primary" onClick={handleUpdateApp}>保存</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 机器列表模态框 */}
+      {showMachineListModal && selectedApp && (
+        <div className="modal-overlay">
+          <div className="modal modal-large">
+            <div className="modal-header">
+              <h3>{selectedApp.name} - 机器列表</h3>
+              <button onClick={() => setShowMachineListModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-section">
+                <h4>机器状态统计</h4>
+                <div className="status-stats">
+                  <div className="stat-item">
+                    <span className="stat-label">总机器数:</span>
+                    <span className="stat-value">{selectedApp.machine_count}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">健康机器:</span>
+                    <span className="stat-value" style={{ color: getStatusColor('healthy') }}>
+                      {selectedApp.health_count}
+                    </span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">异常机器:</span>
+                    <span className="stat-value" style={{ color: getStatusColor('error') }}>
+                      {selectedApp.error_count}
+                    </span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">告警机器:</span>
+                    <span className="stat-value" style={{ color: getStatusColor('alert') }}>
+                      {selectedApp.alert_count}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h4>机器列表</h4>
+                {selectedApp.machines && selectedApp.machines.length > 0 ? (
+                  <div className="machines-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>机器名称</th>
+                          <th>IP地址</th>
+                          <th>端口</th>
+                          <th>描述</th>
+                          <th>健康状态</th>
+                          <th>异常状态</th>
+                          <th>告警状态</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedApp.machines.map((machine) => (
+                          <tr key={machine.id}>
+                            <td>{machine.name}</td>
+                            <td>{machine.ip}</td>
+                            <td>{machine.port}</td>
+                            <td>{machine.description}</td>
+                            <td>
+                              <span style={{ color: getStatusColor(machine.health_status) }}>
+                                {getStatusText(machine.health_status)}
+                              </span>
+                            </td>
+                            <td>
+                              <span style={{ color: getStatusColor(machine.error_status) }}>
+                                {getStatusText(machine.error_status)}
+                              </span>
+                            </td>
+                            <td>
+                              <span style={{ color: getStatusColor(machine.alert_status) }}>
+                                {getStatusText(machine.alert_status)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="empty-state">暂无关联机器</div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowMachineListModal(false)}>关闭</button>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { appApi, machineApi } from '../services/api'
 import { Application, Machine, CreateAppReq, GetAppListResp, GetAppDetailResp, GetMachineListResp, PrometheusAlert } from '../types'
 import { useApiRequest } from '../hooks/useApiRequest'
 import { Toaster } from 'react-hot-toast'
+import PageLayout from '../components/PageLayout'
 import './Apps.css'
 
 const Apps: React.FC = () => {
@@ -299,7 +300,7 @@ const Apps: React.FC = () => {
   }
 
   return (
-    <div className="apps-container">
+    <PageLayout breadcrumbItems={[{ label: '应用管理', path: '/apps' }]}>
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -312,7 +313,6 @@ const Apps: React.FC = () => {
         }}
       />
       <div className="apps-header">
-        <h1>应用管理</h1>
         <div className="apps-actions">
           <div className="search-box">
             <input
@@ -1587,7 +1587,7 @@ const Apps: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   )
 }
 

@@ -45,7 +45,7 @@ ghcr.io/pab1it0/prometheus-mcp-server:latest
 
 方法 3: 本地安装
 
-git clone https://github.com/pab1it0/prometheus-mcp-server.git
+git clone https://github.com/spongehah/prometheus-mcp-server.git
 cd prometheus-mcp-server
 uv pip install -e .
 python -m prometheus_mcp_server.main

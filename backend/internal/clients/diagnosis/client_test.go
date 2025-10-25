@@ -11,14 +11,14 @@ import (
 // TestBuildPromptTemplate 测试 prompt 构建
 func TestBuildPromptTemplate(t *testing.T) {
 	req := &types.PostAlertCallbackReq{
-		Key:       "test-alert-001",
-		Status:    "firing",
-		Alertname: "HighCPUUsage",
-		Severity:  "critical",
-		Desc:      "CPU 使用率过高",
-		StartsAt:  "2025-01-15T14:23:15Z",
-		ReceiveAt: "2025-01-15T14:23:16Z",
-		Values:    92.5,
+		Key:        "test-alert-001",
+		Status:     "firing",
+		Alertname:  "HighCPUUsage",
+		Severity:   "critical",
+		Desc:       "CPU 使用率过高",
+		StartsAt:   "2025-01-15T14:23:15Z",
+		ReceiveAt:  "2025-01-15T14:23:16Z",
+		Values:     92.5,
 		NeedHandle: true,
 		Labels: map[string]string{
 			"instance": "localhost:9301",
@@ -78,15 +78,15 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 
 	// 3. Mock 告警数据
 	req := &types.PostAlertCallbackReq{
-		Key:       "test-alert-001",
-		Status:    "firing",
-		Alertname: "HighCPUUsage",
-		Severity:  "critical",
-		Desc:      "CPU 使用率过高",
-		StartsAt:  "2025-01-15T14:23:15Z",
-		ReceiveAt: "2025-01-15T14:23:16Z",
-		EndsAt:    "",
-		Values:    92.5,
+		Key:          "test-alert-001",
+		Status:       "firing",
+		Alertname:    "HighCPUUsage",
+		Severity:     "critical",
+		Desc:         "CPU 使用率过高",
+		StartsAt:     "2025-01-15T14:23:15Z",
+		ReceiveAt:    "2025-01-15T14:23:16Z",
+		EndsAt:       "",
+		Values:       92.5,
 		GeneratorURL: "http://150.158.152.112:9300/graph?g0.expr=...",
 		NeedHandle:   true,
 		IsEmergent:   true,

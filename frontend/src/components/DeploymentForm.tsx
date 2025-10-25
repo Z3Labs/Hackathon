@@ -61,7 +61,7 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            应用名称 *
+            应用名称 <span style={{ color: '#ff4d4f' }}>*</span>
           </label>
           <select
             value={formData.app_name}
@@ -86,7 +86,7 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
 
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            包版本 *
+            包版本 <span style={{ color: '#ff4d4f' }}>*</span>
           </label>
           <input
             type="text"
@@ -105,7 +105,7 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
 
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            配置文件路径 *
+            配置文件路径 <span style={{ color: '#ff4d4f' }}>*</span>
           </label>
           <input
             type="text"
@@ -124,7 +124,7 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
 
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            灰度策略 *
+            灰度策略 <span style={{ color: '#ff4d4f' }}>*</span>
           </label>
           <select
             value={formData.gray_strategy}

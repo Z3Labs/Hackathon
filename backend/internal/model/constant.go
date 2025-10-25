@@ -10,16 +10,16 @@ const (
 )
 
 type (
-	HealthStatus     string // 健康状态
-	ErrorStatus      string // 异常状态
-	AlertStatus      string // 告警状态
-	ReleaseStatus    string // 发布状态
-	DeploymentStatus string // 部署状态
-	GrayStrategy     string // 灰度策略
-	PlanStatus       string // 发布计划状态
-	StageStatus      string // 阶段状态
-	NodeStatus       string // 节点状态
-	PlatformType     string // 平台类型
+	HealthStatus         string // 健康状态
+	ErrorStatus          string // 异常状态
+	AlertStatus          string // 告警状态
+	DeploymentStatus     string // 发布单状态
+	NodeDeploymentStatus string // 发布状态
+	GrayStrategy         string // 灰度策略
+	PlanStatus           string // 发布计划状态
+	StageStatus          string // 阶段状态
+	NodeStatus           string // 节点状态
+	PlatformType         string // 平台类型
 )
 
 const (
@@ -32,15 +32,17 @@ const (
 	AlertStatusNormal AlertStatus = "normal" // 正常
 	AlertStatusAlert  AlertStatus = "alert"  // 告警
 
-	ReleaseStatusPending    ReleaseStatus = "pending"     // 待发布
-	ReleaseStatusDeploying  ReleaseStatus = "deploying"   // 发布中
-	ReleaseStatusSuccess    ReleaseStatus = "success"     // 成功
-	ReleaseStatusRolledBack ReleaseStatus = "rolled_back" // 已回滚
-	ReleaseStatusFailed     ReleaseStatus = "failed"      // 失败
+	NodeDeploymentStatusPending    NodeDeploymentStatus = "pending"     // 待发布
+	NodeDeploymentStatusDeploying  NodeDeploymentStatus = "deploying"   // 发布中
+	NodeDeploymentStatusSkipped    NodeDeploymentStatus = "skipped"     // 跳过
+	NodeDeploymentStatusSuccess    NodeDeploymentStatus = "success"     // 成功
+	NodeDeploymentStatusRolledBack NodeDeploymentStatus = "rolled_back" // 已回滚
+	NodeDeploymentStatusFailed     NodeDeploymentStatus = "failed"      // 失败
 
 	DeploymentStatusPending    DeploymentStatus = "pending"     // 待发布
 	DeploymentStatusDeploying  DeploymentStatus = "deploying"   // 发布中
 	DeploymentStatusSuccess    DeploymentStatus = "success"     // 成功
+	DeploymentStatusCanceled   DeploymentStatus = "canceled"    // 已取消
 	DeploymentStatusFailed     DeploymentStatus = "failed"      // 失败
 	DeploymentStatusRolledBack DeploymentStatus = "rolled_back" // 已回滚
 

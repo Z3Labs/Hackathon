@@ -81,6 +81,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/v1/deployments/:id/rollback",
 				Handler: deployments.RollbackDeploymentHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/v1/deployments/:id/node-deployments",
+				Handler: deployments.RollbackNodeDeploymentHandler(serverCtx),
+			},
 		},
 	)
 

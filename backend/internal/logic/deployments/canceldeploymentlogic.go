@@ -38,7 +38,7 @@ func (l *CancelDeploymentLogic) CancelDeployment(req *types.CancelDeploymentReq)
 		return nil, errors.New("只能取消待发布或发布中的发布单")
 	}
 
-	deployment.Status = model.DeploymentStatusFailed
+	deployment.Status = model.DeploymentStatusCanceled
 	deployment.UpdatedTime = time.Now().Unix()
 
 	err = l.svcCtx.DeploymentModel.Update(l.ctx, deployment)

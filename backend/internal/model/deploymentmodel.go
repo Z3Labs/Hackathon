@@ -10,29 +10,23 @@ import (
 
 type (
 	Deployment struct {
-		Id              string              `bson:"_id,omitempty"   json:"id,omitempty"`
-		AppName         string              `bson:"appName"         json:"app_name"`         // 应用名称
-		Status          DeploymentStatus    `bson:"status"          json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
-		PackageVersion  string              `bson:"packageVersion"  json:"package_version"`  // 包版本
-		ConfigPath      string              `bson:"configPath"      json:"config_path"`      // 配置文件路径
-		GrayStrategy    string              `bson:"grayStrategy"    json:"gray_strategy"`    // 灰度策略: canary-金丝雀发布, blue-green-蓝绿发布, all-全量发布
-		StartTime       int64               `bson:"startTime"       json:"start_time"`       // 开始时间戳
-		EndTime         int64               `bson:"endTime"         json:"end_time"`         // 结束时间戳
-		ReleaseMachines []DeploymentMachine `bson:"releaseMachines" json:"release_machines"` // 发布机器列表
-		ReleaseLog      string              `bson:"releaseLog"      json:"release_log"`      // 发布日志
-		CreatedTime     int64               `bson:"createdTime"     json:"createdTime"`      // 创建时间戳
-		UpdatedTime     int64               `bson:"updatedTime"     json:"updatedTime"`      // 更新时间戳
+		Id              string           `bson:"_id,omitempty"   json:"id,omitempty"`
+		AppName         string           `bson:"appName"         json:"app_name"`         // 应用名称
+		Status          DeploymentStatus `bson:"status"          json:"status"`           // 发布状态
+		PackageVersion  string           `bson:"packageVersion"  json:"package_version"`  // 包版本
+		ConfigPath      string           `bson:"configPath"      json:"config_path"`      // 配置文件路径
+		GrayStrategy    string           `bson:"grayStrategy"    json:"gray_strategy"`    // 灰度策略
+		NodeDeployments []NodeDeployment `bson:"nodeDeployments" json:"node_deployments"` // 发布机器列表
+		CreatedTime     int64            `bson:"createdTime"     json:"createdTime"`      // 创建时间戳
+		UpdatedTime     int64            `bson:"updatedTime"     json:"updatedTime"`      // 更新时间戳
 	}
 
 	// 发布机器信息（嵌套结构体）
-	DeploymentMachine struct {
-		Id            string        `bson:"id"            json:"id"`             // 机器唯一标识
-		Ip            string        `bson:"ip"            json:"ip"`             // IP地址
-		Port          int           `bson:"port"          json:"port"`           // 端口号
-		ReleaseStatus ReleaseStatus `bson:"releaseStatus" json:"release_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
-		HealthStatus  HealthStatus  `bson:"healthStatus"  json:"health_status"`  // 健康状态: healthy-健康, unhealthy-不健康
-		ErrorStatus   ErrorStatus   `bson:"errorStatus"   json:"error_status"`   // 异常状态: normal-正常, error-异常
-		AlertStatus   AlertStatus   `bson:"alertStatus"   json:"alert_status"`   // 告警状态: normal-正常, alert-告警
+	NodeDeployment struct {
+		Id               string               `bson:"id"            json:"id"`             // 机器唯一标识
+		Ip               string               `bson:"ip"            json:"ip"`             // IP地址
+		NodeDeployStatus NodeDeploymentStatus `bson:"releaseStatus" json:"release_status"` // 节点发布状态
+		ReleaseLog       string               `bson:"releaseLog"    json:"release_log"`    // 发布日志
 	}
 
 	DeploymentModel interface {

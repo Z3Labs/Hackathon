@@ -50,16 +50,13 @@ func (l *GetDeploymentListLogic) GetDeploymentList(req *types.GetDeploymentListR
 	var deploymentList []types.Deployment
 	for _, deployment := range deployments {
 		// 转换发布机器信息
-		var releaseMachines []types.DeploymentMachine
-		for _, machine := range deployment.ReleaseMachines {
-			releaseMachines = append(releaseMachines, types.DeploymentMachine{
-				Id:            machine.Id,
-				Ip:            machine.Ip,
-				Port:          machine.Port,
-				ReleaseStatus: string(machine.ReleaseStatus),
-				HealthStatus:  string(machine.HealthStatus),
-				ErrorStatus:   string(machine.ErrorStatus),
-				AlertStatus:   string(machine.AlertStatus),
+		var nodeDeployments []types.NodeDeployment
+		for _, machine := range deployment.NodeDeployments {
+			nodeDeployments = append(nodeDeployments, types.NodeDeployment{
+				Id:               machine.Id,
+				Ip:               machine.Ip,
+				NodeDeployStatus: string(machine.NodeDeployStatus),
+				ReleaseLog:       machine.ReleaseLog,
 			})
 		}
 
@@ -70,8 +67,7 @@ func (l *GetDeploymentListLogic) GetDeploymentList(req *types.GetDeploymentListR
 			PackageVersion:  deployment.PackageVersion,
 			ConfigPath:      deployment.ConfigPath,
 			GrayStrategy:    deployment.GrayStrategy,
-			ReleaseMachines: releaseMachines,
-			ReleaseLog:      deployment.ReleaseLog,
+			NodeDeployments: nodeDeployments,
 			CreatedAt:       deployment.CreatedTime,
 			UpdatedAt:       deployment.UpdatedTime,
 		})

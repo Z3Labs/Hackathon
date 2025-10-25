@@ -184,7 +184,7 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
             </option>
             {machines.map((machine) => (
               <option key={machine.id} value={machine.id}>
-                {machine.name} ({machine.ip})
+                {machine.name || machine.ip} {machine.name && `(${machine.ip})`}
               </option>
             ))}
           </select>

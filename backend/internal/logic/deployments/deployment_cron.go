@@ -11,13 +11,15 @@ type DeploymentCron struct {
 	cron                *cron.Cron
 	deploymentManager   *DeploymentManager
 	rollbackManager     *RollbackManager
+	alertMonitor        *AlertMonitor
 }
 
-func NewDeploymentCron(deploymentManager *DeploymentManager, rollbackManager *RollbackManager) *DeploymentCron {
+func NewDeploymentCron(deploymentManager *DeploymentManager, rollbackManager *RollbackManager, alertMonitor *AlertMonitor) *DeploymentCron {
 	return &DeploymentCron{
 		cron:                cron.New(),
 		deploymentManager:   deploymentManager,
 		rollbackManager:     rollbackManager,
+		alertMonitor:        alertMonitor,
 	}
 }
 
@@ -35,6 +37,12 @@ func (dc *DeploymentCron) Start() error {
 		
 		if err := dc.rollbackManager.ContinueRollingBackDeployments(ctx); err != nil {
 			fmt.Printf("continue rolling back deployments error: %v\n", err)
+		}
+		
+		if dc.alertMonitor != nil {
+			if err := dc.alertMonitor.CheckAlerts(ctx); err != nil {
+				fmt.Printf("check deployment alerts error: %v\n", err)
+			}
 		}
 	})
 	if err != nil {

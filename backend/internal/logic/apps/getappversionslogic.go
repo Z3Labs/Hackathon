@@ -30,7 +30,7 @@ func (l *GetAppVersionsLogic) GetAppVersions(req *types.GetAppVersionsReq) (resp
 	}
 
 	if l.svcCtx.QiniuClient == nil {
-		l.Error("[GetAppVersions] 七牛云配置未设置，请检查环境变量 QINIU_ACCESS_KEY, QINIU_SECRET_KEY, QINIU_BUCKET")
+		l.Error("[GetAppVersions] Qiniu configuration is not set. Please check environment variables QINIU_ACCESS_KEY, QINIU_SECRET_KEY, QINIU_BUCKET.")
 		return nil, fmt.Errorf("七牛云配置未设置，请联系管理员配置环境变量")
 	}
 
@@ -40,7 +40,16 @@ func (l *GetAppVersionsLogic) GetAppVersions(req *types.GetAppVersionsReq) (resp
 		return nil, fmt.Errorf("获取版本列表失败: %v", err)
 	}
 
+	// 转换qiniu.AppVersion到types.AppVersion
+	typeVersions := make([]types.AppVersion, len(versions))
+	for i, v := range versions {
+		typeVersions[i] = types.AppVersion{
+			Version:  v.Version,
+			FileName: v.FileName,
+		}
+	}
+
 	return &types.GetAppVersionsResp{
-		Versions: versions,
+		Versions: typeVersions,
 	}, nil
 }

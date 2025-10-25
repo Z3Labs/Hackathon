@@ -24,18 +24,23 @@ func NewClient(accessKey, secretKey, bucket string) *Client {
 	}
 }
 
-func (c *Client) GetAppVersions(ctx context.Context, appName string) ([]string, error) {
+type AppVersion struct {
+	Version  string `json:"version"`   // 版本号
+	FileName string `json:"file_name"` // 完整文件名
+}
+
+func (c *Client) GetAppVersions(ctx context.Context, appName string) ([]AppVersion, error) {
 	cfg := storage.Config{
 		UseHTTPS: true,
 	}
 	bucketManager := storage.NewBucketManager(c.mac, &cfg)
 
-	prefix := fmt.Sprintf("niulink-materials/%s/", appName)
+	prefix := fmt.Sprintf("%s/", appName)
 	delimiter := ""
 	marker := ""
 	limit := 1000
 
-	var versions []string
+	var versions []AppVersion
 	versionSet := make(map[string]bool)
 
 	for {
@@ -46,13 +51,16 @@ func (c *Client) GetAppVersions(ctx context.Context, appName string) ([]string, 
 
 		for _, entry := range entries {
 			fileName := strings.TrimPrefix(entry.Key, prefix)
-			
+
 			if strings.HasSuffix(fileName, ".tar.gz") {
 				parts := strings.Split(fileName, "_")
 				if len(parts) > 0 {
 					version := parts[0]
 					if version != "" && !versionSet[version] {
-						versions = append(versions, version)
+						versions = append(versions, AppVersion{
+							Version:  version,
+							FileName: fileName,
+						})
 						versionSet[version] = true
 					}
 				}
@@ -70,10 +78,10 @@ func (c *Client) GetAppVersions(ctx context.Context, appName string) ([]string, 
 	return versions, nil
 }
 
-func sortVersions(versions []string) {
+func sortVersions(versions []AppVersion) {
 	sort.Slice(versions, func(i, j int) bool {
-		vi := versions[i]
-		vj := versions[j]
+		vi := versions[i].Version
+		vj := versions[j].Version
 
 		if !strings.HasPrefix(vi, "v") {
 			vi = "v" + vi
@@ -86,6 +94,6 @@ func sortVersions(versions []string) {
 			return semver.Compare(vi, vj) > 0
 		}
 
-		return versions[i] > versions[j]
+		return versions[i].Version > versions[j].Version
 	})
 }

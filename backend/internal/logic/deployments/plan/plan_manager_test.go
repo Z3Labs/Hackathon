@@ -7,6 +7,8 @@ import (
 
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
+	"github.com/Z3Labs/Hackathon/backend/internal/svc"
+	"github.com/Z3Labs/Hackathon/backend/internal/config"
 )
 
 const (
@@ -14,10 +16,14 @@ const (
 	testDB       = "hackathon_test"
 )
 
-func setupTestDB(t *testing.T) (model.ReleasePlanModel, model.NodeStatusModel) {
-	releasePlanModel := model.NewReleasePlanModel(testMongoURL, testDB)
-	nodeStatusModel := model.NewNodeStatusModel(testMongoURL, testDB)
-	return releasePlanModel, nodeStatusModel
+func setupTestDB(t *testing.T) *svc.ServiceContext {
+	cfg := config.Config{
+		Mongo: config.MongoConfig{
+			URL:      testMongoURL,
+			Database: testDB,
+		},
+	}
+	return svc.NewServiceContext(cfg)
 }
 
 func cleanupTestData(t *testing.T, ctx context.Context, releasePlanModel model.ReleasePlanModel, planID string) {
@@ -28,10 +34,10 @@ func cleanupTestData(t *testing.T, ctx context.Context, releasePlanModel model.R
 
 func TestPlanManager_CreateReleasePlan(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svcCtx := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -54,7 +60,7 @@ func TestPlanManager_CreateReleasePlan(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	defer cleanupTestData(t, ctx, svcCtx.ReleasePlanModel, plan.Id)
 
 	if plan.Svc != "test-service" {
 		t.Errorf("expected svc=test-service, got %s", plan.Svc)
@@ -71,10 +77,10 @@ func TestPlanManager_CreateReleasePlan(t *testing.T) {
 
 func TestPlanManager_ExecutePlan_Success(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svcCtx := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -97,7 +103,7 @@ func TestPlanManager_ExecutePlan_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	defer cleanupTestData(t, ctx, svcCtx.ReleasePlanModel, plan.Id)
 
 	err = pm.ExecutePlan(ctx, plan.Id)
 	if err != nil {
@@ -118,10 +124,10 @@ func TestPlanManager_ExecutePlan_Success(t *testing.T) {
 
 func TestPlanManager_ExecutePlan_WithMultipleStages(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svcCtx := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -152,7 +158,7 @@ func TestPlanManager_ExecutePlan_WithMultipleStages(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	defer cleanupTestData(t, ctx, svcCtx.ReleasePlanModel, plan.Id)
 
 	err = pm.ExecutePlan(ctx, plan.Id)
 	if err != nil {
@@ -179,10 +185,10 @@ func TestPlanManager_ExecutePlan_WithMultipleStages(t *testing.T) {
 
 func TestPlanManager_ExecutePlan_WithBatching(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svcCtx := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -207,7 +213,7 @@ func TestPlanManager_ExecutePlan_WithBatching(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	defer cleanupTestData(t, ctx, svcCtx.ReleasePlanModel, plan.Id)
 
 	err = pm.ExecutePlan(ctx, plan.Id)
 	if err != nil {
@@ -228,10 +234,10 @@ func TestPlanManager_ExecutePlan_WithBatching(t *testing.T) {
 
 func TestPlanManager_ExecutePlan_InvalidStatus(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svcCtx := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -254,10 +260,10 @@ func TestPlanManager_ExecutePlan_InvalidStatus(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	defer cleanupTestData(t, ctx, svcCtx.ReleasePlanModel, plan.Id)
 
 	plan.Status = model.PlanStatusSuccess
-	releasePlanModel.Update(ctx, plan)
+	svcCtx.ReleasePlanModel.Update(ctx, plan)
 
 	err = pm.ExecutePlan(ctx, plan.Id)
 	if err == nil {
@@ -267,10 +273,10 @@ func TestPlanManager_ExecutePlan_InvalidStatus(t *testing.T) {
 
 func TestPlanManager_CancelPlan(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svcCtx := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -293,7 +299,7 @@ func TestPlanManager_CancelPlan(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	defer cleanupTestData(t, ctx, svcCtx.ReleasePlanModel, plan.Id)
 
 	err = pm.CancelPlan(ctx, plan.Id)
 	if err != nil {
@@ -312,10 +318,10 @@ func TestPlanManager_CancelPlan(t *testing.T) {
 
 func TestPlanManager_CancelPlan_InvalidStatus(t *testing.T) {
 	ctx := context.Background()
-	releasePlanModel, nodeStatusModel := setupTestDB(t)
+	svcCtx := setupTestDB(t)
 	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(releasePlanModel, nodeStatusModel, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -338,10 +344,10 @@ func TestPlanManager_CancelPlan_InvalidStatus(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateReleasePlan failed: %v", err)
 	}
-	defer cleanupTestData(t, ctx, releasePlanModel, plan.Id)
+	defer cleanupTestData(t, ctx, svcCtx.ReleasePlanModel, plan.Id)
 
 	plan.Status = model.PlanStatusSuccess
-	releasePlanModel.Update(ctx, plan)
+	svcCtx.ReleasePlanModel.Update(ctx, plan)
 
 	err = pm.CancelPlan(ctx, plan.Id)
 	if err == nil {

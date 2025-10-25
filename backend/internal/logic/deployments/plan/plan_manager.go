@@ -8,6 +8,7 @@ import (
 
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
+	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 )
 
 type PlanManager struct {
@@ -16,16 +17,28 @@ type PlanManager struct {
 	executorFactory  executor.ExecutorFactoryInterface
 }
 
+var (
+	instance *PlanManager
+	once     sync.Once
+)
+
 func NewPlanManager(
-	releasePlanModel model.ReleasePlanModel,
-	nodeStatusModel model.NodeStatusModel,
+	ctx context.Context,
+	svc *svc.ServiceContext,
 	executorFactory executor.ExecutorFactoryInterface,
 ) *PlanManager {
-	return &PlanManager{
-		releasePlanModel: releasePlanModel,
-		nodeStatusModel:  nodeStatusModel,
-		executorFactory:  executorFactory,
-	}
+	once.Do(func() {
+		instance = &PlanManager{
+			releasePlanModel: svc.ReleasePlanModel,
+			nodeStatusModel:  svc.NodeStatusModel,
+			executorFactory:  executorFactory,
+		}
+	})
+	return instance
+}
+
+func GetPlanManager() *PlanManager {
+	return instance
 }
 
 func (pm *PlanManager) CreateReleasePlan(
@@ -233,4 +246,21 @@ func (pm *PlanManager) CancelPlan(ctx context.Context, planID string) error {
 
 	plan.Status = model.PlanStatusCanceled
 	return pm.releasePlanModel.Update(ctx, plan)
+}
+
+func (pm *PlanManager) ProcessPendingPlans(ctx context.Context) error {
+	plans, err := pm.releasePlanModel.Search(ctx, &model.ReleasePlanCond{
+		Status: model.PlanStatusPending,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to search pending plans: %w", err)
+	}
+
+	for _, plan := range plans {
+		if err := pm.ExecutePlan(ctx, plan.Id); err != nil {
+			fmt.Printf("failed to execute plan %s: %v\n", plan.Id, err)
+		}
+	}
+
+	return nil
 }

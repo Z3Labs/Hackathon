@@ -53,11 +53,13 @@ func (a *AnsibleExecutor) Deploy(ctx context.Context) error {
 		a.config.PrevVersion,
 	)
 
-	cmd := execCommand(ctx, "ansible-playbook",
-		a.playbookPath,
-		"-e", extraVars,
-		"-v",
-	)
+	args := []string{a.playbookPath}
+	if a.config.IP != "" {
+		args = append(args, "-i", a.config.IP+",")
+	}
+	args = append(args, "-e", extraVars, "-v")
+
+	cmd := execCommand(ctx, "ansible-playbook", args...)
 	fmt.Printf("Running ansible-playbook, cmd is: %v\n", cmd.String())
 
 	cmd.Stdout = os.Stdout
@@ -96,11 +98,13 @@ func (a *AnsibleExecutor) Rollback(ctx context.Context) error {
 		a.config.PrevVersion,
 	)
 
-	cmd := execCommand(ctx, "ansible-playbook",
-		a.playbookPath,
-		"-e", extraVars,
-		"-v",
-	)
+	args := []string{a.playbookPath}
+	if a.config.IP != "" {
+		args = append(args, "-i", a.config.IP+",")
+	}
+	args = append(args, "-e", extraVars, "-v")
+
+	cmd := execCommand(ctx, "ansible-playbook", args...)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

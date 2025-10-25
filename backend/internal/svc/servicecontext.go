@@ -20,6 +20,11 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
+	var qiniuClient *qiniu.Client
+	if c.Qiniu.AccessKey != "" && c.Qiniu.SecretKey != "" && c.Qiniu.Bucket != "" {
+		qiniuClient = qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket)
+	}
+
 	return &ServiceContext{
 		Config:           c,
 		ApplicationModel: model.NewApplicationModel(c.Mongo.URL, c.Mongo.Database),
@@ -28,10 +33,15 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
 		ReleasePlanModel: model.NewReleasePlanModel(c.Mongo.URL, c.Mongo.Database),
 		NodeStatusModel:  model.NewNodeStatusModel(c.Mongo.URL, c.Mongo.Database),
-		QiniuClient:      qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket),
+		QiniuClient:      qiniuClient,
 	}
 }
 func NewUTServiceContext(c config.Config) *ServiceContext {
+	var qiniuClient *qiniu.Client
+	if c.Qiniu.AccessKey != "" && c.Qiniu.SecretKey != "" && c.Qiniu.Bucket != "" {
+		qiniuClient = qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket)
+	}
+
 	svc := &ServiceContext{
 		Config:           c,
 		ApplicationModel: model.NewApplicationModel(c.Mongo.URL, c.Mongo.Database),
@@ -40,7 +50,7 @@ func NewUTServiceContext(c config.Config) *ServiceContext {
 		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
 		ReleasePlanModel: model.NewReleasePlanModel(c.Mongo.URL, c.Mongo.Database),
 		NodeStatusModel:  model.NewNodeStatusModel(c.Mongo.URL, c.Mongo.Database),
-		QiniuClient:      qiniu.NewClient(c.Qiniu.AccessKey, c.Qiniu.SecretKey, c.Qiniu.Bucket),
+		QiniuClient:      qiniuClient,
 	}
 	svc.ReleasePlanModel.DeleteMany(context.Background(), &model.ReleasePlanCond{})
 	svc.NodeStatusModel.DeleteMany(context.Background(), &model.NodeStatusCond{})

@@ -29,6 +29,11 @@ func (l *GetAppVersionsLogic) GetAppVersions(req *types.GetAppVersionsReq) (resp
 		return nil, fmt.Errorf("应用名称不能为空")
 	}
 
+	if l.svcCtx.QiniuClient == nil {
+		l.Error("[GetAppVersions] 七牛云配置未设置，请检查环境变量 QINIU_ACCESS_KEY, QINIU_SECRET_KEY, QINIU_BUCKET")
+		return nil, fmt.Errorf("七牛云配置未设置，请联系管理员配置环境变量")
+	}
+
 	versions, err := l.svcCtx.QiniuClient.GetAppVersions(l.ctx, req.AppName)
 	if err != nil {
 		l.Errorf("[GetAppVersions] QiniuClient.GetAppVersions error: %v", err)

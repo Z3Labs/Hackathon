@@ -2,11 +2,28 @@ package diagnosis
 
 import (
 	"context"
+	"log"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/joho/godotenv"
 
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
 )
+
+// loadEnvForTest 加载测试环境变量
+func loadEnvForTest(t *testing.T) {
+	// 从 py/.env 文件加载环境变量（相对于测试文件所在目录）
+	envPath := filepath.Join("py", ".env")
+	absPath, _ := filepath.Abs(envPath)
+	if err := godotenv.Load(envPath); err != nil {
+		log.Printf("Warning: Could not load .env file from %s (abs: %s): %v", envPath, absPath, err)
+	} else {
+		log.Printf("Successfully loaded .env from %s", absPath)
+	}
+}
 
 // TestBuildPromptTemplate 测试 prompt 构建
 func TestBuildPromptTemplate(t *testing.T) {
@@ -64,12 +81,35 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 		t.Skip("Skipping integration test in short mode")
 	}
 
-	// 1. 配置初始化（使用 .env 中的配置）
+	// 加载环境变量
+	loadEnvForTest(t)
+
+	// 1. 配置初始化（从环境变量读取）
+	apiKey := os.Getenv("CUSTOM_ANTHROPIC_API_KEY")
+	if apiKey == "" {
+		t.Fatal("CUSTOM_ANTHROPIC_API_KEY environment variable is required")
+	}
+
+	baseURL := os.Getenv("CUSTOM_ANTHROPIC_BASE_URL")
+	if baseURL == "" {
+		t.Fatal("AI_BASE_URL environment variable is required")
+	}
+
+	model := os.Getenv("CUSTOM_CLAUDE_MODEL")
+	if model == "" {
+		model = "gpt-4" // 使用默认值
+	}
+
+	prometheusURL := os.Getenv("PROMETHEUS_URL")
+	if prometheusURL == "" {
+		t.Fatal("PROMETHEUS_URL environment variable is required")
+	}
+
 	cfg := config.AIConfig{
-		APIKey:        "c566eaba-81e9-408c-8c4f-a17775560377",
-		BaseURL:       "https://api-inference.modelscope.cn",
-		Model:         "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-		PrometheusURL: "http://150.158.152.112:9300",
+		APIKey:        apiKey,
+		BaseURL:       baseURL,
+		Model:         model,
+		PrometheusURL: prometheusURL,
 		Timeout:       120,
 	}
 

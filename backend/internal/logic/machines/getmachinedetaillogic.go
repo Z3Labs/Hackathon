@@ -2,6 +2,7 @@ package machines
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
@@ -24,7 +25,32 @@ func NewGetMachineDetailLogic(ctx context.Context, svcCtx *svc.ServiceContext) G
 }
 
 func (l *GetMachineDetailLogic) GetMachineDetail(req *types.GetMachineDetailReq) (resp *types.GetMachineDetailResp, err error) {
-	// todo: add your logic here and delete this line
+	// 查询机器详情
+	machine, err := l.svcCtx.MachineModel.FindById(l.ctx, req.Id)
+	if err != nil {
+		l.Errorf("[GetMachineDetail] MachineModel.FindById error:%v", err)
+		return nil, fmt.Errorf("machine not found")
+	}
 
-	return
+	// 转换为API响应格式
+	machineResp := types.Machine{
+		Id:           machine.Id,
+		Name:         machine.Name,
+		Ip:           machine.Ip,
+		Port:         machine.Port,
+		Username:     machine.Username,
+		Password:     machine.Password,
+		Description:  machine.Description,
+		HealthStatus: string(machine.HealthStatus),
+		ErrorStatus:  string(machine.ErrorStatus),
+		AlertStatus:  string(machine.AlertStatus),
+		CreatedAt:    machine.CreatedTime.Unix(),
+		UpdatedAt:    machine.UpdatedTime.Unix(),
+	}
+
+	l.Infof("[GetMachineDetail] Successfully retrieved machine detail:%s", req.Id)
+
+	return &types.GetMachineDetailResp{
+		Machine: machineResp,
+	}, nil
 }

@@ -1,4 +1,4 @@
-package plan
+package deployments
 
 import (
 	"context"
@@ -12,38 +12,38 @@ import (
 )
 
 type RollbackManager struct {
-	releasePlanModel model.ReleasePlanModel
-	nodeStatusModel  model.NodeStatusModel
-	executorFactory  executor.ExecutorFactoryInterface
+	deploymentModel model.DeploymentModel
+	nodeStatusModel model.NodeStatusModel
+	executorFactory executor.ExecutorFactoryInterface
 }
 
 func NewRollbackManager(ctx context.Context, svcCtx *svc.ServiceContext) *RollbackManager {
 	return &RollbackManager{
-		releasePlanModel: svcCtx.ReleasePlanModel,
-		nodeStatusModel:  svcCtx.NodeStatusModel,
-		executorFactory:  executor.NewExecutorFactory(),
+		deploymentModel: svcCtx.DeploymentModel,
+		nodeStatusModel: svcCtx.NodeStatusModel,
+		executorFactory: executor.NewExecutorFactory(),
 	}
 }
 
-func (rm *RollbackManager) RollbackPlan(ctx context.Context, planID string, hosts []string) error {
-	plan, err := rm.releasePlanModel.FindById(ctx, planID)
+func (rm *RollbackManager) RollbackDeployment(ctx context.Context, deploymentID string, hosts []string) error {
+	deployment, err := rm.deploymentModel.FindById(ctx, deploymentID)
 	if err != nil {
-		return fmt.Errorf("failed to find plan: %w", err)
+		return fmt.Errorf("failed to find deployment: %w", err)
 	}
 
-	if plan.Status != model.PlanStatusFailed && plan.Status != model.PlanStatusPartialSuccess {
-		return fmt.Errorf("cannot rollback plan with status: %s", plan.Status)
+	if deployment.Status != model.DeploymentStatusFailed && deployment.Status != model.DeploymentStatusPartialSuccess {
+		return fmt.Errorf("cannot rollback deployment with status: %s", deployment.Status)
 	}
 
-	plan.Status = model.PlanStatusRollingBack
-	if err := rm.releasePlanModel.Update(ctx, plan); err != nil {
-		return fmt.Errorf("failed to update plan status: %w", err)
+	deployment.Status = model.DeploymentStatusRollingBack
+	if err := rm.deploymentModel.Update(ctx, deployment); err != nil {
+		return fmt.Errorf("failed to update deployment status: %w", err)
 	}
 
 	var nodesToRollback []model.StageNode
-	for i := range plan.Stages {
-		for j := range plan.Stages[i].Nodes {
-			node := &plan.Stages[i].Nodes[j]
+	for i := range deployment.Stages {
+		for j := range deployment.Stages[i].Nodes {
+			node := &deployment.Stages[i].Nodes[j]
 			if len(hosts) == 0 || rm.containsHost(hosts, node.Host) {
 				if node.Status == model.NodeStatusFailed || node.Status == model.NodeStatusSuccess {
 					nodesToRollback = append(nodesToRollback, *node)
@@ -56,12 +56,12 @@ func (rm *RollbackManager) RollbackPlan(ctx context.Context, planID string, host
 		return fmt.Errorf("no nodes found to rollback")
 	}
 
-	go rm.executeRollback(context.Background(), plan, nodesToRollback)
+	go rm.executeRollback(context.Background(), deployment, nodesToRollback)
 
 	return nil
 }
 
-func (rm *RollbackManager) executeRollback(ctx context.Context, plan *model.ReleasePlan, nodes []model.StageNode) {
+func (rm *RollbackManager) executeRollback(ctx context.Context, deployment *model.Deployment, nodes []model.StageNode) {
 	var wg sync.WaitGroup
 	successCount := 0
 	var mu sync.Mutex
@@ -71,7 +71,7 @@ func (rm *RollbackManager) executeRollback(ctx context.Context, plan *model.Rele
 		go func(node *model.StageNode) {
 			defer wg.Done()
 
-			if err := rm.rollbackNode(ctx, plan, node); err == nil {
+			if err := rm.rollbackNode(ctx, deployment, node); err == nil {
 				mu.Lock()
 				successCount++
 				mu.Unlock()
@@ -82,18 +82,18 @@ func (rm *RollbackManager) executeRollback(ctx context.Context, plan *model.Rele
 	wg.Wait()
 
 	if successCount == len(nodes) {
-		plan.Status = model.PlanStatusRolledBack
+		deployment.Status = model.DeploymentStatusRolledBack
 	} else if successCount > 0 {
-		plan.Status = model.PlanStatusPartialSuccess
+		deployment.Status = model.DeploymentStatusPartialSuccess
 	} else {
-		plan.Status = model.PlanStatusFailed
+		deployment.Status = model.DeploymentStatusFailed
 	}
 
-	rm.releasePlanModel.Update(ctx, plan)
+	rm.deploymentModel.Update(ctx, deployment)
 }
 
-func (rm *RollbackManager) rollbackNode(ctx context.Context, plan *model.ReleasePlan, node *model.StageNode) error {
-	nodeStatus, err := rm.nodeStatusModel.FindByHostAndService(ctx, node.Host, plan.Svc)
+func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.Deployment, node *model.StageNode) error {
+	nodeStatus, err := rm.nodeStatusModel.FindByHostAndService(ctx, node.Host, deployment.AppName)
 	if err != nil {
 		return fmt.Errorf("failed to find node status: %w", err)
 	}
@@ -106,11 +106,11 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, plan *model.Release
 		Platform:    string(nodeStatus.Platform),
 		Host:        node.Host,
 		IP:          node.IP,
-		Service:     plan.Svc,
+		Service:     deployment.AppName,
 		Version:     nodeStatus.CurrentVersion,
 		PrevVersion: nodeStatus.PrevVersion,
-		PackageURL:  plan.Package.URL,
-		SHA256:      plan.Package.SHA256,
+		PackageURL:  deployment.Package.URL,
+		SHA256:      deployment.Package.SHA256,
 	})
 
 	if err != nil {
@@ -153,23 +153,23 @@ func (rm *RollbackManager) containsHost(hosts []string, host string) bool {
 	return false
 }
 
-func (rm *RollbackManager) GetRollbackStatus(ctx context.Context, planID string) (*model.ReleasePlan, error) {
-	return rm.releasePlanModel.FindById(ctx, planID)
+func (rm *RollbackManager) GetRollbackStatus(ctx context.Context, deploymentID string) (*model.Deployment, error) {
+	return rm.deploymentModel.FindById(ctx, deploymentID)
 }
 
-func (rm *RollbackManager) ContinueRollingBackPlans(ctx context.Context) error {
-	plans, err := rm.releasePlanModel.Search(ctx, &model.ReleasePlanCond{
-		Status: model.PlanStatusRollingBack,
+func (rm *RollbackManager) ContinueRollingBackDeployments(ctx context.Context) error {
+	deployments, err := rm.deploymentModel.Search(ctx, &model.DeploymentCond{
+		Status: string(model.DeploymentStatusRollingBack),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to search rolling back plans: %w", err)
+		return fmt.Errorf("failed to search rolling back deployments: %w", err)
 	}
 
-	for _, plan := range plans {
+	for _, deployment := range deployments {
 		var nodesToRollback []model.StageNode
-		for i := range plan.Stages {
-			for j := range plan.Stages[i].Nodes {
-				node := &plan.Stages[i].Nodes[j]
+		for i := range deployment.Stages {
+			for j := range deployment.Stages[i].Nodes {
+				node := &deployment.Stages[i].Nodes[j]
 				if node.Status == model.NodeStatusFailed || node.Status == model.NodeStatusSuccess {
 					nodesToRollback = append(nodesToRollback, *node)
 				}
@@ -177,7 +177,7 @@ func (rm *RollbackManager) ContinueRollingBackPlans(ctx context.Context) error {
 		}
 
 		if len(nodesToRollback) > 0 {
-			go rm.executeRollback(context.Background(), plan, nodesToRollback)
+			go rm.executeRollback(context.Background(), deployment, nodesToRollback)
 		}
 	}
 

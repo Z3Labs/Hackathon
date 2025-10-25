@@ -12,6 +12,8 @@ type ServiceContext struct {
 	MachineModel     model.MachineModel
 	MetricModel      model.MetricModel
 	ReportModel      model.ReportModel
+	ReleasePlanModel model.ReleasePlanModel
+	NodeStatusModel  model.NodeStatusModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -22,5 +24,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		MachineModel:     model.NewMachineModel(c.Mongo.URL, c.Mongo.Database),
 		MetricModel:      model.NewMetricModel(c.Mongo.URL, c.Mongo.Database),
 		ReportModel:      model.NewReportModel(c.Mongo.URL, c.Mongo.Database),
+		ReleasePlanModel: model.NewReleasePlanModel(c.Mongo.URL, c.Mongo.Database),
+		NodeStatusModel:  model.NewNodeStatusModel(c.Mongo.URL, c.Mongo.Database),
 	}
 }

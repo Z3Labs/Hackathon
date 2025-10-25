@@ -91,7 +91,7 @@ export const deploymentApi = {
     app_name: string
     package_version: string
     config_path: string
-    gray_strategy: string
+    gray_machine_id?: string
   }) => api.post('/deployments', data),
 
   // 更新发布记录
@@ -99,7 +99,7 @@ export const deploymentApi = {
     app_name: string
     package_version: string
     config_path: string
-    gray_strategy: string
+    gray_machine_id?: string
   }) => api.put(`/deployments/${id}`, data),
 
   // 获取发布记录列表

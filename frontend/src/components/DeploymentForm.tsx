@@ -14,7 +14,7 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
     app_name: '',
     package_version: '',
     config_path: '',
-    gray_strategy: 'all',
+    gray_machine_id: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +22,8 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
   const [loadingApps, setLoadingApps] = useState(true);
   const [versions, setVersions] = useState<AppVersion[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
+  const [machines, setMachines] = useState<Array<{ id: string; name: string; ip: string }>>([]);
+  const [loadingMachines, setLoadingMachines] = useState(false);
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -59,16 +61,30 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
     
     if (field === 'app_name' && value) {
       setLoadingVersions(true);
+      setLoadingMachines(true);
       setVersions([]);
-      setFormData((prev) => ({ ...prev, package_version: '' }));
+      setMachines([]);
+      setFormData((prev) => ({ ...prev, package_version: '', gray_machine_id: '' }));
       try {
-        const response = await appApi.getAppVersions(value);
-        setVersions(response.versions || []);
+        const [versionsResponse, appDetailResponse] = await Promise.all([
+          appApi.getAppVersions(value),
+          appApi.getAppDetail(
+            apps.find(app => app.name === value)?.id || ''
+          ).catch(() => ({ application: { machines: [] } }))
+        ]);
+        setVersions(versionsResponse.versions || []);
+        setMachines((appDetailResponse.application?.machines || []).map((m: any) => ({
+          id: m.id,
+          name: m.name,
+          ip: m.ip
+        })));
       } catch (err) {
-        console.error('获取版本列表失败', err);
+        console.error('获取版本和机器列表失败', err);
         setVersions([]);
+        setMachines([]);
       } finally {
         setLoadingVersions(false);
+        setLoadingMachines(false);
       }
     }
   };
@@ -150,12 +166,12 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
 
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            灰度策略 <span style={{ color: '#ff4d4f' }}>*</span>
+            灰度设备（可选）
           </label>
           <select
-            value={formData.gray_strategy}
-            onChange={(e) => handleChange('gray_strategy', e.target.value as any)}
-            required
+            value={formData.gray_machine_id}
+            onChange={(e) => handleChange('gray_machine_id', e.target.value)}
+            disabled={!formData.app_name || loadingMachines || machines.length === 0}
             style={{
               width: '100%',
               padding: '8px',
@@ -163,14 +179,17 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
               borderRadius: '4px',
             }}
           >
-            <option value="all">全量发布</option>
-            <option value="canary">金丝雀发布</option>
-            <option value="blue-green">蓝绿发布</option>
+            <option value="">
+              {!formData.app_name ? '请先选择应用' : loadingMachines ? '加载中...' : machines.length === 0 ? '该应用暂无关联机器' : '不选择（稍后手动发布）'}
+            </option>
+            {machines.map((machine) => (
+              <option key={machine.id} value={machine.id}>
+                {machine.name} ({machine.ip})
+              </option>
+            ))}
           </select>
           <div style={{ marginTop: '8px', fontSize: '12px', color: '#8c8c8c' }}>
-            {formData.gray_strategy === 'canary' && '金丝雀发布:先在少量机器上部署,验证通过后逐步扩大部署范围'}
-            {formData.gray_strategy === 'blue-green' && '蓝绿发布:保持两套环境,在新环境部署完成后切换,旧环境作为备份'}
-            {formData.gray_strategy === 'all' && '全量发布:同时在所有机器上部署新版本'}
+            选择一台机器作为灰度设备，创建后将立即发布到该设备
           </div>
         </div>
 

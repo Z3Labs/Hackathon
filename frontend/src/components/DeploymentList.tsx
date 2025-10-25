@@ -67,13 +67,10 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
     return colorMap[status] || '#d9d9d9';
   };
 
-  const getGrayStrategyText = (strategy: string) => {
-    const strategyMap: Record<string, string> = {
-      canary: '金丝雀发布',
-      'blue-green': '蓝绿发布',
-      all: '全量发布',
-    };
-    return strategyMap[strategy] || strategy;
+  const getGrayMachineInfo = (deployment: Deployment) => {
+    if (!deployment.gray_machine_id) return '未设置';
+    const machine = deployment.node_deployments?.find(m => m.id === deployment.gray_machine_id);
+    return machine ? `${machine.id}` : deployment.gray_machine_id;
   };
 
   const formatTime = (timestamp: number) => {
@@ -181,7 +178,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
               <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
                 <th style={{ padding: '12px', textAlign: 'left' }}>应用名称</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>包版本</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>灰度策略</th>
+                <th style={{ padding: '12px', textAlign: 'left' }}>灰度设备</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>状态</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>机器数量</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>创建时间</th>
@@ -197,7 +194,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
                 >
                   <td style={{ padding: '12px' }}>{deployment.app_name}</td>
                   <td style={{ padding: '12px' }}>{deployment.package_version}</td>
-                  <td style={{ padding: '12px' }}>{getGrayStrategyText(deployment.gray_strategy)}</td>
+                  <td style={{ padding: '12px' }}>{getGrayMachineInfo(deployment)}</td>
                   <td style={{ padding: '12px' }}>
                     <span
                       style={{

@@ -10,18 +10,21 @@ import (
 
 type (
 	Deployment struct {
-		Id              string           `bson:"_id,omitempty"   json:"id,omitempty"`
-		AppName         string           `bson:"appName"         json:"app_name"`         // 应用名称
-		Status          DeploymentStatus `bson:"status"          json:"status"`           // 发布状态
-		PackageVersion  string           `bson:"packageVersion"  json:"package_version"`  // 包版本
-		ConfigPath      string           `bson:"configPath"      json:"config_path"`      // 配置文件路径
-		GrayStrategy    string           `bson:"grayStrategy"    json:"gray_strategy"`    // 灰度策略
-		Platform        PlatformType     `bson:"platform"        json:"platform"`         // 平台类型
-		Package         PackageInfo      `bson:"package"         json:"package"`          // 包信息
-		Stages          []Stage          `bson:"stages"          json:"stages"`           // 分阶段部署配置
-		NodeDeployments []NodeDeployment `bson:"nodeDeployments" json:"node_deployments"` // 发布机器列表
-		CreatedTime     int64            `bson:"createdTime"     json:"createdTime"`      // 创建时间戳
-		UpdatedTime     int64            `bson:"updatedTime"     json:"updatedTime"`      // 更新时间戳
+		Id                 string           `bson:"_id,omitempty"       json:"id,omitempty"`
+		AppName            string           `bson:"appName"             json:"app_name"`             // 应用名称
+		Status             DeploymentStatus `bson:"status"              json:"status"`               // 发布状态
+		PackageVersion     string           `bson:"packageVersion"      json:"package_version"`      // 包版本
+		ConfigPath         string           `bson:"configPath"          json:"config_path"`          // 配置文件路径
+		GrayStrategy       string           `bson:"grayStrategy"        json:"gray_strategy"`        // 灰度策略
+		Platform           PlatformType     `bson:"platform"            json:"platform"`             // 平台类型
+		Package            PackageInfo      `bson:"package"             json:"package"`              // 包信息
+		Stages             []Stage          `bson:"stages"              json:"stages"`               // 分阶段部署配置
+		NodeDeployments    []NodeDeployment `bson:"nodeDeployments"     json:"node_deployments"`     // 发布机器列表
+		AlertRuleIds       []string         `bson:"alertRuleIds"        json:"alert_rule_ids"`       // 已添加到告警系统的规则 ID 列表
+		AlertDeleteTime    time.Time        `bson:"alertDeleteTime"     json:"alert_delete_time"`    // 告警规则计划删除时间
+		REDMetricsSnapshot *REDMetrics      `bson:"redMetricsSnapshot"  json:"red_metrics_snapshot"` // 发布时的 RED 指标快照
+		CreatedTime        int64            `bson:"createdTime"         json:"createdTime"`          // 创建时间戳
+		UpdatedTime        int64            `bson:"updatedTime"         json:"updatedTime"`          // 更新时间戳
 	}
 
 	PackageInfo struct {

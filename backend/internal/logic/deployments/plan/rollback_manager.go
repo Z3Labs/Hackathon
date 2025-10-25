@@ -17,13 +17,11 @@ type RollbackManager struct {
 	executorFactory  executor.ExecutorFactoryInterface
 }
 
-func NewRollbackManager(ctx context.Context, svcCtx *svc.ServiceContext,
-	executorFactory executor.ExecutorFactoryInterface,
-) *RollbackManager {
+func NewRollbackManager(ctx context.Context, svcCtx *svc.ServiceContext) *RollbackManager {
 	return &RollbackManager{
 		releasePlanModel: svcCtx.ReleasePlanModel,
 		nodeStatusModel:  svcCtx.NodeStatusModel,
-		executorFactory:  executorFactory,
+		executorFactory:  executor.NewExecutorFactory(),
 	}
 }
 

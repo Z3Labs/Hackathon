@@ -11,6 +11,8 @@ import (
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 )
 
+var execCommand = exec.CommandContext
+
 type AnsibleExecutor struct {
 	config       ExecutorConfig
 	status       *model.NodeDeployStatusRecord
@@ -51,7 +53,7 @@ func (a *AnsibleExecutor) Deploy(ctx context.Context) error {
 		a.config.PrevVersion,
 	)
 
-	cmd := exec.CommandContext(ctx, "ansible-playbook",
+	cmd := execCommand(ctx, "ansible-playbook",
 		a.playbookPath,
 		"-e", extraVars,
 		"-v",
@@ -93,7 +95,7 @@ func (a *AnsibleExecutor) Rollback(ctx context.Context) error {
 		a.config.PrevVersion,
 	)
 
-	cmd := exec.CommandContext(ctx, "ansible-playbook",
+	cmd := execCommand(ctx, "ansible-playbook",
 		a.playbookPath,
 		"-e", extraVars,
 		"-v",

@@ -48,6 +48,8 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
       success: '成功',
       failed: '失败',
       rolled_back: '已回滚',
+      canceled: '已取消',
+      skipped: '已跳过',
     };
     return statusMap[status] || status;
   };
@@ -59,6 +61,8 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
       success: '#52c41a',
       failed: '#f5222d',
       rolled_back: '#722ed1',
+      canceled: '#8c8c8c',
+      skipped: '#d9d9d9',
     };
     return colorMap[status] || '#d9d9d9';
   };
@@ -93,8 +97,8 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
   const handleRollback = async (e: React.MouseEvent, deployment: Deployment) => {
     e.stopPropagation();
     
-    const hasDeployingMachine = deployment.release_machines?.some(
-      (m) => m.release_status === 'deploying'
+    const hasDeployingMachine = deployment.node_deployments?.some(
+      (m) => m.node_deploy_status === 'deploying'
     );
     
     if (hasDeployingMachine) {
@@ -135,6 +139,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
           <option value="success">成功</option>
           <option value="failed">失败</option>
           <option value="rolled_back">已回滚</option>
+          <option value="canceled">已取消</option>
         </select>
         <button
           onClick={fetchDeployments}
@@ -206,7 +211,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
                       {getStatusText(deployment.status)}
                     </span>
                   </td>
-                  <td style={{ padding: '12px' }}>{deployment.release_machines?.length || 0}</td>
+                  <td style={{ padding: '12px' }}>{deployment.node_deployments?.length || 0}</td>
                   <td style={{ padding: '12px' }}>{formatTime(deployment.created_at)}</td>
                   <td style={{ padding: '12px' }}>
                     <div style={{ display: 'flex', gap: '8px' }}>

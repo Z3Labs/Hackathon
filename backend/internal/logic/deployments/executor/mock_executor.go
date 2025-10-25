@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-
-	"github.com/Z3Labs/Hackathon/backend/internal/model"
 )
 
 type MockExecutor struct {
@@ -47,20 +45,6 @@ func (m *MockExecutor) Rollback(ctx context.Context) error {
 	defer m.mu.Unlock()
 	m.rollbackCalled = true
 	return m.rollbackError
-}
-
-func (m *MockExecutor) GetStatus(ctx context.Context) (*model.NodeDeployStatusRecord, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	return &model.NodeDeployStatusRecord{
-		Host:             m.config.Host,
-		Service:          m.config.Service,
-		CurrentVersion:   m.config.Version,
-		DeployingVersion: "",
-		PrevVersion:      m.config.PrevVersion,
-		Platform:         model.PlatformMock,
-		State:            model.NodeStatusSuccess,
-	}, nil
 }
 
 func (m *MockExecutor) DeployCalled() bool {

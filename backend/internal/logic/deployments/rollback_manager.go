@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
@@ -12,7 +13,6 @@ import (
 
 type RollbackManager struct {
 	deploymentModel model.DeploymentModel
-	nodeStatusModel model.NodeStatusModel
 	executorFactory executor.ExecutorFactoryInterface
 	taskRegistry    map[string]context.CancelFunc
 	taskMutex       sync.RWMutex
@@ -21,7 +21,6 @@ type RollbackManager struct {
 func NewRollbackManager(ctx context.Context, svcCtx *svc.ServiceContext) *RollbackManager {
 	return &RollbackManager{
 		deploymentModel: svcCtx.DeploymentModel,
-		nodeStatusModel: svcCtx.NodeStatusModel,
 		executorFactory: executor.NewExecutorFactory(),
 		taskRegistry:    make(map[string]context.CancelFunc),
 	}
@@ -165,22 +164,17 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.D
 
 	node := &deployment.NodeDeployments[nodeIndex]
 
-	nodeStatus, err := rm.nodeStatusModel.FindByHostAndService(context.Background(), node.Id, deployment.AppName)
-	if err != nil {
-		return fmt.Errorf("failed to find node status: %w", err)
-	}
-
-	if nodeStatus.PrevVersion == "" {
+	if node.PrevVersion == "" {
 		return fmt.Errorf("no previous version to rollback to")
 	}
 
 	executor, err := rm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
-		Platform:    string(nodeStatus.Platform),
+		Platform:    string(node.Platform),
 		Host:        node.Id,
 		IP:          node.Ip,
 		Service:     deployment.AppName,
-		Version:     nodeStatus.CurrentVersion,
-		PrevVersion: nodeStatus.PrevVersion,
+		Version:     node.CurrentVersion,
+		PrevVersion: node.PrevVersion,
 		PackageURL:  deployment.Package.URL,
 		MD5:         deployment.Package.MD5,
 	})
@@ -188,9 +182,7 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.D
 	if err != nil {
 		node.NodeDeployStatus = model.NodeDeploymentStatusFailed
 		node.ReleaseLog = err.Error()
-		nodeStatus.State = model.NodeStatusFailed
-		nodeStatus.LastError = err.Error()
-		rm.nodeStatusModel.Update(context.Background(), nodeStatus)
+		node.UpdatedAt = time.Now()
 		rm.deploymentModel.Update(context.Background(), deployment)
 		return err
 	}
@@ -199,28 +191,23 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.D
 		if ctx.Err() != nil {
 			node.NodeDeployStatus = model.NodeDeploymentStatusFailed
 			node.ReleaseLog = "rollback canceled"
-			nodeStatus.State = model.NodeStatusFailed
-			nodeStatus.LastError = "rollback canceled"
-			rm.nodeStatusModel.Update(context.Background(), nodeStatus)
+			node.UpdatedAt = time.Now()
 			rm.deploymentModel.Update(context.Background(), deployment)
 			return ctx.Err()
 		}
 
 		node.NodeDeployStatus = model.NodeDeploymentStatusFailed
 		node.ReleaseLog = fmt.Sprintf("rollback failed: %s", err.Error())
-		nodeStatus.State = model.NodeStatusFailed
-		nodeStatus.LastError = node.ReleaseLog
-		rm.nodeStatusModel.Update(context.Background(), nodeStatus)
+		node.UpdatedAt = time.Now()
 		rm.deploymentModel.Update(context.Background(), deployment)
 		return err
 	}
 
 	node.NodeDeployStatus = model.NodeDeploymentStatusRolledBack
 	node.ReleaseLog = "rollback successful"
-	nodeStatus.State = model.NodeStatusRolledBack
-	nodeStatus.CurrentVersion = nodeStatus.PrevVersion
-	nodeStatus.DeployingVersion = ""
-	rm.nodeStatusModel.Update(context.Background(), nodeStatus)
+	node.CurrentVersion = node.PrevVersion
+	node.DeployingVersion = ""
+	node.UpdatedAt = time.Now()
 	rm.deploymentModel.Update(context.Background(), deployment)
 
 	return nil

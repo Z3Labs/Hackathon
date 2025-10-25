@@ -47,12 +47,17 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 	}
 
 	// 从应用信息中提取机器列表并转换为 DeploymentMachine 格式
+	platform := model.PlatformPhysical
 	var nodeDeployments []model.NodeDeployment
 	for _, machine := range application[0].Machines {
+		now := time.Now()
 		deploymentMachine := model.NodeDeployment{
 			Id:               machine.Id,
 			Ip:               machine.Ip,
 			NodeDeployStatus: model.NodeDeploymentStatusPending,
+			Platform:         platform,
+			CreatedAt:        now,
+			UpdatedAt:        now,
 		}
 		nodeDeployments = append(nodeDeployments, deploymentMachine)
 	}
@@ -65,6 +70,7 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 		PackageVersion:  req.PackageVersion,
 		ConfigPath:      req.ConfigPath,
 		GrayMachineId:   req.GrayMachineId,
+		Platform:        platform,
 		NodeDeployments: nodeDeployments,
 		CreatedTime:     time.Now().Unix(),
 		UpdatedTime:     time.Now().Unix(),

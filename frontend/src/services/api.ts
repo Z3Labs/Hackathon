@@ -62,10 +62,12 @@ export const appApi = {
 
   // 更新应用
   updateApp: (id: string, data: {
+    id: string
     name: string
     deploy_path: string
     start_cmd: string
     stop_cmd: string
+    machine_ids?: string[]
   }) => api.put(`/apps/${id}`, data),
 
   // 获取应用列表
@@ -107,6 +109,49 @@ export const deploymentApi = {
 
   // 获取发布记录详情
   getDeploymentDetail: (id: string) => api.get(`/deployments/${id}`),
+}
+
+// 机器相关接口
+export const machineApi = {
+  // 创建机器
+  createMachine: (data: {
+    name: string
+    ip: string
+    port: number
+    username: string
+    password: string
+    description: string
+  }) => api.post('/machines', data),
+
+  // 更新机器
+  updateMachine: (id: string, data: {
+    name: string
+    ip: string
+    port: number
+    username: string
+    password: string
+    description: string
+  }) => api.put(`/machines/${id}`, data),
+
+  // 获取机器列表
+  getMachineList: (params?: {
+    page?: number
+    page_size?: number
+    name?: string
+    ip?: string
+    health_status?: string
+    error_status?: string
+    alert_status?: string
+  }) => api.get('/machines', { params }),
+
+  // 获取机器详情
+  getMachineDetail: (id: string) => api.get(`/machines/${id}`),
+
+  // 删除机器
+  deleteMachine: (id: string) => api.delete(`/machines/${id}`),
+
+  // 测试机器连接
+  testMachineConnection: (id: string) => api.post(`/machines/${id}/test`),
 }
 
 export default api

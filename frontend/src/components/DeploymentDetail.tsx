@@ -73,13 +73,10 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     return colorMap[status] || '#d9d9d9';
   };
 
-  const getGrayStrategyText = (strategy: string) => {
-    const strategyMap: Record<string, string> = {
-      canary: '金丝雀发布',
-      'blue-green': '蓝绿发布',
-      all: '全量发布',
-    };
-    return strategyMap[strategy] || strategy;
+  const getGrayMachineInfo = (machineId: string) => {
+    if (!machineId || !deployment?.node_deployments) return '未设置';
+    const machine = deployment.node_deployments.find(m => m.id === machineId);
+    return machine ? `${machine.id} (${machine.ip})` : machineId;
   };
 
   const formatTime = (timestamp: number) => {
@@ -281,8 +278,8 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
             <div style={{ fontWeight: 'bold' }}>{deployment.package_version}</div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>灰度策略</div>
-            <div>{getGrayStrategyText(deployment.gray_strategy)}</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>灰度设备</div>
+            <div>{getGrayMachineInfo(deployment.gray_machine_id)}</div>
           </div>
           <div>
             <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>发布状态</div>

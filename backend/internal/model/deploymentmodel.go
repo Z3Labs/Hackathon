@@ -15,7 +15,7 @@ type (
 		Status          DeploymentStatus `bson:"status"          json:"status"`           // 发布状态
 		PackageVersion  string           `bson:"packageVersion"  json:"package_version"`  // 包版本
 		ConfigPath      string           `bson:"configPath"      json:"config_path"`      // 配置文件路径
-		GrayStrategy    string           `bson:"grayStrategy"    json:"gray_strategy"`    // 灰度策略
+		GrayMachineId   string           `bson:"grayMachineId"   json:"gray_machine_id"`  // 灰度设备ID
 		Platform        PlatformType     `bson:"platform"        json:"platform"`         // 平台类型
 		Package         PackageInfo      `bson:"package"         json:"package"`          // 包信息
 		Stages          []Stage          `bson:"stages"          json:"stages"`           // 分阶段部署配置

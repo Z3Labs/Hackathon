@@ -44,8 +44,7 @@ func (a *AnsibleExecutor) Deploy(ctx context.Context) error {
 	a.status.State = model.NodeStatusDeploying
 	a.status.UpdatedAt = time.Now()
 
-	extraVars := fmt.Sprintf("host=%s service_name=%s deploy_version=%s package_url=%s package_sha256=%s prev_version=%s",
-		a.config.Host,
+	extraVars := fmt.Sprintf("ansible_user=root service_name=%s deploy_version=%s package_url=%s package_sha256=%s prev_version=%s",
 		a.config.Service,
 		a.config.Version,
 		a.config.PackageURL,

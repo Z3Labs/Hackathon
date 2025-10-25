@@ -60,6 +60,7 @@ type (
 		FindById(ctx context.Context, id string) (*ReleasePlan, error)
 		Search(ctx context.Context, cond *ReleasePlanCond) ([]*ReleasePlan, error)
 		Count(ctx context.Context, cond *ReleasePlanCond) (int64, error)
+		DeleteMany(ctx context.Context, cond *ReleasePlanCond) error
 	}
 
 	defaultReleasePlanModel struct {
@@ -145,6 +146,11 @@ func (m *defaultReleasePlanModel) Search(ctx context.Context, cond *ReleasePlanC
 		return nil, err
 	}
 	return result, nil
+}
+func (m *defaultReleasePlanModel) DeleteMany(ctx context.Context, cond *ReleasePlanCond) error {
+	filter := cond.genCond()
+	_, err := m.model.DeleteMany(ctx, filter)
+	return err
 }
 
 func (m *defaultReleasePlanModel) Count(ctx context.Context, cond *ReleasePlanCond) (int64, error) {

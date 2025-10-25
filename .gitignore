@@ -16,3 +16,14 @@ Thumbs.db
 
 # Temporary files
 .tmp-comment/
+
+# Build artifacts and binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+**/hackathon-api
+hackathon-api

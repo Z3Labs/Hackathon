@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { deploymentService } from '../services/deployment';
+import { appApi } from '../services/api';
 import type { CreateDeploymentRequest } from '../types/deployment';
 
 interface DeploymentFormProps {
@@ -16,6 +17,23 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apps, setApps] = useState<Array<{ id: string; name: string }>>([]);
+  const [loadingApps, setLoadingApps] = useState(true);
+
+  useEffect(() => {
+    const fetchApps = async () => {
+      try {
+        setLoadingApps(true);
+        const response = await appApi.getAppList({ page: 1, page_size: 100 });
+        setApps(response.apps || []);
+      } catch (err) {
+        console.error('获取应用列表失败', err);
+      } finally {
+        setLoadingApps(false);
+      }
+    };
+    fetchApps();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,18 +63,25 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
             应用名称 *
           </label>
-          <input
-            type="text"
+          <select
             value={formData.app_name}
             onChange={(e) => handleChange('app_name', e.target.value)}
             required
+            disabled={loadingApps}
             style={{
               width: '100%',
               padding: '8px',
               border: '1px solid #d9d9d9',
               borderRadius: '4px',
             }}
-          />
+          >
+            <option value="">请选择应用</option>
+            {apps.map((app) => (
+              <option key={app.id} value={app.name}>
+                {app.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div style={{ marginBottom: '16px' }}>
@@ -117,9 +142,9 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
             <option value="blue-green">蓝绿发布</option>
           </select>
           <div style={{ marginTop: '8px', fontSize: '12px', color: '#8c8c8c' }}>
-            {formData.gray_strategy === 'canary' && '金丝雀发布：逐步增加流量到新版本'}
-            {formData.gray_strategy === 'blue-green' && '蓝绿发布：在蓝绿环境之间切换流量'}
-            {formData.gray_strategy === 'all' && '全量发布：一次性将所有流量切换到新版本'}
+            {formData.gray_strategy === 'canary' && '金丝雀发布:先在少量机器上部署,验证通过后逐步扩大部署范围'}
+            {formData.gray_strategy === 'blue-green' && '蓝绿发布:保持两套环境,在新环境部署完成后切换,旧环境作为备份'}
+            {formData.gray_strategy === 'all' && '全量发布:同时在所有机器上部署新版本'}
           </div>
         </div>
 

@@ -83,7 +83,10 @@ const Apps: React.FC = () => {
     if (!selectedApp) return
     
     const result = await request(
-      () => appApi.updateApp(selectedApp.id, formData as any),
+      () => appApi.updateApp(selectedApp.id, {
+        id: selectedApp.id,
+        ...formData
+      }),
       {
         successMessage: '应用更新成功',
         errorMessage: '更新应用失败',
@@ -176,6 +179,7 @@ const Apps: React.FC = () => {
     
     const result = await request(
       () => appApi.updateApp(selectedApp.id, {
+        id: selectedApp.id,
         name: selectedApp.name,
         deploy_path: selectedApp.deploy_path,
         start_cmd: selectedApp.start_cmd,

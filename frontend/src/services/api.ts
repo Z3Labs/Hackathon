@@ -62,6 +62,7 @@ export const appApi = {
 
   // 更新应用
   updateApp: (id: string, data: {
+    id: string
     name: string
     deploy_path: string
     start_cmd: string

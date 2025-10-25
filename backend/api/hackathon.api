@@ -8,130 +8,132 @@ info (
 )
 
 type (
-	PingReq  {}
+	PingReq  struct{}
 	PingResp {
 		Message string `json:"message"` // 响应消息
 	}
 	// 裸金属机器信息
 	Machine {
-		Id           string `json:"id"` // 机器唯一标识
-		Name         string `json:"name"` // 机器名称
-		Ip           string `json:"ip"` // IP地址
-		Port         int    `json:"port"` // SSH端口号
-		Username     string `json:"username"` // SSH用户名
-		Password     string `json:"password"` // SSH密码
-		Description  string `json:"description"` // 机器描述
+		Id           string `json:"id"`            // 机器唯一标识
+		Name         string `json:"name"`          // 机器名称
+		Ip           string `json:"ip"`            // IP地址
+		Port         int    `json:"port"`          // SSH端口号
+		Username     string `json:"username"`      // SSH用户名
+		Password     string `json:"password"`      // SSH密码
+		Description  string `json:"description"`   // 机器描述
 		HealthStatus string `json:"health_status"` // 健康状态: healthy-健康, unhealthy-不健康
-		ErrorStatus  string `json:"error_status"` // 异常状态: normal-正常, error-异常
-		AlertStatus  string `json:"alert_status"` // 告警状态: normal-正常, alert-告警
-		CreatedAt    int64  `json:"created_at"` // 创建时间戳
-		UpdatedAt    int64  `json:"updated_at"` // 更新时间戳
+		ErrorStatus  string `json:"error_status"`  // 异常状态: normal-正常, error-异常
+		AlertStatus  string `json:"alert_status"`  // 告警状态: normal-正常, alert-告警
+		CreatedAt    int64  `json:"created_at"`    // 创建时间戳
+		UpdatedAt    int64  `json:"updated_at"`    // 更新时间戳
 	}
 	// 应用信息
 	Application {
-		Id               string          `json:"id"` // 应用唯一标识
-		Name             string          `json:"name"` // 应用名称
-		DeployPath       string          `json:"deploy_path"` // 部署路径
-		StartCmd         string          `json:"start_cmd"` // 启动命令
-		StopCmd          string          `json:"stop_cmd"` // 停止命令
-		CurrentVersion   string          `json:"currentVersion"` // 当前版本
-		MachineCount     int             `json:"machine_count"` // 机器总数量
-		HealthCount      int             `json:"health_count"` // 健康机器数量
-		ErrorCount       int             `json:"error_count"` // 异常机器数量
-		AlertCount       int             `json:"alert_count"` // 告警机器数量
-		Machines         []Machine       `json:"machines"` // 机器列表
-		RollbackPolicy   *RollbackPolicy `json:"rollback_policy"` // 回滚策略配置
+		Id               string          `json:"id"`                 // 应用唯一标识
+		Name             string          `json:"name"`               // 应用名称
+		DeployPath       string          `json:"deploy_path"`        // 部署路径
+		StartCmd         string          `json:"start_cmd"`          // 启动命令
+		StopCmd          string          `json:"stop_cmd"`           // 停止命令
+		CurrentVersion   string          `json:"currentVersion"`     // 当前版本
+		MachineCount     int             `json:"machine_count"`      // 机器总数量
+		HealthCount      int             `json:"health_count"`       // 健康机器数量
+		ErrorCount       int             `json:"error_count"`        // 异常机器数量
+		AlertCount       int             `json:"alert_count"`        // 告警机器数量
+		Machines         []Machine       `json:"machines"`           // 机器列表
+		RollbackPolicy   *RollbackPolicy `json:"rollback_policy"`    // 回滚策略配置
 		REDMetricsConfig *REDMetrics     `json:"red_metrics_config"` // RED指标配置
-		CreatedAt        int64           `json:"created_at"` // 创建时间戳
-		UpdatedAt        int64           `json:"updated_at"` // 更新时间戳
+		CreatedAt        int64           `json:"created_at"`         // 创建时间戳
+		UpdatedAt        int64           `json:"updated_at"`         // 更新时间戳
 	}
 	// 回滚策略配置
 	RollbackPolicy {
-		Enabled       bool              `json:"enabled"` // 是否启用自动回滚
-		AlertRules    []PrometheusAlert `json:"alert_rules"` // Prometheus告警规则列表
-		AutoRollback  bool              `json:"auto_rollback"` // 是否自动执行回滚
+		Enabled       bool              `json:"enabled"`        // 是否启用自动回滚
+		AlertRules    []PrometheusAlert `json:"alert_rules"`    // Prometheus告警规则列表
+		AutoRollback  bool              `json:"auto_rollback"`  // 是否自动执行回滚
 		NotifyChannel string            `json:"notify_channel"` // 通知渠道
 	}
 	// Prometheus告警规则
 	PrometheusAlert {
-		Name        string            `json:"name"` // 告警名称
-		AlertExpr   string            `json:"alert_expr"` // Prometheus PromQL表达式
-		Duration    string            `json:"duration"` // 持续时长
-		Severity    string            `json:"severity"` // 告警级别
-		Labels      map[string]string `json:"labels"` // 自定义标签
+		Name        string            `json:"name"`        // 告警名称
+		AlertExpr   string            `json:"alert_expr"`  // Prometheus PromQL表达式
+		Duration    string            `json:"duration"`    // 持续时长
+		Severity    string            `json:"severity"`    // 告警级别
+		Labels      map[string]string `json:"labels"`      // 自定义标签
 		Annotations map[string]string `json:"annotations"` // 告警注解
 	}
 	// RED指标配置
 	REDMetrics {
-		Enabled         bool              `json:"enabled"` // 是否启用RED监控
-		RateMetric      *MetricDefinition `json:"rate_metric"` // Rate-请求速率
-		ErrorMetric     *MetricDefinition `json:"error_metric"` // Error-错误率
-		DurationMetric  *MetricDefinition `json:"duration_metric"` // Duration-响应时长
+		Enabled         bool              `json:"enabled"`          // 是否启用RED监控
+		RateMetric      *MetricDefinition `json:"rate_metric"`      // Rate-请求速率
+		ErrorMetric     *MetricDefinition `json:"error_metric"`     // Error-错误率
+		DurationMetric  *MetricDefinition `json:"duration_metric"`  // Duration-响应时长
 		HealthThreshold *HealthThreshold  `json:"health_threshold"` // 健康度阈值
 	}
 	// 指标定义
 	MetricDefinition {
 		MetricName  string            `json:"metric_name"` // Prometheus指标名称
-		PromQL      string            `json:"promql"` // PromQL查询语句
-		Labels      map[string]string `json:"labels"` // 指标标签过滤
+		PromQL      string            `json:"promql"`      // PromQL查询语句
+		Labels      map[string]string `json:"labels"`      // 指标标签过滤
 		Description string            `json:"description"` // 指标描述
 	}
 	// 健康度阈值
 	HealthThreshold {
-		RateMin        float64 `json:"rate_min"` // 最低请求速率
-		ErrorRateMax   float64 `json:"error_rate_max"` // 最大错误率
+		RateMin        float64 `json:"rate_min"`         // 最低请求速率
+		ErrorRateMax   float64 `json:"error_rate_max"`   // 最大错误率
 		DurationP99Max float64 `json:"duration_p99_max"` // P99响应时长上限
 		DurationP95Max float64 `json:"duration_p95_max"` // P95响应时长上限
 	}
 	// 发布机器信息
 	NodeDeployment {
-		Id               string `json:"id"` // 机器唯一标识
-		Ip               string `json:"ip"` // IP地址
+		Id               string `json:"id"`                 // 机器唯一标识
+		Ip               string `json:"ip"`                 // IP地址
 		NodeDeployStatus string `json:"node_deploy_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
-		ReleaseLog       string `json:"release_log"` // 发布日志
+		ReleaseLog       string `json:"release_log"`        // 发布日志
 	}
 	// 发布记录信息
 	Deployment {
-		Id              string           `json:"id"` // 发布记录唯一标识
-		AppName         string           `json:"app_name"` // 应用名称
-		Status          string           `json:"status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
-		PackageVersion  string           `json:"package_version"` // 包版本
-		ConfigPath      string           `json:"config_path"` // 配置文件路径
-		GrayMachineId   string           `json:"gray_machine_id"` // 灰度设备ID
+		Id              string           `json:"id"`               // 发布记录唯一标识
+		AppName         string           `json:"app_name"`         // 应用名称
+		Status          string           `json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
+		PackageVersion  string           `json:"package_version"`  // 包版本
+		ConfigPath      string           `json:"config_path"`      // 配置文件路径
+		GrayMachineId   string           `json:"gray_machine_id"`  // 灰度设备ID
 		NodeDeployments []NodeDeployment `json:"node_deployments"` // 发布机器列表
-		CreatedAt       int64            `json:"created_at"` // 创建时间戳
-		UpdatedAt       int64            `json:"updated_at"` // 更新时间戳
+		CreatedAt       int64            `json:"created_at"`       // 创建时间戳
+		UpdatedAt       int64            `json:"updated_at"`       // 更新时间戳
 	}
 	// 应用相关请求响应
 	CreateAppReq {
-		Name       string `json:"name"` // 应用名称
+		Name       string `json:"name"`        // 应用名称
 		DeployPath string `json:"deploy_path"` // 部署路径
-		StartCmd   string `json:"start_cmd"` // 启动命令
-		StopCmd    string `json:"stop_cmd"` // 停止命令
+		StartCmd   string `json:"start_cmd"`   // 启动命令
+		StopCmd    string `json:"stop_cmd"`    // 停止命令
 	}
 	CreateAppResp {
 		Id string `json:"id"` // 创建的应用ID
 	}
 	UpdateAppReq {
-		Id         string   `json:"id"` // 应用ID
-		Name       string   `json:"name"` // 应用名称
-		DeployPath string   `json:"deploy_path"` // 部署路径
-		StartCmd   string   `json:"start_cmd"` // 启动命令
-		StopCmd    string   `json:"stop_cmd"` // 停止命令
-		MachineIds []string `json:"machine_ids"` // 关联的机器ID列表
+		Id               string          `json:"id"`                          // 应用ID
+		Name             string          `json:"name"`                        // 应用名称
+		DeployPath       string          `json:"deploy_path"`                 // 部署路径
+		StartCmd         string          `json:"start_cmd"`                   // 启动命令
+		StopCmd          string          `json:"stop_cmd"`                    // 停止命令
+		MachineIds       []string        `json:"machine_ids,optional"`        // 关联的机器ID列表
+		RollbackPolicy   *RollbackPolicy `json:"rollback_policy,optional"`    // 回滚策略配置
+		REDMetricsConfig *REDMetrics     `json:"red_metrics_config,optional"` // RED指标配置
 	}
 	UpdateAppResp {
 		Success bool `json:"success"` // 更新是否成功
 	}
 	GetAppListReq {
-		Page     int    `form:"page,default=1"` // 页码，默认第1页
+		Page     int    `form:"page,default=1"`       // 页码，默认第1页
 		PageSize int    `form:"page_size,default=10"` // 每页数量，默认10条
-		Name     string `form:"name,optional"` // 应用名称筛选，可选
+		Name     string `form:"name,optional"`        // 应用名称筛选，可选
 	}
 	GetAppListResp {
-		Apps     []Application `json:"apps"` // 应用列表
-		Total    int64         `json:"total"` // 总数量
-		Page     int           `json:"page"` // 当前页码
+		Apps     []Application `json:"apps"`      // 应用列表
+		Total    int64         `json:"total"`     // 总数量
+		Page     int           `json:"page"`      // 当前页码
 		PageSize int           `json:"page_size"` // 每页数量
 	}
 	GetAppDetailReq {
@@ -147,55 +149,55 @@ type (
 		Versions []AppVersion `json:"versions"` // 版本列表，降序排列
 	}
 	AppVersion {
-		Version  string `json:"version"` // 版本号
+		Version  string `json:"version"`   // 版本号
 		FileName string `json:"file_name"` // 完整文件名
 	}
 	// 发布记录相关请求响应
 	CreateDeploymentReq {
-		AppName        string `json:"app_name"` // 应用名称
+		AppName        string `json:"app_name"`        // 应用名称
 		PackageVersion string `json:"package_version"` // 包版本
-		ConfigPath     string `json:"config_path"` // 配置文件路径
+		ConfigPath     string `json:"config_path"`     // 配置文件路径
 		GrayMachineId  string `json:"gray_machine_id"` // 灰度设备ID（可选，用于灰度发布）
 	}
 	CreateDeploymentResp {
 		Id string `json:"id"` // 创建的发布记录ID
 	}
 	UpdateDeploymentReq {
-		Id             string `json:"id"` // 发布记录ID
-		AppName        string `json:"app_name"` // 应用名称
+		Id             string `json:"id"`              // 发布记录ID
+		AppName        string `json:"app_name"`        // 应用名称
 		PackageVersion string `json:"package_version"` // 包版本
-		ConfigPath     string `json:"config_path"` // 配置文件路径
+		ConfigPath     string `json:"config_path"`     // 配置文件路径
 		GrayMachineId  string `json:"gray_machine_id"` // 灰度设备ID（可选，用于灰度发布）
 	}
 	UpdateDeploymentResp {
 		Success bool `json:"success"` // 更新是否成功
 	}
 	GetDeploymentListReq {
-		Page     int    `form:"page,default=1"` // 页码，默认第1页
+		Page     int    `form:"page,default=1"`       // 页码，默认第1页
 		PageSize int    `form:"page_size,default=10"` // 每页数量，默认10条
-		AppName  string `form:"app_name,optional"` // 应用名称筛选，可选
-		Status   string `form:"status,optional"` // 发布状态筛选，可选
+		AppName  string `form:"app_name,optional"`    // 应用名称筛选，可选
+		Status   string `form:"status,optional"`      // 发布状态筛选，可选
 	}
 	GetDeploymentListResp {
 		Deployments []Deployment `json:"deployments"` // 发布记录列表
-		Total       int64        `json:"total"` // 总数量
-		Page        int          `json:"page"` // 当前页码
-		PageSize    int          `json:"page_size"` // 每页数量
+		Total       int64        `json:"total"`       // 总数量
+		Page        int          `json:"page"`        // 当前页码
+		PageSize    int          `json:"page_size"`   // 每页数量
 	}
 	GetDeploymentDetailReq {
 		Id string `path:"id"` // 发布记录ID
 	}
 	GetDeploymentDetailResp {
-		Deployment Deployment `json:"deployment"` // 发布记录详情
+		Deployment Deployment `json:"deployment"`       // 发布记录详情
 		Report     *Report    `json:"report,omitempty"` // 诊断报告（可能为空）
 	}
 	Report {
-		Id           string `json:"id"` // 报告唯一标识
+		Id           string `json:"id"`            // 报告唯一标识
 		DeploymentId string `json:"deployment_id"` // 关联的部署ID
-		Content      string `json:"content"` // AI 生成的报告内容
-		Status       string `json:"status"` // 报告生成状态: generating-生成中, completed-生成完成, failed-生成失败
-		CreatedAt    int64  `json:"created_at"` // 创建时间戳
-		UpdatedAt    int64  `json:"updated_at"` // 更新时间戳
+		Content      string `json:"content"`       // AI 生成的报告内容
+		Status       string `json:"status"`        // 报告生成状态: generating-生成中, completed-生成完成, failed-生成失败
+		CreatedAt    int64  `json:"created_at"`    // 创建时间戳
+		UpdatedAt    int64  `json:"updated_at"`    // 更新时间戳
 	}
 	CancelDeploymentReq {
 		Id string `path:"id"` // 发布记录ID
@@ -211,41 +213,41 @@ type (
 	}
 	// 裸金属机器相关请求响应
 	CreateMachineReq {
-		Name        string `json:"name"` // 机器名称
-		Ip          string `json:"ip"` // IP地址
-		Port        int    `json:"port"` // SSH端口号
-		Username    string `json:"username"` // SSH用户名
-		Password    string `json:"password"` // SSH密码
+		Name        string `json:"name"`        // 机器名称
+		Ip          string `json:"ip"`          // IP地址
+		Port        int    `json:"port"`        // SSH端口号
+		Username    string `json:"username"`    // SSH用户名
+		Password    string `json:"password"`    // SSH密码
 		Description string `json:"description"` // 机器描述
 	}
 	CreateMachineResp {
 		Id string `json:"id"` // 创建的机器ID
 	}
 	UpdateMachineReq {
-		Id          string `json:"id"` // 机器ID
-		Name        string `json:"name"` // 机器名称
-		Ip          string `json:"ip"` // IP地址
-		Port        int    `json:"port"` // SSH端口号
-		Username    string `json:"username"` // SSH用户名
-		Password    string `json:"password"` // SSH密码
+		Id          string `json:"id"`          // 机器ID
+		Name        string `json:"name"`        // 机器名称
+		Ip          string `json:"ip"`          // IP地址
+		Port        int    `json:"port"`        // SSH端口号
+		Username    string `json:"username"`    // SSH用户名
+		Password    string `json:"password"`    // SSH密码
 		Description string `json:"description"` // 机器描述
 	}
 	UpdateMachineResp {
 		Success bool `json:"success"` // 更新是否成功
 	}
 	GetMachineListReq {
-		Page         int    `form:"page,default=1"` // 页码，默认第1页
-		PageSize     int    `form:"page_size,default=10"` // 每页数量，默认10条
-		Name         string `form:"name,optional"` // 机器名称筛选，可选
-		Ip           string `form:"ip,optional"` // IP地址筛选，可选
+		Page         int    `form:"page,default=1"`         // 页码，默认第1页
+		PageSize     int    `form:"page_size,default=10"`   // 每页数量，默认10条
+		Name         string `form:"name,optional"`          // 机器名称筛选，可选
+		Ip           string `form:"ip,optional"`            // IP地址筛选，可选
 		HealthStatus string `form:"health_status,optional"` // 健康状态筛选，可选
-		ErrorStatus  string `form:"error_status,optional"` // 异常状态筛选，可选
-		AlertStatus  string `form:"alert_status,optional"` // 告警状态筛选，可选
+		ErrorStatus  string `form:"error_status,optional"`  // 异常状态筛选，可选
+		AlertStatus  string `form:"alert_status,optional"`  // 告警状态筛选，可选
 	}
 	GetMachineListResp {
-		Machines []Machine `json:"machines"` // 机器列表
-		Total    int64     `json:"total"` // 总数量
-		Page     int       `json:"page"` // 当前页码
+		Machines []Machine `json:"machines"`  // 机器列表
+		Total    int64     `json:"total"`     // 总数量
+		Page     int       `json:"page"`      // 当前页码
 		PageSize int       `json:"page_size"` // 每页数量
 	}
 	GetMachineDetailReq {
@@ -285,35 +287,35 @@ type (
 		Values       float64           `json:"values"`
 	}
 	RollbackNodeDeploymentReq {
-		Id                string   `path:"id"` // 发布记录ID
+		Id                string   `path:"id"`                  // 发布记录ID
 		NodeDeploymentIds []string `json:"node_deployment_ids"` // 发布机器ID列表
 	}
 	RollbackNodeDeploymentResp {
 		Success bool `json:"success"` // 回滚是否成功
 	}
 	DeployNodeDeploymentReq {
-		Id                string   `path:"id"` // 发布记录ID
+		Id                string   `path:"id"`                  // 发布记录ID
 		NodeDeploymentIds []string `json:"node_deployment_ids"` // 发布机器ID列表
 	}
 	DeployNodeDeploymentResp {
 		Success bool `json:"success"` // 发布是否成功
 	}
 	RetryNodeDeploymentReq {
-		Id                string   `path:"id"` // 发布记录ID
+		Id                string   `path:"id"`                  // 发布记录ID
 		NodeDeploymentIds []string `json:"node_deployment_ids"` // 发布机器ID列表
 	}
 	RetryNodeDeploymentResp {
 		Success bool `json:"success"` // 重试是否成功
 	}
 	SkipNodeDeploymentReq {
-		Id                string   `path:"id"` // 发布记录ID
+		Id                string   `path:"id"`                  // 发布记录ID
 		NodeDeploymentIds []string `json:"node_deployment_ids"` // 发布机器ID列表
 	}
 	SkipNodeDeploymentResp {
 		Success bool `json:"success"` // 跳过是否成功
 	}
 	CancelNodeDeploymentReq {
-		Id                string   `path:"id"` // 发布记录ID
+		Id                string   `path:"id"`                  // 发布记录ID
 		NodeDeploymentIds []string `json:"node_deployment_ids"` // 发布机器ID列表
 	}
 	CancelNodeDeploymentResp {
@@ -437,4 +439,3 @@ service hackathon-api {
 	@handler AlertCallBack
 	post /v1/alerts (PostAlertCallbackReq)
 }
-

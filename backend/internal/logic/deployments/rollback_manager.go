@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
@@ -72,14 +71,12 @@ func (rm *RollbackManager) RollbackDeployment(ctx context.Context, deploymentID 
 		return fmt.Errorf("failed to update deployment status: %w", err)
 	}
 
-	var nodesToRollback []model.StageNode
-	for i := range deployment.Stages {
-		for j := range deployment.Stages[i].Nodes {
-			node := &deployment.Stages[i].Nodes[j]
-			if len(hosts) == 0 || rm.containsHost(hosts, node.Host) {
-				if node.Status == model.NodeStatusFailed || node.Status == model.NodeStatusSuccess {
-					nodesToRollback = append(nodesToRollback, *node)
-				}
+	var nodesToRollback []int
+	for i := range deployment.NodeDeployments {
+		node := &deployment.NodeDeployments[i]
+		if len(hosts) == 0 || rm.containsHost(hosts, node.Id) {
+			if node.NodeDeployStatus == model.NodeDeploymentStatusFailed || node.NodeDeployStatus == model.NodeDeploymentStatusSuccess {
+				nodesToRollback = append(nodesToRollback, i)
 			}
 		}
 	}
@@ -99,35 +96,35 @@ func (rm *RollbackManager) RollbackDeployment(ctx context.Context, deploymentID 
 	return nil
 }
 
-func (rm *RollbackManager) executeRollback(ctx context.Context, deployment *model.Deployment, nodes []model.StageNode) {
+func (rm *RollbackManager) executeRollback(ctx context.Context, deployment *model.Deployment, nodeIndexes []int) {
 	var wg sync.WaitGroup
 	successCount := 0
 	var mu sync.Mutex
 
-	for i := range nodes {
+	for _, nodeIndex := range nodeIndexes {
 		select {
 		case <-ctx.Done():
 			wg.Wait()
-			rm.handleRollbackCancellation(deployment, successCount, len(nodes))
+			rm.handleRollbackCancellation(deployment, successCount, len(nodeIndexes))
 			return
 		default:
 		}
 
 		wg.Add(1)
-		go func(node *model.StageNode) {
+		go func(idx int) {
 			defer wg.Done()
 
-			if err := rm.rollbackNode(ctx, deployment, node); err == nil {
+			if err := rm.rollbackNode(ctx, deployment, idx); err == nil {
 				mu.Lock()
 				successCount++
 				mu.Unlock()
 			}
-		}(&nodes[i])
+		}(nodeIndex)
 	}
 
 	wg.Wait()
 
-	if successCount == len(nodes) {
+	if successCount == len(nodeIndexes) {
 		deployment.Status = model.DeploymentStatusRolledBack
 	} else if successCount > 0 {
 		deployment.Status = model.DeploymentStatusPartialSuccess
@@ -150,14 +147,25 @@ func (rm *RollbackManager) handleRollbackCancellation(deployment *model.Deployme
 	}
 }
 
-func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.Deployment, node *model.StageNode) error {
+func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.Deployment, nodeIndex int) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
 	}
 
-	nodeStatus, err := rm.nodeStatusModel.FindByHostAndService(context.Background(), node.Host, deployment.AppName)
+	deployment, err := rm.deploymentModel.FindById(context.Background(), deployment.Id)
+	if err != nil {
+		return err
+	}
+
+	if nodeIndex >= len(deployment.NodeDeployments) {
+		return fmt.Errorf("node index out of range")
+	}
+
+	node := &deployment.NodeDeployments[nodeIndex]
+
+	nodeStatus, err := rm.nodeStatusModel.FindByHostAndService(context.Background(), node.Id, deployment.AppName)
 	if err != nil {
 		return fmt.Errorf("failed to find node status: %w", err)
 	}
@@ -168,8 +176,8 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.D
 
 	executor, err := rm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
 		Platform:    string(nodeStatus.Platform),
-		Host:        node.Host,
-		IP:          node.IP,
+		Host:        node.Id,
+		IP:          node.Ip,
 		Service:     deployment.AppName,
 		Version:     nodeStatus.CurrentVersion,
 		PrevVersion: nodeStatus.PrevVersion,
@@ -178,41 +186,42 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.D
 	})
 
 	if err != nil {
-		node.Status = model.NodeStatusFailed
-		node.LastError = err.Error()
+		node.NodeDeployStatus = model.NodeDeploymentStatusFailed
+		node.ReleaseLog = err.Error()
 		nodeStatus.State = model.NodeStatusFailed
 		nodeStatus.LastError = err.Error()
 		rm.nodeStatusModel.Update(context.Background(), nodeStatus)
+		rm.deploymentModel.Update(context.Background(), deployment)
 		return err
 	}
 
 	if err := executor.Rollback(ctx); err != nil {
 		if ctx.Err() != nil {
-			node.Status = model.NodeStatusFailed
-			node.LastError = "rollback canceled"
+			node.NodeDeployStatus = model.NodeDeploymentStatusFailed
+			node.ReleaseLog = "rollback canceled"
 			nodeStatus.State = model.NodeStatusFailed
 			nodeStatus.LastError = "rollback canceled"
 			rm.nodeStatusModel.Update(context.Background(), nodeStatus)
+			rm.deploymentModel.Update(context.Background(), deployment)
 			return ctx.Err()
 		}
 
-		node.Status = model.NodeStatusFailed
-		node.LastError = fmt.Sprintf("rollback failed: %s", err.Error())
+		node.NodeDeployStatus = model.NodeDeploymentStatusFailed
+		node.ReleaseLog = fmt.Sprintf("rollback failed: %s", err.Error())
 		nodeStatus.State = model.NodeStatusFailed
-		nodeStatus.LastError = node.LastError
+		nodeStatus.LastError = node.ReleaseLog
 		rm.nodeStatusModel.Update(context.Background(), nodeStatus)
+		rm.deploymentModel.Update(context.Background(), deployment)
 		return err
 	}
 
-	node.Status = model.NodeStatusRolledBack
-	node.CurrentVersion = nodeStatus.PrevVersion
-	node.DeployingVersion = ""
-	node.UpdatedAt = time.Now()
-
+	node.NodeDeployStatus = model.NodeDeploymentStatusRolledBack
+	node.ReleaseLog = "rollback successful"
 	nodeStatus.State = model.NodeStatusRolledBack
 	nodeStatus.CurrentVersion = nodeStatus.PrevVersion
 	nodeStatus.DeployingVersion = ""
 	rm.nodeStatusModel.Update(context.Background(), nodeStatus)
+	rm.deploymentModel.Update(context.Background(), deployment)
 
 	return nil
 }
@@ -259,13 +268,11 @@ func (rm *RollbackManager) ContinueRollingBackDeployments(ctx context.Context) e
 	}
 
 	for _, deployment := range deployments {
-		var nodesToRollback []model.StageNode
-		for i := range deployment.Stages {
-			for j := range deployment.Stages[i].Nodes {
-				node := &deployment.Stages[i].Nodes[j]
-				if node.Status == model.NodeStatusFailed || node.Status == model.NodeStatusSuccess {
-					nodesToRollback = append(nodesToRollback, *node)
-				}
+		var nodesToRollback []int
+		for i := range deployment.NodeDeployments {
+			node := &deployment.NodeDeployments[i]
+			if node.NodeDeployStatus == model.NodeDeploymentStatusFailed || node.NodeDeployStatus == model.NodeDeploymentStatusSuccess {
+				nodesToRollback = append(nodesToRollback, i)
 			}
 		}
 
@@ -273,7 +280,7 @@ func (rm *RollbackManager) ContinueRollingBackDeployments(ctx context.Context) e
 			taskCtx, cancel := context.WithCancel(context.Background())
 			rm.registerTask(deployment.Id, cancel)
 
-			go func(dep *model.Deployment, nodes []model.StageNode) {
+			go func(dep *model.Deployment, nodes []int) {
 				defer rm.unregisterTask(dep.Id)
 				rm.executeRollback(taskCtx, dep, nodes)
 			}(deployment, nodesToRollback)

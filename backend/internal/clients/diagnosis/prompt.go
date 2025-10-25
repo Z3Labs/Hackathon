@@ -49,6 +49,8 @@ func buildPromptTemplate(req *types.PostAlertCallbackReq) string {
    - 使用 get_targets() 检查 Prometheus 抓取目标状态
    - 使用 execute_query() 查询关键指标（CPU、内存、网络、应用指标等）
    - 使用 execute_range_query() 获取时间范围内的趋势数据
+   - 使用 get_metric_metadata(metric: "metric_name") - 获取指标元数据（类型、说明等）
+   - 若不知道有哪些指标，可以使用 list_metrics() 列出所有可用指标名称，确保指标输入正确
    - 根据告警信息中的标签 instance 精准查询相关实例的指标
 
 2. **分析发布失败的根本原因**
@@ -74,6 +76,7 @@ func buildPromptTemplate(req *types.PostAlertCallbackReq) string {
 
 **重要提示**：
 - 请使用 MCP 工具主动查询所需的指标数据，不要等待提供
+- 重点查询 描述信息 提及到的指标，以及 go-runtime 相关的指标（因为是go服务发布）
 - 在诊断报告中，只输出分析结果和建议，不需要列出查询到的原始指标数据
 - 报告应该简洁明了，便于运维人员快速理解和处理
 - 如果某些指标查询失败，请说明并基于现有信息进行分析

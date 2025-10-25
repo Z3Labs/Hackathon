@@ -35,7 +35,7 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 	deployment := &model.Deployment{
 		Id:              deploymentId,
 		AppName:         req.AppName,
-		Status:          string(model.DeploymentStatusPending),
+		Status:          model.DeploymentStatusPending,
 		PackageVersion:  req.PackageVersion,
 		ConfigPath:      req.ConfigPath,
 		GrayStrategy:    req.GrayStrategy,

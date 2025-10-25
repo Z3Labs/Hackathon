@@ -12,7 +12,7 @@ type (
 	Deployment struct {
 		Id              string              `bson:"_id,omitempty"   json:"id,omitempty"`
 		AppName         string              `bson:"appName"         json:"app_name"`         // 应用名称
-		Status          string              `bson:"status"          json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
+		Status          DeploymentStatus    `bson:"status"          json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
 		PackageVersion  string              `bson:"packageVersion"  json:"package_version"`  // 包版本
 		ConfigPath      string              `bson:"configPath"      json:"config_path"`      // 配置文件路径
 		GrayStrategy    string              `bson:"grayStrategy"    json:"gray_strategy"`    // 灰度策略: canary-金丝雀发布, blue-green-蓝绿发布, all-全量发布

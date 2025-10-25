@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import DeploymentList from '../components/DeploymentList';
 import DeploymentForm from '../components/DeploymentForm';
 import DeploymentDetail from '../components/DeploymentDetail';
-import Breadcrumb, { BreadcrumbItem } from '../components/Breadcrumb';
+import PageLayout from '../components/PageLayout';
 import type { Deployment } from '../types/deployment';
 
 type ViewMode = 'list' | 'create' | 'detail';
@@ -35,8 +35,15 @@ const Publish: React.FC = () => {
     setSelectedDeployment(null);
   };
 
-  const getBreadcrumb = (): BreadcrumbItem[] => {
-    const items: BreadcrumbItem[] = [{ label: '发布', path: '/publish' }];
+  const getBreadcrumbItems = () => {
+    const items = [{ 
+      label: '发布', 
+      path: viewMode === 'list' ? '/publish' : undefined,
+      onClick: viewMode !== 'list' ? () => {
+        setViewMode('list');
+        setSelectedDeployment(null);
+      } : undefined
+    }];
     
     if (viewMode === 'create') {
       items.push({ label: '新建发布' });
@@ -48,8 +55,7 @@ const Publish: React.FC = () => {
   };
 
   return (
-    <div>
-      <Breadcrumb items={getBreadcrumb()} />
+    <PageLayout breadcrumbItems={getBreadcrumbItems()}>
       {viewMode === 'list' && (
         <DeploymentList
           key={refreshKey}
@@ -63,7 +69,7 @@ const Publish: React.FC = () => {
       {viewMode === 'detail' && selectedDeployment && (
         <DeploymentDetail deploymentId={selectedDeployment.id} onClose={handleDetailClose} />
       )}
-    </div>
+    </PageLayout>
   );
 };
 

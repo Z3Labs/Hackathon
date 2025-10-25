@@ -1,15 +1,13 @@
 .apps-container {
-  padding: 20px;
-  background-color: var(--bg-primary);
-  min-height: 100vh;
+  min-height: calc(100vh - 40px);
 }
 
 .apps-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -27,10 +25,10 @@
 }
 
 .search-box input {
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background-color: var(--bg-primary);
+  padding: 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background-color: white;
   color: var(--text-primary);
   font-size: 14px;
   width: 200px;
@@ -38,15 +36,14 @@
 
 .search-box input:focus {
   outline: none;
-  border-color: #646cff;
-  box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.1);
+  border-color: #1890ff;
 }
 
 .btn {
   padding: 8px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background-color: var(--button-bg);
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background-color: white;
   color: var(--text-primary);
   cursor: pointer;
   font-size: 14px;
@@ -54,19 +51,18 @@
 }
 
 .btn:hover {
-  background-color: var(--button-hover-bg);
-  transform: translateY(-1px);
+  background-color: #f5f5f5;
 }
 
 .btn-primary {
-  background-color: #646cff;
+  background-color: #1890ff;
   color: white;
-  border-color: #646cff;
+  border-color: #1890ff;
 }
 
 .btn-primary:hover {
-  background-color: #535bf2;
-  border-color: #535bf2;
+  background-color: #40a9ff;
+  border-color: #40a9ff;
 }
 
 .btn-sm {
@@ -97,10 +93,7 @@
 }
 
 .apps-content {
-  background-color: var(--bg-secondary);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0;
 }
 
 .loading {
@@ -117,20 +110,17 @@
 .apps-table table {
   width: 100%;
   border-collapse: collapse;
-  background-color: var(--bg-primary);
-  border-radius: 6px;
-  overflow: hidden;
 }
 
 .apps-table th,
 .apps-table td {
-  padding: 12px 16px;
+  padding: 12px;
   text-align: left;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .apps-table th {
-  background-color: var(--menu-hover-bg);
+  background-color: #fafafa;
   color: var(--text-primary);
   font-weight: 600;
   font-size: 14px;
@@ -142,7 +132,7 @@
 }
 
 .apps-table tr:hover {
-  background-color: var(--menu-hover-bg);
+  background-color: #f5f5f5;
 }
 
 .status-info {
@@ -165,36 +155,36 @@
 
 .pagination {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  gap: 15px;
+  gap: 8px;
   margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-color);
 }
 
 .pagination button {
-  padding: 6px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--button-bg);
+  padding: 4px 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 3px;
+  background-color: white;
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background-color: #f5f5f5;
 }
 
 .pagination button:hover:not(:disabled) {
-  background-color: var(--button-hover-bg);
+  background-color: #f5f5f5;
 }
 
 .pagination span {
-  color: var(--text-secondary);
-  font-size: 14px;
+  padding: 4px 8px;
+  color: var(--text-primary);
+  font-size: 12px;
 }
 
 /* 模态框样式 */
@@ -402,21 +392,18 @@
 .machines-table table {
   width: 100%;
   border-collapse: collapse;
-  background-color: var(--bg-secondary);
-  border-radius: 6px;
-  overflow: hidden;
 }
 
 .machines-table th,
 .machines-table td {
-  padding: 10px 12px;
+  padding: 12px;
   text-align: left;
-  border-bottom: 1px solid var(--border-color);
-  font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
 }
 
 .machines-table th {
-  background-color: var(--menu-hover-bg);
+  background-color: #fafafa;
   color: var(--text-primary);
   font-weight: 600;
 }
@@ -426,7 +413,7 @@
 }
 
 .machines-table tr:hover {
-  background-color: var(--menu-hover-bg);
+  background-color: #f5f5f5;
 }
 
 /* 响应式设计 */

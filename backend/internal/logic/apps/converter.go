@@ -69,3 +69,69 @@ func convertHealthThreshold(threshold *model.HealthThreshold) *types.HealthThres
 		DurationP95Max: threshold.DurationP95Max,
 	}
 }
+
+// 从 types 转换到 model 的函数
+func convertTypesToModelRollbackPolicy(policy *types.RollbackPolicy) *model.RollbackPolicy {
+	if policy == nil {
+		return nil
+	}
+
+	var alertRules []model.PrometheusAlert
+	for _, rule := range policy.AlertRules {
+		alertRules = append(alertRules, model.PrometheusAlert{
+			Name:        rule.Name,
+			AlertExpr:   rule.AlertExpr,
+			Duration:    rule.Duration,
+			Severity:    rule.Severity,
+			Labels:      rule.Labels,
+			Annotations: rule.Annotations,
+		})
+	}
+
+	return &model.RollbackPolicy{
+		Enabled:       policy.Enabled,
+		AlertRules:    alertRules,
+		AutoRollback:  policy.AutoRollback,
+		NotifyChannel: policy.NotifyChannel,
+	}
+}
+
+func convertTypesToModelREDMetrics(metrics *types.REDMetrics) *model.REDMetrics {
+	if metrics == nil {
+		return nil
+	}
+
+	return &model.REDMetrics{
+		Enabled:         metrics.Enabled,
+		RateMetric:      convertTypesToModelMetricDefinition(metrics.RateMetric),
+		ErrorMetric:     convertTypesToModelMetricDefinition(metrics.ErrorMetric),
+		DurationMetric:  convertTypesToModelMetricDefinition(metrics.DurationMetric),
+		HealthThreshold: convertTypesToModelHealthThreshold(metrics.HealthThreshold),
+	}
+}
+
+func convertTypesToModelMetricDefinition(metric *types.MetricDefinition) *model.MetricDefinition {
+	if metric == nil {
+		return nil
+	}
+
+	return &model.MetricDefinition{
+		MetricName:  metric.MetricName,
+		PromQL:      metric.PromQL,
+		Labels:      metric.Labels,
+		Description: metric.Description,
+	}
+}
+
+func convertTypesToModelHealthThreshold(threshold *types.HealthThreshold) *model.HealthThreshold {
+	if threshold == nil {
+		return nil
+	}
+
+	return &model.HealthThreshold{
+		RateMin:        threshold.RateMin,
+		ErrorRateMax:   threshold.ErrorRateMax,
+		DurationP99Max: threshold.DurationP99Max,
+		DurationP95Max: threshold.DurationP95Max,
+	}
+}

@@ -58,13 +58,13 @@
 .content-header {
   display: flex;
   justify-content: flex-end;
-  padding: 20px 40px;
+  padding: 10px 20px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .content-body {
   flex: 1;
-  padding: 40px;
+  padding: 20px;
   overflow-y: auto;
 }
 

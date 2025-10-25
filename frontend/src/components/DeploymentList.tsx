@@ -116,7 +116,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div>
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
         <input
           type="text"
@@ -265,32 +265,34 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
             </tbody>
           </table>
 
-          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
               style={{
-                padding: '8px 16px',
+                padding: '4px 8px',
                 border: '1px solid #d9d9d9',
-                borderRadius: '4px',
+                borderRadius: '3px',
                 cursor: page === 1 ? 'not-allowed' : 'pointer',
                 background: page === 1 ? '#f5f5f5' : 'white',
+                fontSize: '12px',
               }}
             >
               上一页
             </button>
-            <span style={{ padding: '8px 16px' }}>
+            <span style={{ padding: '4px 8px', fontSize: '12px' }}>
               第 {page} 页 / 共 {Math.ceil(total / pageSize)} 页
             </span>
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={page >= Math.ceil(total / pageSize)}
               style={{
-                padding: '8px 16px',
+                padding: '4px 8px',
                 border: '1px solid #d9d9d9',
-                borderRadius: '4px',
+                borderRadius: '3px',
                 cursor: page >= Math.ceil(total / pageSize) ? 'not-allowed' : 'pointer',
                 background: page >= Math.ceil(total / pageSize) ? '#f5f5f5' : 'white',
+                fontSize: '12px',
               }}
             >
               下一页

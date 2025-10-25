@@ -90,7 +90,7 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '600px', margin: '0 auto' }}>
       <h2>创建新发布</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '16px' }}>

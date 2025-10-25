@@ -18,7 +18,7 @@ type (
 		GrayMachineId   string           `bson:"grayMachineId"   json:"gray_machine_id"`  // 灰度设备ID
 		Platform        PlatformType     `bson:"platform"        json:"platform"`         // 平台类型
 		Package         PackageInfo      `bson:"package"         json:"package"`          // 包信息
-		Stages          []Stage          `bson:"stages"          json:"stages"`           // 分阶段部署配置
+		Pacer           PacerConfig      `bson:"pacer"           json:"pacer"`            // 批量部署控制
 		NodeDeployments []NodeDeployment `bson:"nodeDeployments" json:"node_deployments"` // 发布机器列表
 		CreatedTime     int64            `bson:"createdTime"     json:"createdTime"`      // 创建时间戳
 		UpdatedTime     int64            `bson:"updatedTime"     json:"updatedTime"`      // 更新时间戳
@@ -29,24 +29,6 @@ type (
 		SHA256    string    `bson:"sha256"    json:"sha256"`
 		Size      int64     `bson:"size"      json:"size"`
 		CreatedAt time.Time `bson:"createdAt" json:"created_at"`
-	}
-
-	Stage struct {
-		Name   string      `bson:"name"   json:"name"`
-		Nodes  []StageNode `bson:"nodes"  json:"nodes"`
-		Status StageStatus `bson:"status" json:"status"`
-		Pacer  PacerConfig `bson:"pacer"  json:"pacer"`
-	}
-
-	StageNode struct {
-		Host             string     `bson:"host"             json:"host"`
-		IP               string     `bson:"ip"               json:"ip"`
-		Status           NodeStatus `bson:"status"           json:"status"`
-		CurrentVersion   string     `bson:"currentVersion"   json:"current_version"`
-		DeployingVersion string     `bson:"deployingVersion" json:"deploying_version"`
-		PrevVersion      string     `bson:"prevVersion"      json:"prev_version"`
-		LastError        string     `bson:"lastError"        json:"last_error"`
-		UpdatedAt        time.Time  `bson:"updatedAt"        json:"updated_at"`
 	}
 
 	PacerConfig struct {

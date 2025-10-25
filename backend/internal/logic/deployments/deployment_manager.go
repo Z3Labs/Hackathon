@@ -253,7 +253,7 @@ func (dm *DeploymentManager) executeNode(ctx context.Context, deployment *model.
 		Version:     deployment.PackageVersion,
 		PrevVersion: nodeStatus.PrevVersion,
 		PackageURL:  deployment.Package.URL,
-		SHA256:      deployment.Package.SHA256,
+		MD5:         deployment.Package.MD5,
 	})
 
 	if err != nil {

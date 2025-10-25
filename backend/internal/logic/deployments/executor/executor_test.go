@@ -21,13 +21,13 @@ func TestExecutorFactory_CreateExecutor(t *testing.T) {
 		{
 			name: "创建 Ansible Executor - Physical 平台",
 			config: ExecutorConfig{
-				Platform:   string(model.PlatformPhysical),
-				Host:       "192.168.1.100",
-				Service:    "test-service",
-				Version:    "v1.0.0",
+				Platform:    string(model.PlatformPhysical),
+				Host:        "192.168.1.100",
+				Service:     "test-service",
+				Version:     "v1.0.0",
 				PrevVersion: "v0.9.0",
-				PackageURL: "http://example.com/package.tar.gz",
-				SHA256:     "abc123",
+				PackageURL:  "http://example.com/package.tar.gz",
+				MD5:         "abc123",
 			},
 			wantType: "*executor.AnsibleExecutor",
 			wantErr:  false,
@@ -35,14 +35,14 @@ func TestExecutorFactory_CreateExecutor(t *testing.T) {
 		{
 			name: "创建 K8s Executor - K8s 平台",
 			config: ExecutorConfig{
-				Platform:   string(model.PlatformK8s),
-				Host:       "k8s-cluster",
-				Service:    "test-service",
-				Version:    "v1.0.0",
+				Platform:    string(model.PlatformK8s),
+				Host:        "k8s-cluster",
+				Service:     "test-service",
+				Version:     "v1.0.0",
 				PrevVersion: "v0.9.0",
-				Namespace:  "default",
-				Deployment: "test-deployment",
-				ImageURL:   "registry.example.com/test-service",
+				Namespace:   "default",
+				Deployment:  "test-deployment",
+				ImageURL:    "registry.example.com/test-service",
 			},
 			wantType: "*executor.K8sExecutor",
 			wantErr:  false,
@@ -124,7 +124,7 @@ func TestExecutorFactory_CreateExecutor_InterfaceCompliance(t *testing.T) {
 }
 
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || 
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
 		(len(s) > 0 && len(substr) > 0 && findSubstring(s, substr)))
 }
 

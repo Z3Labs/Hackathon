@@ -26,7 +26,7 @@ type (
 
 	PackageInfo struct {
 		URL       string    `bson:"url"       json:"url"`
-		SHA256    string    `bson:"sha256"    json:"sha256"`
+		MD5       string    `bson:"md5"       json:"md5"`
 		Size      int64     `bson:"size"      json:"size"`
 		CreatedAt time.Time `bson:"createdAt" json:"created_at"`
 	}

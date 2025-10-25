@@ -31,8 +31,9 @@ func main() {
 
 	executorFactory := executor.NewExecutorFactory()
 	planManager := plan.NewPlanManager(context.Background(), ctx, executorFactory)
+	rollbackManager := plan.NewRollbackManager(context.Background(), ctx, executorFactory)
 	
-	planCron := plan.NewPlanCron(planManager)
+	planCron := plan.NewPlanCron(planManager, rollbackManager)
 	if err := planCron.Start(); err != nil {
 		panic(fmt.Sprintf("failed to start plan cron: %v", err))
 	}

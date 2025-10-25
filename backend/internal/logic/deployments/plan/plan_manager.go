@@ -44,12 +44,14 @@ func (pm *PlanManager) CreateReleasePlan(
 	ctx context.Context,
 	svc string,
 	targetVersion string,
+	platform model.PlatformType,
 	pkg model.PackageInfo,
 	stages []model.Stage,
 ) (*model.ReleasePlan, error) {
 	plan := &model.ReleasePlan{
 		Svc:           svc,
 		TargetVersion: targetVersion,
+		Platform:      platform,
 		ReleaseTime:   time.Now(),
 		Package:       pkg,
 		Stages:        stages,
@@ -165,7 +167,7 @@ func (pm *PlanManager) executeNode(ctx context.Context, plan *model.ReleasePlan,
 		CurrentVersion:   node.CurrentVersion,
 		DeployingVersion: plan.TargetVersion,
 		PrevVersion:      node.PrevVersion,
-		Platform:         model.PlatformPhysical,
+		Platform:         plan.Platform,
 		State:            model.NodeStatusDeploying,
 	}
 
@@ -178,7 +180,7 @@ func (pm *PlanManager) executeNode(ctx context.Context, plan *model.ReleasePlan,
 	}
 
 	executor, err := pm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
-		Platform:    string(model.PlatformPhysical),
+		Platform:    string(plan.Platform),
 		Host:        node.Host,
 		IP:          node.IP,
 		Service:     plan.Svc,

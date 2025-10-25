@@ -171,3 +171,17 @@ export interface TestMachineConnectionResp {
   success: boolean
   message: string
 }
+
+// 应用版本信息
+export interface AppVersion {
+  version: string
+  file_name: string
+}
+
+export interface GetAppVersionsReq {
+  app_name: string
+}
+
+export interface GetAppVersionsResp {
+  versions: AppVersion[]
+}

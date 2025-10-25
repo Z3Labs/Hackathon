@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { deploymentService } from '../services/deployment';
 import { appApi } from '../services/api';
 import type { CreateDeploymentRequest } from '../types/deployment';
+import type { AppVersion } from '../types';
 
 interface DeploymentFormProps {
   onSuccess?: () => void;
@@ -19,7 +20,7 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
   const [error, setError] = useState<string | null>(null);
   const [apps, setApps] = useState<Array<{ id: string; name: string }>>([]);
   const [loadingApps, setLoadingApps] = useState(true);
-  const [versions, setVersions] = useState<string[]>([]);
+  const [versions, setVersions] = useState<AppVersion[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
 
   useEffect(() => {
@@ -121,8 +122,8 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
               {!formData.app_name ? '请先选择应用' : loadingVersions ? '加载中...' : versions.length === 0 ? '暂无版本' : '请选择版本'}
             </option>
             {versions.map((version) => (
-              <option key={version} value={version}>
-                {version}
+              <option key={version.version} value={version.version}>
+                {version.version} ({version.file_name})
               </option>
             ))}
           </select>

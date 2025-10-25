@@ -16,6 +16,7 @@ func main() {
 	var (
 		action       string
 		host         string
+		ip           string
 		service      string
 		version      string
 		prevVersion  string
@@ -27,6 +28,7 @@ func main() {
 
 	flag.StringVar(&action, "action", "deploy", "操作类型: deploy, rollback, status")
 	flag.StringVar(&host, "host", "", "目标主机地址 (必填)")
+	flag.StringVar(&ip, "ip", "", "目标机器 IP (可选,用于 -i 参数)")
 	flag.StringVar(&service, "service", "", "服务名称 (必填)")
 	flag.StringVar(&version, "version", "", "部署版本 (必填)")
 	flag.StringVar(&prevVersion, "prev_version", "", "上一个版本 (rollback 时必填)")
@@ -61,6 +63,7 @@ func main() {
 	config := executor.ExecutorConfig{
 		Platform:    string(model.PlatformPhysical),
 		Host:        host,
+		IP:          ip,
 		Service:     service,
 		Version:     version,
 		PrevVersion: prevVersion,
@@ -76,6 +79,9 @@ func main() {
 	fmt.Printf("=== Ansible Executor 测试工具 ===\n\n")
 	fmt.Printf("操作类型: %s\n", action)
 	fmt.Printf("目标主机: %s\n", host)
+	if ip != "" {
+		fmt.Printf("目标 IP: %s\n", ip)
+	}
 	fmt.Printf("服务名称: %s\n", service)
 	fmt.Printf("部署版本: %s\n", version)
 	if prevVersion != "" {

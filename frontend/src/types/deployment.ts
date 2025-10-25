@@ -46,8 +46,18 @@ export interface GetDeploymentListResponse {
   page_size: number;
 }
 
+export interface Report {
+  id: string;
+  deployment_id: string;
+  content: string;
+  status: 'generating' | 'completed' | 'failed';
+  created_at: number;
+  updated_at: number;
+}
+
 export interface GetDeploymentDetailResponse {
   deployment: Deployment;
+  report?: Report | null;
 }
 
 export interface CreateDeploymentResponse {

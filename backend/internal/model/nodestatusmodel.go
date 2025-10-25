@@ -6,6 +6,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/stores/mon"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type (
@@ -80,6 +81,9 @@ func (m *defaultNodeStatusModel) Insert(ctx context.Context, nodeStatus *NodeDep
 	now := time.Now()
 	nodeStatus.CreatedAt = now
 	nodeStatus.UpdatedAt = now
+	if nodeStatus.Id == "" {
+		nodeStatus.Id = primitive.NewObjectID().String()
+	}
 
 	_, err := m.model.InsertOne(ctx, nodeStatus)
 	return err

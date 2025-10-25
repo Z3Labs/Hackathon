@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Z3Labs/Hackathon/backend/internal/config"
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
-	"github.com/Z3Labs/Hackathon/backend/internal/config"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 
 func setupTestDB(t *testing.T) *svc.ServiceContext {
 	cfg := config.Config{
-		Mongo: config.MongoConfig{
+		Mongo: config.MongoDBConfig{
 			URL:      testMongoURL,
 			Database: testDB,
 		},

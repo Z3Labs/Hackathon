@@ -351,7 +351,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   fontSize: '14px',
                 }}
               >
-                批量发布
+                发布
               </button>
               <button
                 onClick={handleBatchRetry}
@@ -366,7 +366,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   fontSize: '14px',
                 }}
               >
-                批量重试
+                重试
               </button>
               <button
                 onClick={handleBatchSkip}
@@ -381,7 +381,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   fontSize: '14px',
                 }}
               >
-                批量跳过
+                跳过
               </button>
               <button
                 onClick={handleBatchRollback}
@@ -396,7 +396,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   fontSize: '14px',
                 }}
               >
-                批量回滚
+                回滚
               </button>
               <button
                 onClick={handleBatchCancel}
@@ -411,7 +411,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   fontSize: '14px',
                 }}
               >
-                批量取消
+                取消
               </button>
             </>
           )}

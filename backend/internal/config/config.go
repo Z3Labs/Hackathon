@@ -24,7 +24,8 @@ type AIConfig struct {
 }
 
 type QiniuConfig struct {
-	AccessKey string // 七牛云 Access Key
-	SecretKey string // 七牛云 Secret Key
-	Bucket    string // 七牛云存储桶名称
+	AccessKey    string // 七牛云 Access Key
+	SecretKey    string // 七牛云 Secret Key
+	Bucket       string // 七牛云存储桶名称
+	DownloadHost string
 }

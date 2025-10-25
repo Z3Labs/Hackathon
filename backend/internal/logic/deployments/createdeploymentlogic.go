@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/Z3Labs/Hackathon/backend/common/qiniu"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
@@ -68,7 +69,12 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 		CreatedTime:     time.Now().Unix(),
 		UpdatedTime:     time.Now().Unix(),
 	}
-
+	pkg, err := pkgInfo(l.svcCtx.QiniuClient, req.AppName, req.PackageVersion)
+	if err != nil {
+		l.Errorf("[CreateDeployment] pkgInfo error:%v", err)
+		return nil, errors.New("获取包信息失败")
+	}
+	deployment.Package = pkg
 	// 保存到数据库
 	err = l.svcCtx.DeploymentModel.Insert(l.ctx, deployment)
 	if err != nil {
@@ -77,8 +83,22 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 	}
 
 	l.Infof("[CreateDeployment] Successfully created deployment: %s, ID: %s, machines count: %d", req.AppName, deploymentId, len(nodeDeployments))
-
+	mgr := NewDeploymentManager(l.ctx, l.svcCtx)
+	mgr.ExecuteDeployment(l.ctx, deploymentId)
 	return &types.CreateDeploymentResp{
 		Id: deploymentId,
+	}, nil
+}
+
+func pkgInfo(kodo *qiniu.Client, app, version string) (model.PackageInfo, error) {
+	file := app + "/" + version
+	fileInfo, err := kodo.GetFileStat(context.Background(), file)
+	if err != nil {
+		return model.PackageInfo{}, err
+	}
+	return model.PackageInfo{
+		URL:       kodo.GetFileURL(context.Background(), file, time.Now().Add(time.Hour*24*7).Unix()),
+		MD5:       fileInfo.Md5,
+		CreatedAt: time.Unix(fileInfo.PutTime, 0),
 	}, nil
 }

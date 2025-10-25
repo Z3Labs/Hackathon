@@ -20,7 +20,7 @@ func main() {
 		version      string
 		prevVersion  string
 		packageURL   string
-		sha256       string
+		md5          string
 		playbookPath string
 		timeout      int
 	)
@@ -31,7 +31,7 @@ func main() {
 	flag.StringVar(&version, "version", "", "部署版本 (必填)")
 	flag.StringVar(&prevVersion, "prev_version", "", "上一个版本 (rollback 时必填)")
 	flag.StringVar(&packageURL, "package_url", "", "软件包 URL (必填)")
-	flag.StringVar(&sha256, "sha256", "", "软件包 SHA256 (必填)")
+	flag.StringVar(&md5, "md5", "", "软件包 MD5 (必填)")
 	flag.StringVar(&playbookPath, "playbook", "/workspace/backend/playbooks/deploy.yml", "Ansible playbook 路径")
 	flag.IntVar(&timeout, "timeout", 600, "执行超时时间（秒）")
 
@@ -43,9 +43,9 @@ func main() {
 	}
 
 	if action == "deploy" || action == "rollback" {
-		if version == "" || packageURL == "" || sha256 == "" {
+		if version == "" || packageURL == "" || md5 == "" {
 			flag.Usage()
-			log.Fatalf("错误: deploy 和 rollback 操作需要 version(%s), package_url(%s), sha256 参数(%s)", version, packageURL, sha256)
+			log.Fatalf("错误: deploy 和 rollback 操作需要 version(%s), package_url(%s), md5 参数(%s)", version, packageURL, md5)
 		}
 	}
 
@@ -65,7 +65,7 @@ func main() {
 		Version:     version,
 		PrevVersion: prevVersion,
 		PackageURL:  packageURL,
-		SHA256:      sha256,
+		MD5:         md5,
 	}
 
 	exec := executor.NewAnsibleExecutor(config)
@@ -85,7 +85,7 @@ func main() {
 		fmt.Printf("上一版本: %s\n", prevVersion)
 	}
 	fmt.Printf("软件包URL: %s\n", packageURL)
-	fmt.Printf("SHA256: %s\n", sha256)
+	fmt.Printf("MD5: %s\n", md5)
 	fmt.Printf("Playbook: %s\n", playbookPath)
 	fmt.Printf("\n================================\n\n")
 

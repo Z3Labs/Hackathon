@@ -12,15 +12,17 @@ import (
 )
 
 type Client struct {
-	mac    *qbox.Mac
-	bucket string
+	mac          *qbox.Mac
+	bucket       string
+	downLoadHost string
 }
 
-func NewClient(accessKey, secretKey, bucket string) *Client {
+func NewClient(accessKey, secretKey, bucket string, downloadHost string) *Client {
 	mac := qbox.NewMac(accessKey, secretKey)
 	return &Client{
-		mac:    mac,
-		bucket: bucket,
+		mac:          mac,
+		bucket:       bucket,
+		downLoadHost: downloadHost,
 	}
 }
 
@@ -96,4 +98,18 @@ func sortVersions(versions []AppVersion) {
 
 		return versions[i].Version > versions[j].Version
 	})
+}
+
+func (c *Client) GetFileStat(ctx context.Context, fileName string) (storage.FileInfo, error) {
+
+	cfg := storage.Config{
+		UseHTTPS: true,
+	}
+	bucketManager := storage.NewBucketManager(c.mac, &cfg)
+
+	return bucketManager.Stat(c.bucket, fileName)
+}
+
+func (c *Client) GetFileURL(ctx context.Context, fileName string, deadline int64) string {
+	return storage.MakePrivateURLv2(c.mac, c.downLoadHost, fileName, deadline)
 }

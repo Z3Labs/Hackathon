@@ -44,11 +44,11 @@ func (a *AnsibleExecutor) Deploy(ctx context.Context) error {
 	a.status.State = model.NodeStatusDeploying
 	a.status.UpdatedAt = time.Now()
 
-	extraVars := fmt.Sprintf("ansible_user=root service_name=%s deploy_version=%s package_url=%s package_sha256=%s prev_version=%s",
+	extraVars := fmt.Sprintf("ansible_user=root service_name=%s deploy_version=%s package_url=%s package_md5=%s prev_version=%s",
 		a.config.Service,
 		a.config.Version,
 		a.config.PackageURL,
-		a.config.SHA256,
+		a.config.MD5,
 		a.config.PrevVersion,
 	)
 
@@ -92,7 +92,7 @@ func (a *AnsibleExecutor) Rollback(ctx context.Context) error {
 		a.config.Service,
 		a.config.Version,
 		a.config.PackageURL,
-		a.config.SHA256,
+		a.config.MD5,
 		a.config.PrevVersion,
 	)
 

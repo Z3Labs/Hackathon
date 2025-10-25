@@ -52,7 +52,7 @@ type Deployment struct {
 	Status          string           `json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
 	PackageVersion  string           `json:"package_version"`  // 包版本
 	ConfigPath      string           `json:"config_path"`      // 配置文件路径
-	GrayStrategy    string           `json:"gray_strategy"`    // 灰度策略: canary-金丝雀发布, blue-green-蓝绿发布, all-全量发布
+	GrayMachineId   string           `json:"gray_machine_id"`  // 灰度设备ID
 	NodeDeployments []NodeDeployment `json:"node_deployments"` // 发布机器列表
 	CreatedAt       int64            `json:"created_at"`       // 创建时间戳
 	UpdatedAt       int64            `json:"updated_at"`       // 更新时间戳
@@ -120,7 +120,7 @@ type CreateDeploymentReq struct {
 	AppName        string `json:"app_name"`        // 应用名称
 	PackageVersion string `json:"package_version"` // 包版本
 	ConfigPath     string `json:"config_path"`     // 配置文件路径
-	GrayStrategy   string `json:"gray_strategy"`   // 灰度策略
+	GrayMachineId  string `json:"gray_machine_id"` // 灰度设备ID（可选，用于灰度发布）
 }
 
 type CreateDeploymentResp struct {
@@ -132,7 +132,7 @@ type UpdateDeploymentReq struct {
 	AppName        string `json:"app_name"`        // 应用名称
 	PackageVersion string `json:"package_version"` // 包版本
 	ConfigPath     string `json:"config_path"`     // 配置文件路径
-	GrayStrategy   string `json:"gray_strategy"`   // 灰度策略
+	GrayMachineId  string `json:"gray_machine_id"` // 灰度设备ID（可选，用于灰度发布）
 }
 
 type UpdateDeploymentResp struct {

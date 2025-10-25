@@ -50,7 +50,7 @@ func (l *GetDeploymentDetailLogic) GetDeploymentDetail(req *types.GetDeploymentD
 		Status:          string(deployment.Status),
 		PackageVersion:  deployment.PackageVersion,
 		ConfigPath:      deployment.ConfigPath,
-		GrayStrategy:    deployment.GrayStrategy,
+		GrayMachineId:   deployment.GrayMachineId,
 		NodeDeployments: nodeDeployments,
 		CreatedAt:       deployment.CreatedTime,
 		UpdatedAt:       deployment.UpdatedTime,

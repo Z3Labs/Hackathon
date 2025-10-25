@@ -64,7 +64,7 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 		Status:          model.DeploymentStatusPending,
 		PackageVersion:  req.PackageVersion,
 		ConfigPath:      req.ConfigPath,
-		GrayStrategy:    req.GrayStrategy,
+		GrayMachineId:   req.GrayMachineId,
 		NodeDeployments: nodeDeployments,
 		CreatedTime:     time.Now().Unix(),
 		UpdatedTime:     time.Now().Unix(),
@@ -83,8 +83,37 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 	}
 
 	l.Infof("[CreateDeployment] Successfully created deployment: %s, ID: %s, machines count: %d", req.AppName, deploymentId, len(nodeDeployments))
-	mgr := NewDeploymentManager(l.ctx, l.svcCtx)
-	mgr.ExecuteDeployment(l.ctx, deploymentId)
+
+	// 如果指定了灰度设备，立即发布到该设备
+	if req.GrayMachineId != "" {
+		// 验证灰度设备是否存在于 NodeDeployments 中
+		grayMachineFound := false
+		for i := range deployment.NodeDeployments {
+			if deployment.NodeDeployments[i].Id == req.GrayMachineId {
+				grayMachineFound = true
+				// 设置灰度设备为发布中状态
+				deployment.NodeDeployments[i].NodeDeployStatus = model.NodeDeploymentStatusDeploying
+				break
+			}
+		}
+
+		if grayMachineFound {
+			// 更新发布单状态为发布中
+			deployment.Status = model.DeploymentStatusDeploying
+			deployment.UpdatedTime = time.Now().Unix()
+
+			err = l.svcCtx.DeploymentModel.Update(l.ctx, deployment)
+			if err != nil {
+				l.Errorf("[CreateDeployment] Failed to update deployment for gray release: %v", err)
+				// 不影响创建结果，继续返回
+			} else {
+				l.Infof("[CreateDeployment] Gray machine deployment started for machine: %s", req.GrayMachineId)
+			}
+		} else {
+			l.Infof("[CreateDeployment] Gray machine ID %s not found in deployment machines", req.GrayMachineId)
+		}
+	}
+
 	return &types.CreateDeploymentResp{
 		Id: deploymentId,
 	}, nil

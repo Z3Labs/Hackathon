@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { appApi, machineApi } from '../services/api'
-import { Application, Machine, CreateAppReq, GetAppListResp, GetAppDetailResp, GetMachineListResp, REDMetrics, RollbackPolicy, MetricDefinition, HealthThreshold, PrometheusAlert } from '../types'
+import { Application, Machine, CreateAppReq, GetAppListResp, GetAppDetailResp, GetMachineListResp, PrometheusAlert } from '../types'
 import { useApiRequest } from '../hooks/useApiRequest'
 import { Toaster } from 'react-hot-toast'
 import './Apps.css'
@@ -97,8 +97,10 @@ const Apps: React.FC = () => {
     if (!selectedApp) return
     
     const result = await request(
-      () => appApi.updateApp(selectedApp.id, formData),
-
+      () => appApi.updateApp(selectedApp.id, {
+        ...formData,
+        id: selectedApp.id
+      }),
       {
         successMessage: '应用更新成功',
         errorMessage: '更新应用失败',
@@ -564,9 +566,10 @@ const Apps: React.FC = () => {
               {activeTab === 'red' && (
                 <>
                   <div className="form-group">
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', width: 'fit-content' }}>
                       <input
                         type="checkbox"
+                        style={{ width: '16px', height: '16px' }}
                         checked={formData.red_metrics_config?.enabled || false}
                         onChange={(e) => setFormData(prev => ({
                           ...prev,
@@ -975,9 +978,10 @@ const Apps: React.FC = () => {
               {activeTab === 'rollback' && (
                 <>
                   <div className="form-group">
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', width: 'fit-content' }}>
                       <input
                         type="checkbox"
+                        style={{ width: '16px', height: '16px' }}
                         checked={formData.rollback_policy?.enabled || false}
                         onChange={(e) => setFormData(prev => ({
                           ...prev,
@@ -994,9 +998,10 @@ const Apps: React.FC = () => {
                   {formData.rollback_policy?.enabled && (
                     <>
                       <div className="form-group">
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', width: 'fit-content' }}>
                           <input
                             type="checkbox"
+                            style={{ width: '16px', height: '16px' }}
                             checked={formData.rollback_policy?.auto_rollback || false}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,

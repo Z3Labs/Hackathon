@@ -20,6 +20,7 @@ type (
 	StageStatus          string // 阶段状态
 	NodeStatus           string // 节点状态
 	PlatformType         string // 平台类型
+	ReportStatus         string // 报告生成状态
 )
 
 const (
@@ -75,4 +76,8 @@ const (
 	PlatformMock     PlatformType = "mock"     // !!! 仅测试使用
 	PlatformPhysical PlatformType = "physical" // 物理机
 	PlatformK8s      PlatformType = "k8s"      // K8s
+
+	ReportStatusGenerating ReportStatus = "generating" // 生成中
+	ReportStatusCompleted  ReportStatus = "completed"  // 生成完成
+	ReportStatusFailed     ReportStatus = "failed"     // 生成失败
 )

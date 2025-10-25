@@ -11,11 +11,12 @@ import (
 type (
 	// Report 存储 AI 生成的诊断报告
 	Report struct {
-		Id           string    `bson:"_id,omitempty" json:"id,omitempty"`
-		DeploymentId string    `bson:"deploymentId"  json:"deploymentId"` // 关联的部署ID
-		Content      string    `bson:"content"       json:"content"`      // AI 生成的报告
-		CreatedTime  time.Time `bson:"createdTime"   json:"createdTime"`
-		UpdatedTime  time.Time `bson:"updatedTime"   json:"updatedTime"`
+		Id           string       `bson:"_id,omitempty" json:"id,omitempty"`
+		DeploymentId string       `bson:"deploymentId"  json:"deploymentId"` // 关联的部署ID
+		Content      string       `bson:"content"       json:"content"`      // AI 生成的报告
+		Status       ReportStatus `bson:"status"        json:"status"`       // 报告生成状态
+		CreatedTime  time.Time    `bson:"createdTime"   json:"createdTime"`
+		UpdatedTime  time.Time    `bson:"updatedTime"   json:"updatedTime"`
 	}
 
 	ReportModel interface {

@@ -39,27 +39,23 @@ type Application struct {
 	UpdatedAt      int64     `json:"updated_at"`     // 更新时间戳
 }
 
-type DeploymentMachine struct {
-	Id            string `json:"id"`             // 机器唯一标识
-	Ip            string `json:"ip"`             // IP地址
-	Port          int    `json:"port"`           // 端口号
-	ReleaseStatus string `json:"release_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
-	HealthStatus  string `json:"health_status"`  // 健康状态: healthy-健康, unhealthy-不健康
-	ErrorStatus   string `json:"error_status"`   // 异常状态: normal-正常, error-异常
-	AlertStatus   string `json:"alert_status"`   // 告警状态: normal-正常, alert-告警
+type NodeDeployment struct {
+	Id               string `json:"id"`                 // 机器唯一标识
+	Ip               string `json:"ip"`                 // IP地址
+	NodeDeployStatus string `json:"node_deploy_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
+	ReleaseLog       string `json:"release_log"`        // 发布日志
 }
 
 type Deployment struct {
-	Id              string              `json:"id"`               // 发布记录唯一标识
-	AppName         string              `json:"app_name"`         // 应用名称
-	Status          string              `json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
-	PackageVersion  string              `json:"package_version"`  // 包版本
-	ConfigPath      string              `json:"config_path"`      // 配置文件路径
-	GrayStrategy    string              `json:"gray_strategy"`    // 灰度策略: canary-金丝雀发布, blue-green-蓝绿发布, all-全量发布
-	ReleaseMachines []DeploymentMachine `json:"release_machines"` // 发布机器列表
-	ReleaseLog      string              `json:"release_log"`      // 发布日志
-	CreatedAt       int64               `json:"created_at"`       // 创建时间戳
-	UpdatedAt       int64               `json:"updated_at"`       // 更新时间戳
+	Id              string           `json:"id"`               // 发布记录唯一标识
+	AppName         string           `json:"app_name"`         // 应用名称
+	Status          string           `json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
+	PackageVersion  string           `json:"package_version"`  // 包版本
+	ConfigPath      string           `json:"config_path"`      // 配置文件路径
+	GrayStrategy    string           `json:"gray_strategy"`    // 灰度策略: canary-金丝雀发布, blue-green-蓝绿发布, all-全量发布
+	NodeDeployments []NodeDeployment `json:"node_deployments"` // 发布机器列表
+	CreatedAt       int64            `json:"created_at"`       // 创建时间戳
+	UpdatedAt       int64            `json:"updated_at"`       // 更新时间戳
 }
 
 type CreateAppReq struct {
@@ -74,12 +70,12 @@ type CreateAppResp struct {
 }
 
 type UpdateAppReq struct {
-	Id         string   `json:"id"`           // 应用ID
-	Name       string   `json:"name"`         // 应用名称
-	DeployPath string   `json:"deploy_path"`  // 部署路径
-	StartCmd   string   `json:"start_cmd"`    // 启动命令
-	StopCmd    string   `json:"stop_cmd"`     // 停止命令
-	MachineIds []string `json:"machine_ids"`  // 关联的机器ID列表
+	Id         string   `json:"id"`          // 应用ID
+	Name       string   `json:"name"`        // 应用名称
+	DeployPath string   `json:"deploy_path"` // 部署路径
+	StartCmd   string   `json:"start_cmd"`   // 启动命令
+	StopCmd    string   `json:"stop_cmd"`    // 停止命令
+	MachineIds []string `json:"machine_ids"` // 关联的机器ID列表
 }
 
 type UpdateAppResp struct {
@@ -253,4 +249,13 @@ type PostAlertCallbackReq struct {
 	Annotations  map[string]string `json:"annotations,optional,omitempty"` // 关键字看 description,节点访问中心成功率低于80% 当前触发值: 50%, 然后让 AI自动分析
 	Type         int               `json:"type,,optional,omitempty"`
 	Values       float64           `json:"values"`
+}
+
+type RollbackNodeDeploymentReq struct {
+	Id                string   `path:"id"`                  // 发布记录ID
+	NodeDeploymentIds []string `json:"node_deployment_ids"` // 发布机器ID列表
+}
+
+type RollbackNodeDeploymentResp struct {
+	Success bool `json:"success"` // 回滚是否成功
 }

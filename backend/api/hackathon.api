@@ -48,28 +48,24 @@ type (
 	}
 
 	// 发布机器信息
-	DeploymentMachine {
-		Id            string `json:"id"`             // 机器唯一标识
-		Ip            string `json:"ip"`             // IP地址
-		Port          int    `json:"port"`           // 端口号
-		ReleaseStatus string `json:"release_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
-		HealthStatus  string `json:"health_status"`  // 健康状态: healthy-健康, unhealthy-不健康
-		ErrorStatus   string `json:"error_status"`   // 异常状态: normal-正常, error-异常
-		AlertStatus   string `json:"alert_status"`   // 告警状态: normal-正常, alert-告警
+	NodeDeployment {
+		Id               string `json:"id"`                 // 机器唯一标识
+		Ip               string `json:"ip"`                 // IP地址
+		NodeDeployStatus string `json:"node_deploy_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
+		ReleaseLog       string `json:"release_log"`        // 发布日志
 	}
 
 	// 发布记录信息
 	Deployment {
-		Id              string              `json:"id"`               // 发布记录唯一标识
-		AppName         string              `json:"app_name"`         // 应用名称
-		Status          string              `json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
-		PackageVersion  string              `json:"package_version"`  // 包版本
-		ConfigPath      string              `json:"config_path"`      // 配置文件路径
-		GrayStrategy    string              `json:"gray_strategy"`    // 灰度策略: canary-金丝雀发布, blue-green-蓝绿发布, all-全量发布
-		ReleaseMachines []DeploymentMachine `json:"release_machines"` // 发布机器列表
-		ReleaseLog      string              `json:"release_log"`      // 发布日志
-		CreatedAt       int64               `json:"created_at"`       // 创建时间戳
-		UpdatedAt       int64               `json:"updated_at"`       // 更新时间戳
+		Id              string           `json:"id"`               // 发布记录唯一标识
+		AppName         string           `json:"app_name"`         // 应用名称
+		Status          string           `json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
+		PackageVersion  string           `json:"package_version"`  // 包版本
+		ConfigPath      string           `json:"config_path"`      // 配置文件路径
+		GrayStrategy    string           `json:"gray_strategy"`    // 灰度策略: canary-金丝雀发布, blue-green-蓝绿发布, all-全量发布
+		NodeDeployments []NodeDeployment `json:"node_deployments"` // 发布机器列表
+		CreatedAt       int64            `json:"created_at"`       // 创建时间戳
+		UpdatedAt       int64            `json:"updated_at"`       // 更新时间戳
 	}
 
 	// 应用相关请求响应
@@ -85,12 +81,12 @@ type (
 	}
 
 	UpdateAppReq {
-		Id         string   `json:"id"`           // 应用ID
-		Name       string   `json:"name"`         // 应用名称
-		DeployPath string   `json:"deploy_path"`  // 部署路径
-		StartCmd   string   `json:"start_cmd"`    // 启动命令
-		StopCmd    string   `json:"stop_cmd"`     // 停止命令
-		MachineIds []string `json:"machine_ids"`  // 关联的机器ID列表
+		Id         string   `json:"id"`          // 应用ID
+		Name       string   `json:"name"`        // 应用名称
+		DeployPath string   `json:"deploy_path"` // 部署路径
+		StartCmd   string   `json:"start_cmd"`   // 启动命令
+		StopCmd    string   `json:"stop_cmd"`    // 停止命令
+		MachineIds []string `json:"machine_ids"` // 关联的机器ID列表
 	}
 
 	UpdateAppResp {
@@ -267,6 +263,15 @@ type (
 		Type         int               `json:"type,,optional,omitempty"`
 		Values       float64           `json:"values"`
 	}
+
+	RollbackNodeDeploymentReq {
+		Id                string   `path:"id"`                  // 发布记录ID
+		NodeDeploymentIds []string `json:"node_deployment_ids"` // 发布机器ID列表
+	}
+
+	RollbackNodeDeploymentResp {
+		Success bool `json:"success"` // 回滚是否成功
+	}
 )
 
 service hackathon-api {
@@ -322,6 +327,10 @@ service hackathon-api {
 	@doc "回滚发布"
 	@handler RollbackDeployment
 	post /api/v1/deployments/:id/rollback (RollbackDeploymentReq) returns (RollbackDeploymentResp)
+
+	@doc "回滚发布单设备"
+	@handler RollbackNodeDeployment
+	post /api/v1/deployments/:id/node-deployments (RollbackNodeDeploymentReq) returns (RollbackNodeDeploymentResp)
 }
 
 @server(

@@ -38,8 +38,8 @@ func (l *RollbackDeploymentLogic) RollbackDeployment(req *types.RollbackDeployme
 		return nil, errors.New("只能回滚发布中的发布单")
 	}
 
-	for _, machine := range deployment.ReleaseMachines {
-		if machine.ReleaseStatus == model.MachineReleaseStatusDeploying {
+	for _, machine := range deployment.NodeDeployments {
+		if machine.NodeDeployStatus == model.NodeDeploymentStatusDeploying {
 			l.Errorf("[RollbackDeployment] Machine %s is still deploying", machine.Id)
 			return nil, errors.New("存在发布中的设备，无法回滚")
 		}

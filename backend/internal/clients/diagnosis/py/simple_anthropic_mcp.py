@@ -95,7 +95,7 @@ async def simple_diagnosis(
                 
                 response = await client.messages.create(
                     model=model,
-                    max_tokens=32000,
+                    max_tokens=4096,
                     messages=messages,
                     tools=tools,
                 )

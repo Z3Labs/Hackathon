@@ -25,13 +25,12 @@ var (
 func NewPlanManager(
 	ctx context.Context,
 	svc *svc.ServiceContext,
-	executorFactory executor.ExecutorFactoryInterface,
 ) *PlanManager {
 	once.Do(func() {
 		instance = &PlanManager{
 			releasePlanModel: svc.ReleasePlanModel,
 			nodeStatusModel:  svc.NodeStatusModel,
-			executorFactory:  executorFactory,
+			executorFactory:  executor.NewExecutorFactory(),
 		}
 	})
 	return instance

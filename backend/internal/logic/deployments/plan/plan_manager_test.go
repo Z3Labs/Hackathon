@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
-	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 )
@@ -35,9 +34,8 @@ func cleanupTestData(t *testing.T, ctx context.Context, releasePlanModel model.R
 func TestPlanManager_CreateReleasePlan(t *testing.T) {
 	ctx := context.Background()
 	svcCtx := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -78,9 +76,8 @@ func TestPlanManager_CreateReleasePlan(t *testing.T) {
 func TestPlanManager_ExecutePlan_Success(t *testing.T) {
 	ctx := context.Background()
 	svcCtx := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -125,9 +122,8 @@ func TestPlanManager_ExecutePlan_Success(t *testing.T) {
 func TestPlanManager_ExecutePlan_WithMultipleStages(t *testing.T) {
 	ctx := context.Background()
 	svcCtx := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -186,9 +182,8 @@ func TestPlanManager_ExecutePlan_WithMultipleStages(t *testing.T) {
 func TestPlanManager_ExecutePlan_WithBatching(t *testing.T) {
 	ctx := context.Background()
 	svcCtx := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -235,9 +230,8 @@ func TestPlanManager_ExecutePlan_WithBatching(t *testing.T) {
 func TestPlanManager_ExecutePlan_InvalidStatus(t *testing.T) {
 	ctx := context.Background()
 	svcCtx := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -274,9 +268,8 @@ func TestPlanManager_ExecutePlan_InvalidStatus(t *testing.T) {
 func TestPlanManager_CancelPlan(t *testing.T) {
 	ctx := context.Background()
 	svcCtx := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -319,9 +312,8 @@ func TestPlanManager_CancelPlan(t *testing.T) {
 func TestPlanManager_CancelPlan_InvalidStatus(t *testing.T) {
 	ctx := context.Background()
 	svcCtx := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	pm := NewPlanManager(ctx, svcCtx, mockExecutorFactory)
+	pm := NewPlanManager(ctx, svcCtx)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",

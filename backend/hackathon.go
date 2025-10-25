@@ -7,7 +7,6 @@ import (
 
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
 	"github.com/Z3Labs/Hackathon/backend/internal/handler"
-	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/plan"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 
@@ -29,9 +28,8 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 
-	executorFactory := executor.NewExecutorFactory()
-	planManager := plan.NewPlanManager(context.Background(), ctx, executorFactory)
-	rollbackManager := plan.NewRollbackManager(context.Background(), ctx, executorFactory)
+	planManager := plan.NewPlanManager(context.Background(), ctx)
+	rollbackManager := plan.NewRollbackManager(context.Background(), ctx)
 	
 	planCron := plan.NewPlanCron(planManager, rollbackManager)
 	if err := planCron.Start(); err != nil {

@@ -5,16 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 )
 
 func TestRollbackManager_RollbackPlan_Success(t *testing.T) {
 	ctx := context.Background()
 	svc := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 	ctx = context.Background()
-	rm := NewRollbackManager(ctx, svc, mockExecutorFactory)
+	rm := NewRollbackManager(ctx, svc)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -78,9 +76,8 @@ func TestRollbackManager_RollbackPlan_Success(t *testing.T) {
 func TestRollbackManager_RollbackPlan_WithSpecificHosts(t *testing.T) {
 	ctx := context.Background()
 	svc := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	rm := NewRollbackManager(ctx, svc, mockExecutorFactory)
+	rm := NewRollbackManager(ctx, svc)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -158,9 +155,8 @@ func TestRollbackManager_RollbackPlan_WithSpecificHosts(t *testing.T) {
 func TestRollbackManager_RollbackPlan_InvalidStatus(t *testing.T) {
 	ctx := context.Background()
 	svc := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	rm := NewRollbackManager(context.Background(), svc, mockExecutorFactory)
+	rm := NewRollbackManager(context.Background(), svc)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -198,9 +194,8 @@ func TestRollbackManager_RollbackPlan_InvalidStatus(t *testing.T) {
 func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 	ctx := context.Background()
 	svc := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	rm := NewRollbackManager(ctx, svc, mockExecutorFactory)
+	rm := NewRollbackManager(ctx, svc)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",
@@ -264,9 +259,8 @@ func TestRollbackManager_RollbackPlan_NoPreviousVersion(t *testing.T) {
 func TestRollbackManager_RollbackPlan_NoNodesToRollback(t *testing.T) {
 	ctx := context.Background()
 	svc := setupTestDB(t)
-	mockExecutorFactory := executor.NewMockExecutorFactory()
 
-	rm := NewRollbackManager(ctx, svc, mockExecutorFactory)
+	rm := NewRollbackManager(ctx, svc)
 
 	pkg := model.PackageInfo{
 		URL:       "http://example.com/package.tar.gz",

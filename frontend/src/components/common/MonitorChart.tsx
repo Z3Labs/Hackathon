@@ -24,14 +24,14 @@ interface MonitorChartProps {
 }
 
 const MonitorChart: React.FC<MonitorChartProps> = ({ 
-  series, 
+  series,
   height = 300,
   showTimeSelector = true,
   initialTimeRange = 30,
   onTimeRangeChange,
   threshold,
   metricType
-}) => {
+}: MonitorChartProps) => {
   const [timeRange, setTimeRange] = useState(initialTimeRange);
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
@@ -39,11 +39,11 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
   useEffect(() => {
     if (!chartRef.current) return;
 
-    console.log('[图表] 接收到的 series:', series.map(s => ({ 
+    console.log('[图表] 接收到的 series:', series.map((s: MonitorSeries) => ({ 
       instance: s.instance, 
       unit: s.unit, 
       dataCount: s.data.length,
-      sampleValues: s.data.slice(0, 3).map(p => p.value)
+      sampleValues: s.data.slice(0, 3).map((p: { timestamp: number; value: number }) => p.value)
     })));
 
     // 初始化图表
@@ -57,9 +57,9 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
     const colors = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2', '#eb2f96'];
     
     // 准备数据
-    const chartSeries: any[] = series.map((s, index) => {
-      const maxValue = Math.max(...s.data.map(p => p.value));
-      const minValue = Math.min(...s.data.map(p => p.value));
+    const chartSeries: any[] = series.map((s: MonitorSeries, index: number) => {
+      const maxValue = Math.max(...s.data.map((p: { timestamp: number; value: number }) => p.value));
+      const minValue = Math.min(...s.data.map((p: { timestamp: number; value: number }) => p.value));
       console.log(`[图表] Series ${s.instance}: unit=${s.unit}, min=${minValue}, max=${maxValue}`);
       
       // 如果有 device 标签（网络指标），则显示网卡名称
@@ -72,7 +72,7 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         name: displayName,
         type: 'line',
         smooth: true,
-        data: s.data.map((point) => [point.timestamp * 1000, point.value]),
+        data: s.data.map((point: { timestamp: number; value: number }) => [point.timestamp * 1000, point.value]),
         symbol: 'circle',
         symbolSize: 6,
         itemStyle: {
@@ -168,13 +168,13 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         },
       },
       legend: {
-        data: series.map((s) => {
+        data: series.map((s: MonitorSeries) => {
           // 如果有 device 标签（网络指标），则显示网卡名称
           if (s.labels && s.labels.device) {
             return s.labels.device;
           }
           return s.instance;
-        }).filter(instance => instance !== 'unknown'),
+        }).filter((instance: string) => instance !== 'unknown'),
         bottom: 20,
         left: 'center',
         type: 'scroll',

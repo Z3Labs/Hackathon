@@ -1,25 +1,51 @@
 # 智能发布系统
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Go Version](https://img.shields.io/badge/go-1.19+-00ADD8.svg)](https://golang.org/)
-[![React](https://img.shields.io/badge/react-18+-61dafb.svg)](https://reactjs.org/)
+## 核心运行时组件（7个）
 
-> 一个集成了 AI 智能诊断能力的现代化发布部署平台，支持灰度发布、自动回滚、实时监控与智能异常分析。
+### 1. 主服务程序 (API 服务)
+- **职责**: 接收部署请求，协调发布流程，管理状态和版本信息
 
-## 项目简介
+### 2. AI 模型服务 (MCP 服务)
+- **职责**: 接收告警，通过 MCP 访问多个数据源（Prometheus、GitHub 等），分析 RED 指标，生成诊断报告
 
-这是一个用于简化应用部署流程的发布系统，支持灰度发布、自动回滚和监控告警。通过集成 AI 能力，当部署出现异常时能够自动分析日志和监控指标，快速定位问题根因，减少运维成本。
+### 3. Prometheus (指标采集)
+- **职责**: 采集指标，评估告警规则，触发通知
 
-## 文档
+### 4. 发布执行器
+- **职责**: 接收部署指令，通过 SSH 执行部署脚本和回滚
 
-### 项目启动
-- [项目启动会议记录](doc/project_kickoff.md) - 议题讨论、AI 工具选择和团队分工
+### 5. 发布设备
+- **职责**: 运行业务服务进程，执行部署指令
 
-### MVP 设计
-- [MVP 设计与实现计划](doc/design.md) - 正乾整理的 3 天 Hackathon MVP 方案
+### 6. 业务服务进程
+- **职责**: 运行业务逻辑，向 Prometheus 暴露指标
 
-### 架构设计
-- [运行时架构描述](doc/system_runtime_architecture.txt)
+### 7. AlertManager
+- **职责**: 接收告警，发送回调通知
+
+## 核心流程
+
+### 1. 部署流程
+用户请求 → 主服务程序 → 发布执行器 → SSH → 发布设备 → 业务服务进程启动 → Prometheus 采集
+
+### 2. 告警诊断流程
+业务服务异常 → Prometheus 告警 → 主服务程序 → AI 调用多个 MCP（Prometheus、GitHub 等）分析 → 生成诊断报告
+
+### 3. 回滚流程
+告警触发 → 主服务程序 → 发布执行器 → 发布设备回滚 → 恢复旧版本
+
+## 网络连接关系
+
+1. **主服务程序** <--> **发布执行器** (内部调用)
+2. **发布执行器** --> **发布设备** (SSH)
+3. **业务服务** --> **Prometheus** (HTTP 指标上报)
+4. **Prometheus** --> **AlertManager** (告警推送)
+5. **AlertManager** --> **主服务程序** (Webhook)
+6. **主服务程序** <--> **AI 模型服务** (HTTP API)
+7. **AI 模型** --> **Prometheus MCP** + **GitHub MCP** + **其他 MCP** (MCP 协议)
+
+
+## 架构图
 ```
  ┌─────────────────────────────────────────────────────────────────┐
  │                          主服务程序                               │
@@ -60,17 +86,6 @@
             └──────────────────────┴──────────────────────────┘
 ```
 
-### 模块设计文档
-- [部署执行器设计](doc/deploy_executor.md)
-- [发布计划设计](doc/deploy_plan.md)
-- [部署文档](doc/deploy.md)
-- [AI 诊断实现](doc/diagnosis_implementation.md)
-- [Prometheus MCP 集成](doc/prometheus-mcp-server.md)
-
-## 贡献者
-
-本项目由 Z³Labs 团队开发。
-
-- [郑祥林](https://github.com/Lewinz)
-- [李正乾](https://github.com/lzh2nix)
-- [赵英杰](https://github.com/spongehah)
+### 关键特点：
+1. 主服务程序在中心，协调所有流程
+2. AI 通过 MCP 协议同时访问多个数据源（Prometheus、GitHub 等）

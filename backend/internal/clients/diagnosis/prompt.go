@@ -25,6 +25,7 @@ func buildPromptTemplate(req *types.PostAlertCallbackReq) string {
 
 **收到以下告警信息**：
 
+告警类型：%s
 告警名称: %s
 告警状态: %s
 严重程度: %s
@@ -51,7 +52,7 @@ func buildPromptTemplate(req *types.PostAlertCallbackReq) string {
    - 使用 execute_range_query() 获取时间范围内的趋势数据
    - 使用 get_metric_metadata(metric: "metric_name") - 获取指标元数据（类型、说明等）
    - 若不知道有哪些指标，可以使用 list_metrics() 列出所有可用指标名称，确保指标输入正确
-   - 根据告警信息中的标签 hostname 精准查询相关实例的指标
+   - 根据告警信息中的标签 hostname 精准查询相关实例的指标，hostname可能为多个用 ',' 连接，需要拆分后分别查询
 
 2. **分析发布失败的根本原因**
    - 结合告警信息和查询到的指标数据
@@ -93,6 +94,7 @@ func buildPromptTemplate(req *types.PostAlertCallbackReq) string {
      提供具体的解决步骤和建议
 
 现在请开始诊断分析：`,
+		req.Key,
 		req.Alertname,
 		req.Status,
 		req.Severity,

@@ -66,6 +66,7 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 	deployment := &model.Deployment{
 		Id:              deploymentId,
 		AppName:         req.AppName,
+		AppId:           application[0].Id,
 		Status:          model.DeploymentStatusPending,
 		PackageVersion:  req.PackageVersion,
 		ConfigPath:      req.ConfigPath,
@@ -134,6 +135,6 @@ func pkgInfo(kodo *qiniu.Client, app, version string) (model.PackageInfo, error)
 	return model.PackageInfo{
 		URL:       kodo.GetFileURL(context.Background(), file, time.Now().Add(time.Hour*24*7).Unix()),
 		MD5:       fileInfo.Md5,
-		CreatedAt: time.Unix(fileInfo.PutTime, 0),
+		CreatedAt: time.Unix(fileInfo.PutTime/1e7, 0),
 	}, nil
 }

@@ -145,6 +145,7 @@ func (dm *DeploymentManager) executeNodes(ctx context.Context, deployment *model
 	if succCount == len(deployment.NodeDeployments) {
 		dm.deploymentModel.UpdateStatus(ctx, deployment.Id, model.DeploymentStatusSuccess)
 		if app, err := dm.applicationModel.FindById(ctx, deployment.AppId); err == nil {
+			app.PrevVersion = app.CurrentVersion
 			app.CurrentVersion = deployment.PackageVersion
 			dm.applicationModel.Update(ctx, app)
 		}

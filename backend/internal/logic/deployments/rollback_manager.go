@@ -29,9 +29,9 @@ func NewRollbackManager(ctx context.Context, svcCtx *svc.ServiceContext) *Rollba
 	}
 }
 
-func (rm *RollbackManager) executeRollback(ctx context.Context, deployment *model.Deployment, nodes []string, prevVersion string) {
+func (rm *RollbackManager) executeRollback(ctx context.Context, deployment *model.Deployment, nodes []string, prevVersion string) int {
 	if len(nodes) == 0 {
-		return
+		return 0
 	}
 	var wg sync.WaitGroup
 	successCount := 0
@@ -53,22 +53,10 @@ func (rm *RollbackManager) executeRollback(ctx context.Context, deployment *mode
 	}
 
 	wg.Wait()
-
-	if successCount == len(nodes) {
-		deployment.Status = model.DeploymentStatusRolledBack
-	} else {
-		deployment.Status = model.DeploymentStatusFailed
-	}
-
-	rm.deploymentModel.UpdateStatus(context.Background(), deployment.Id, deployment.Status)
+	return successCount
 }
 
 func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.Deployment, id string, preVersion string) error {
-
-	deployment, err := rm.deploymentModel.FindById(context.Background(), deployment.Id)
-	if err != nil {
-		return err
-	}
 
 	nodeIndex := findNodeIndex(deployment.NodeDeployments, id)
 	if nodeIndex < 0 {
@@ -116,6 +104,17 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.D
 	node.CurrentVersion = node.PrevVersion
 	node.DeployingVersion = ""
 	node.UpdatedAt = time.Now()
+
+	deployment, err = rm.deploymentModel.FindById(context.Background(), deployment.Id)
+	if err != nil {
+		return err
+	}
+	// 避免影响其他节点
+	for i := range deployment.NodeDeployments {
+		if deployment.NodeDeployments[i].Id == node.Id {
+			deployment.NodeDeployments[i] = *node
+		}
+	}
 	rm.deploymentModel.Update(context.Background(), deployment)
 
 	return nil
@@ -136,15 +135,15 @@ func (rm *RollbackManager) ContinueRollingBackDeployments(ctx context.Context) e
 				nodesToRollback = append(nodesToRollback, node.Id)
 			}
 		}
-		preVersion, err := rm.findApplicationPrevVersion(ctx, deployment)
+		app, err := rm.applicationModel.FindById(ctx, deployment.AppId)
 		if err != nil {
-			logx.Infof("find application %s, prev version failed, err = %s ", deployment.AppName, err)
+			logx.Errorf("find app failed, errr = %s", err)
 		}
 		if len(nodesToRollback) > 0 {
-			rm.executeRollback(ctx, deployment, nodesToRollback, preVersion)
+			rm.executeRollback(ctx, deployment, nodesToRollback, app.CurrentVersion)
 		}
 	}
-	// 整个发布回滚，多节点会滚
+	// 整个发布回滚
 	deployments, err = rm.deploymentModel.Search(ctx, &model.DeploymentCond{Status: string(model.DeploymentStatusRollingBack)})
 	if err != nil {
 		return fmt.Errorf("failed to search deployments with status %s: %w", model.DeploymentStatusRollingBack, err)
@@ -157,21 +156,23 @@ func (rm *RollbackManager) ContinueRollingBackDeployments(ctx context.Context) e
 				nodesToRollback = append(nodesToRollback, node.Id)
 			}
 		}
-		preVersion, err := rm.findApplicationPrevVersion(ctx, deployment)
+		app, err := rm.applicationModel.FindById(ctx, deployment.AppId)
 		if err != nil {
-			logx.Infof("find application %s, prev version failed, err =  %s", deployment.AppName, err)
+			logx.Errorf("find app failed, errr = %s", err)
 		}
 		if len(nodesToRollback) > 0 {
-			rm.executeRollback(ctx, deployment, nodesToRollback, preVersion)
+			succCount := rm.executeRollback(ctx, deployment, nodesToRollback, app.PrevVersion)
+			// 发布单级别回滚需要更新发布单整体状态
+			if succCount == len(nodesToRollback) {
+				deployment.Status = model.DeploymentStatusRolledBack
+				app.CurrentVersion = app.PrevVersion
+				rm.applicationModel.Update(ctx, app)
+			} else {
+				deployment.Status = model.DeploymentStatusFailed
+			}
+			rm.deploymentModel.UpdateStatus(context.Background(), deployment.Id, deployment.Status)
 		}
+
 	}
 	return nil
-}
-
-func (rm *RollbackManager) findApplicationPrevVersion(ctx context.Context, deployment *model.Deployment) (string, error) {
-	app, err := rm.applicationModel.FindById(ctx, deployment.AppId)
-	if err != nil {
-		return "", err
-	}
-	return app.CurrentVersion, nil
 }

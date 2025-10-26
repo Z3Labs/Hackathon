@@ -1,5 +1,7 @@
 # MockServer 设计文档
 
+MockServer 仓库地址：https://github.com/Z3Labs/MockServer
+
 ## 1. 核心设计
 
 MockServer 是一个**故障注入服务**，通过 HTTP API 模拟各种系统故障，用于测试 AI 诊断系统的能力。

@@ -4,6 +4,10 @@ export interface NodeDeployment {
   ip: string;
   node_deploy_status: 'pending' | 'deploying' | 'success' | 'failed' | 'skipped' | 'rolled_back';
   release_log: string;
+  current_version: string;
+  deploying_version: string;
+  prev_version: string;
+  platform: string;
 }
 
 export interface Deployment {
@@ -51,6 +55,12 @@ export interface Report {
   status: 'generating' | 'completed' | 'failed';
   created_at: number;
   updated_at: number;
+  promQL?: string[];  // PromQL 查询列表（可选）
+}
+
+export interface ReportData {
+  promQL?: string[];
+  content: string;
 }
 
 export interface GetDeploymentDetailResponse {

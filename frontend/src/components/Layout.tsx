@@ -28,7 +28,7 @@ const Layout: React.FC = () => {
     <div className="layout">
       <aside className="sidebar">
         <div className="logo">
-          <h1>Z³ Labs</h1>
+          <h1>Z³Labs</h1>
         </div>
         <nav className="menu">
           {menuItems.map(item => (

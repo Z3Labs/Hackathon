@@ -147,8 +147,11 @@ func (am *AlertMonitor) cleanAlert(ctx context.Context) {
 	am.mu.Lock()
 	defer am.mu.Unlock()
 
+	logx.Info("Cleaning alerts for deployments no longer in monitoring status")
 	for deploymentID, _ := range am.activeAlerts {
+		logx.Infof("Checking deployment %s", deploymentID)
 		if deploy, err := am.svcCtx.DeploymentModel.FindById(ctx, deploymentID); err == nil && !am.IsDeploymentInMonitoringStatus(deploy) {
+			logx.Infof("Stopping monitoring for deployment %s", deploymentID)
 			delete(am.activeAlerts, deploymentID)
 		}
 	}

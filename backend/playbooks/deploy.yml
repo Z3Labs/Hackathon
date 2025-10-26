@@ -1,77 +1,104 @@
 ---
-- name: Node Executor Playbook
+- name: Unified Service Deployment Playbook
   hosts: all
   become: yes
+
   vars:
     svc: "{{ service_name }}"
     version: "{{ deploy_version }}"
     package_url: "{{ package_url }}"
-    package_md5sum: "{{ package_md5sum}}"
+    package_md5sum: "{{ package_md5sum }}"
+    release_root: "/opt/releases/{{ svc }}"
     release_dir: "/opt/releases/{{ svc }}/{{ version }}"
-    systemd_unit: "/etc/systemd/system/{{ svc }}@{{ version }}.service"
-    prev_version: "{{ prev_version }}"
+    current_link: "/opt/current/{{ svc }}"
+    systemd_unit: "/etc/systemd/system/{{ svc }}.service"
+    prev_version: "{{ prev_version | default('') }}"
 
   tasks:
-
     # ---------------------------
-    # ✅ 部署新版本
+    # ✅ 环境准备
     # ---------------------------
-    - name: Ensure release directory exists
+    - name: Ensure base directories exist
       file:
-        path: "{{ release_dir }}"
+        path: "{{ item }}"
         state: directory
         mode: '0755'
+      loop:
+        - "{{ release_root }}"
+        - "/opt/current"
 
+    # ---------------------------
+    # ✅ 下载 + 校验包
+    # ---------------------------
     - name: Download package
       get_url:
         url: "{{ package_url }}"
-        dest: "{{ release_dir }}/{{ svc }}.tar.gz"
+        dest: "{{ release_dir }}.tar.gz"
         mode: '0644'
+
     - name: Verify MD5 checksum
       block:
-        - name: Calculate MD5 checksum
-          shell: "md5sum {{ release_dir }}/{{ svc }}.tar.gz | awk '{print $1}'"
+        - name: Calculate MD5
+          shell: "md5sum {{ release_dir }}.tar.gz | awk '{print $1}'"
           register: md5sum_out
           changed_when: false
 
-        - name: Fail if checksum mismatch
+        - name: Validate checksum
           fail:
-            msg: "❌ MD5 checksum mismatch for {{ svc }} version {{ version }} (expected: {{ package_md5sum }}, got: {{ md5sum_out.stdout }})"
+            msg: "❌ MD5 mismatch for {{ svc }} {{ version }} (expected {{ package_md5sum }}, got {{ md5sum_out.stdout }})"
           when: md5sum_out.stdout != package_md5sum
 
-        - name: Success message if checksum OK
+        - name: Debug success
           debug:
-            msg: "✅ MD5 checksum verified successfully for {{ svc }} version {{ version }}"
-          when: md5sum_out.stdout == package_md5sum
-
-    - name: Extract package
+            msg: "✅ MD5 verified successfully for {{ svc }} version {{ version }}"
+    # ---------------------------
+    # ✅ 解压 + 切换版本
+    # ---------------------------
+    - name: Ensure version directory exists
+      file:
+        path: "{{ release_root }}/{{ version }}"
+        state: directory
+        mode: '0755'
+    - name: Extract new version
       unarchive:
-        src: "{{ release_dir }}/{{ svc }}.tar.gz"
-        dest: "{{ release_dir }}"
+        src: "{{ release_dir }}.tar.gz"
+        dest: "{{ release_root }}/{{ version }}"
         remote_src: yes
         extra_opts:
           - --strip-components=1
 
-    - name: Render systemd unit
+    - name: Update symlink to new version
+      file:
+        src: "{{ release_root }}/{{ version }}"
+        dest: "{{ current_link }}"
+        state: link
+        force: yes
+
+    # ---------------------------
+    # ✅ 渲染 systemd 文件
+    # ---------------------------
+    - name: Render systemd unit (single entry)
       template:
-        src: "templates/{{ svc }}@.service.j2"
+        src: "templates/{{ svc }}.service.j2"
         dest: "{{ systemd_unit }}"
         mode: '0644'
 
-    - name: Reload systemd daemon
+    - name: Reload systemd
       systemd:
         daemon_reload: yes
 
-    - name: Stop previous version if exists
+    # ---------------------------
+    # ✅ 停止旧版本并启动新版本
+    # ---------------------------
+    - name: Stop running service if any
       systemd:
-        name: "{{ svc }}@{{ prev_version }}"
+        name: "{{ svc }}"
         state: stopped
-      when: prev_version is defined and prev_version | length > 0
       ignore_errors: yes
 
-    - name: Start new version
+    - name: Start and enable new version
       systemd:
-        name: "{{ svc }}@{{ version }}"
+        name: "{{ svc }}"
         state: started
         enabled: yes
 
@@ -79,15 +106,18 @@
     # 🔁 Rollback section
     # ---------------------------
     - block:
-        - name: Stop current version before rollback
-          systemd:
-            name: "{{ svc }}@{{ version }}"
-            state: stopped
-          ignore_errors: yes
+        - name: Rollback to previous version
+          file:
+            src: "{{ release_root }}/{{ prev_version }}"
+            dest: "{{ current_link }}"
+            state: link
+            force: yes
 
-        - name: Start previous version
+        - name: Restart service after rollback
           systemd:
-            name: "{{ svc }}@{{ prev_version }}"
-            state: started
-            enabled: yes
+            name: "{{ svc }}"
+            state: restarted
+        - name: Debug rollback info
+          debug:
+            msg: "🔁 Rollback completed: switched {{ svc }} from version {{ version }} → {{ prev_version }} successfully."
       when: rollback | default(false)

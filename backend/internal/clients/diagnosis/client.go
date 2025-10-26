@@ -32,9 +32,6 @@ func New(ctx context.Context, svcCtx *svc.ServiceContext, aiConfig config.AIConf
 
 // GenerateReport 生成诊断报告
 func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (string, error) {
-	if !req.NeedHandle {
-		return "", nil
-	}
 	deploymentId := req.Labels["deploymentId"]
 
 	// TODO 锁，待优化

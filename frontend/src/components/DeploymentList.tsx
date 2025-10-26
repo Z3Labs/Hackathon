@@ -201,7 +201,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
   const getGrayMachineInfo = (deployment: Deployment) => {
     if (!deployment.gray_machine_id) return '未设置';
     const machine = deployment.node_deployments?.find(m => m.id === deployment.gray_machine_id);
-    return machine ? `${machine.id}` : deployment.gray_machine_id;
+    return machine ? machine.name : deployment.gray_machine_id;
   };
 
   const formatTime = (timestamp: number) => {
@@ -254,12 +254,12 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
           placeholder="应用名称"
           value={appNameFilter}
           onChange={(e) => setAppNameFilter(e.target.value)}
-          style={{ padding: '8px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
+          style={{ padding: '8px', border: '1px solid #d9d9d9', borderRadius: '4px', minWidth: '200px' }}
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          style={{ padding: '8px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
+          style={{ padding: '8px', border: '1px solid #d9d9d9', borderRadius: '4px', minWidth: '120px' }}
         >
           <option value="">全部状态</option>
           <option value="pending">待发布</option>
@@ -307,7 +307,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                <th style={{ padding: '12px', textAlign: 'left', maxWidth: '200px' }}>应用名称</th>
+                <th style={{ padding: '12px', textAlign: 'left', maxWidth: '300px' }}>应用名称</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>包版本</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>灰度设备</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>状态</th>
@@ -323,7 +323,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
                   style={{ borderBottom: '1px solid #f0f0f0', cursor: 'pointer' }}
                   onClick={() => onSelectDeployment?.(deployment)}
                 >
-                  <td style={{ padding: '12px', maxWidth: '200px' }}>
+                  <td style={{ padding: '12px', maxWidth: '300px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 1 }}>{deployment.app_name}</span>
                       {redMetricsData[deployment.id] && redMetricsConfigs[deployment.id] && (

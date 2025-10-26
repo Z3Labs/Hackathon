@@ -75,6 +75,28 @@ const Apps: React.FC = () => {
     fetchApps()
   }, [pagination.page, pagination.pageSize, searchName])
 
+  // ESC键关闭弹窗
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showCreateModal) {
+          setShowCreateModal(false)
+        } else if (showEditModal) {
+          setShowEditModal(false)
+        } else if (showDetailModal) {
+          setShowDetailModal(false)
+        } else if (showMachineListModal) {
+          setShowMachineListModal(false)
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [showCreateModal, showEditModal, showDetailModal, showMachineListModal])
+
   // 创建应用
   const handleCreateApp = async () => {
     const result = await request(

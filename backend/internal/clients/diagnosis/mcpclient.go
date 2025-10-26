@@ -68,6 +68,23 @@ func (c *mcpClient) GenerateCompletion(ctx context.Context, prompt string) (stri
 	ctx, cancel := context.WithTimeout(ctx, c.timeout*2)
 	defer cancel()
 
+	// 优先使用 Go 版本的 MCP 调用
+	report, err := SimpleDiagnosis(prompt, c.apiKey, c.prometheusURL, c.githubToken, true, c.githubToolsets, c.baseURL, c.model)
+	if err == nil {
+		returnValue := strings.Trim(strings.TrimSpace(report), "\n")
+		findString := jsonRegex.FindString(returnValue)
+		if findString != "" {
+			return findString, 0, nil
+		}
+		return "", 0, fmt.Errorf("%s", returnValue)
+	}
+	c.logger.Errorf("Go 版本 MCP 调用失败，回退到 Docker 容器调用: %v", err)
+
+	return c.CallWithPyDocker(ctx, prompt)
+}
+
+func (c *mcpClient) CallWithPyDocker(ctx context.Context, prompt string) (string, int, error) {
+	// 若报错，则回退到使用 Docker 容器调用 Python 脚本
 	// 确保容器运行
 	if err := c.ensureContainer(ctx); err != nil {
 		return "", 0, fmt.Errorf("确保容器运行失败: %w", err)
@@ -122,9 +139,9 @@ func (c *mcpClient) GenerateCompletion(ctx context.Context, prompt string) (stri
 		if findString != "" {
 			return findString, 0, nil
 		}
-		return "", 0, fmt.Errorf(returnValue)
+		return "", 0, fmt.Errorf("%s", returnValue)
 	}
-	return "", 0, fmt.Errorf(result)
+	return "", 0, fmt.Errorf("%s", result)
 }
 
 // ensureContainer 确保诊断服务容器正在运行

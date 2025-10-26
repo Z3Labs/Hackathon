@@ -102,7 +102,7 @@ func (c *mcpClient) GenerateCompletion(ctx context.Context, prompt string) (stri
 	// 执行命令
 	err := cmd.Run()
 	if err != nil {
-		return "", 0, fmt.Errorf("生成分析报告是比：执行容器内 Python 脚本失败: %w\n, stdout: %s\n stderr: %s", err, stdout.String(), stderr.String())
+		return "", 0, fmt.Errorf("生成分析报告失败: %w\n, stdout: %s\n stderr: %s", err, stdout.String(), stderr.String())
 	}
 
 	// 直接返回文本结果

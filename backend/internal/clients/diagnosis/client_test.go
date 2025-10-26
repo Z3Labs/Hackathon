@@ -127,39 +127,37 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 
 	// 3. Mock 告警数据
 	req := &types.PostAlertCallbackReq{
-		Key:          "test-alert-001",
+		Key:          "68fdfbc0e2a7092445d8f9e7-发布期间 非 200占比异常-1761480709",
 		Status:       "firing",
-		Alertname:    "HighCPUUsage",
+		Alertname:    "发布期间 非 200占比异常",
 		Severity:     "critical",
-		Desc:         "CPU 使用率过高",
-		StartsAt:     "2025-01-15T14:23:15Z",
-		ReceiveAt:    "2025-01-15T14:23:16Z",
+		Desc:         "灰度节点非200 占比超过 5%",
+		StartsAt:     "2025-10-26T20:10:19+08:00",
+		ReceiveAt:    "2025-10-26T20:11:49+08:00",
 		EndsAt:       "",
-		Values:       92.5,
+		Values:       3.964133333333383,
 		GeneratorURL: "http://127.0.0.1:9300/graph?g0.expr=...",
 		NeedHandle:   true,
 		IsEmergent:   true,
 		RepoAddress:  "Z3Labs/MockServer",
 		Tag:          "v1.0.3",
 		Labels: map[string]string{
-			"hostname":  "VM-12-17-ubuntu",
-			"job":       "node_exporter",
-			"alertname": "HighCPUUsage",
+			"hostname":     "VM-12-17-ubuntu,VM-16-7-ubuntu",
+			"appName":      "node_exporter",
+			"deploymentId": "68fdfbc0e2a7092445d8f9e7",
 		},
 		Annotations: map[string]string{
-			"description":   "节点 CPU 使用率超过 80% 阈值，当前触发值: 92.5%",
-			"deployment_id": "test-deployment-123",
-			"summary":       "CPU 使用率告警",
+			"description": "灰度节点非200 占比超过 5%",
 		},
 	}
 
 	// 4. 构建 prompt
 	prompt := buildPromptTemplate(req)
-	t.Logf("Generated prompt:\n%s\n", prompt)
+	//t.Logf("Generated prompt:\n%s\n", prompt)
 
 	// 5. 调用 GenerateCompletion
 	ctx := context.Background()
-	report, tokensUsed, err := client.GenerateCompletion(ctx, prompt)
+	report, _, err := client.GenerateCompletion(ctx, prompt)
 
 	// 6. 验证结果
 	if err != nil {
@@ -170,7 +168,6 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 		t.Error("GenerateCompletion() returned empty report")
 	}
 
-	t.Logf("Tokens used: %d", tokensUsed)
 	t.Logf("\n================================================================================")
 	t.Logf("诊断报告")
 	t.Logf("================================================================================")

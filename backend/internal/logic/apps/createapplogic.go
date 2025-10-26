@@ -36,6 +36,7 @@ func (l *CreateAppLogic) CreateApp(req *types.CreateAppReq) (resp *types.CreateA
 		Id:             appId,
 		Name:           req.Name,
 		DeployPath:     req.DeployPath,
+		ConfigPath:     req.ConfigPath,
 		StartCmd:       req.StartCmd,
 		StopCmd:        req.StopCmd,
 		CurrentVersion: "--",

@@ -71,6 +71,7 @@ func (l *GetAppListLogic) GetAppList(req *types.GetAppListReq) (resp *types.GetA
 			Id:               app.Id,
 			Name:             app.Name,
 			DeployPath:       app.DeployPath,
+			ConfigPath:       app.ConfigPath,
 			StartCmd:         app.StartCmd,
 			StopCmd:          app.StopCmd,
 			CurrentVersion:   app.CurrentVersion,

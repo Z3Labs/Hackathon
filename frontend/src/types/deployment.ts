@@ -10,7 +10,6 @@ export interface Deployment {
   app_name: string;
   status: 'pending' | 'deploying' | 'success' | 'failed' | 'rolled_back' | 'canceled';
   package_version: string;
-  config_path: string;
   gray_machine_id: string;
   node_deployments: NodeDeployment[];
   created_at: number;
@@ -20,7 +19,6 @@ export interface Deployment {
 export interface CreateDeploymentRequest {
   app_name: string;
   package_version: string;
-  config_path: string;
   gray_machine_id?: string;
 }
 
@@ -28,7 +26,6 @@ export interface UpdateDeploymentRequest {
   id: string;
   app_name: string;
   package_version: string;
-  config_path: string;
   gray_machine_id?: string;
 }
 

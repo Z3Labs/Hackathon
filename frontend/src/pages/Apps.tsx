@@ -31,6 +31,7 @@ const Apps: React.FC = () => {
   const [formData, setFormData] = useState<CreateAppReq>({
     name: '',
     deploy_path: '',
+    config_path: '',
     start_cmd: '',
     stop_cmd: '',
     red_metrics_config: {
@@ -143,6 +144,7 @@ const Apps: React.FC = () => {
     setFormData({
       name: '',
       deploy_path: '',
+      config_path: '',
       start_cmd: '',
       stop_cmd: '',
       red_metrics_config: {
@@ -169,6 +171,7 @@ const Apps: React.FC = () => {
     setFormData({
       name: app.name,
       deploy_path: app.deploy_path,
+      config_path: app.config_path || '',
       start_cmd: app.start_cmd,
       stop_cmd: app.stop_cmd,
       red_metrics_config: app.red_metrics_config || {
@@ -247,6 +250,7 @@ const Apps: React.FC = () => {
         id: selectedApp.id,
         name: selectedApp.name,
         deploy_path: selectedApp.deploy_path,
+        config_path: selectedApp.config_path,
         start_cmd: selectedApp.start_cmd,
         stop_cmd: selectedApp.stop_cmd,
         machine_ids: selectedMachineIds,
@@ -364,6 +368,7 @@ const Apps: React.FC = () => {
                   <th>应用名称</th>
                   <th>版本</th>
                   <th>部署路径</th>
+                  <th>配置路径</th>
                   <th>机器状态</th>
                   <th>创建时间</th>
                   <th>操作</th>
@@ -373,9 +378,10 @@ const Apps: React.FC = () => {
                 {apps.map((app) => (
                   <tr key={app.id}>
                     <td>{app.name}</td>
-                    <td>{app.currentVersion}</td>
-                    <td>{app.deploy_path}</td>
-                    <td>
+                      <td>{app.currentVersion}</td>
+                      <td>{app.deploy_path}</td>
+                      <td>{app.config_path || '-'}</td>
+                      <td>
                       <div className="status-info">
                         <span className="status-item">
                           总数: {app.machine_count}
@@ -464,6 +470,15 @@ const Apps: React.FC = () => {
                   type="text"
                   value={formData.deploy_path}
                   onChange={(e) => setFormData(prev => ({ ...prev, deploy_path: e.target.value }))}
+                />
+              </div>
+              <div className="form-group">
+                <label>配置文件路径（可选）</label>
+                <input
+                  type="text"
+                  value={formData.config_path}
+                  onChange={(e) => setFormData(prev => ({ ...prev, config_path: e.target.value }))}
+                  placeholder="例如: /etc/app/config.yaml"
                 />
               </div>
               <div className="form-group">
@@ -563,6 +578,15 @@ const Apps: React.FC = () => {
                       type="text"
                       value={formData.deploy_path}
                       onChange={(e) => setFormData(prev => ({ ...prev, deploy_path: e.target.value }))}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>配置文件路径（可选）</label>
+                    <input
+                      type="text"
+                      value={formData.config_path}
+                      onChange={(e) => setFormData(prev => ({ ...prev, config_path: e.target.value }))}
+                      placeholder="例如: /etc/app/config.yaml"
                     />
                   </div>
                   <div className="form-group">
@@ -1378,6 +1402,10 @@ const Apps: React.FC = () => {
                   <div className="detail-item">
                     <label>部署路径:</label>
                     <span>{selectedApp.deploy_path}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>配置文件路径:</label>
+                    <span>{selectedApp.config_path || '-'}</span>
                   </div>
                   <div className="detail-item">
                     <label>启动命令:</label>

@@ -74,7 +74,6 @@ func (l *GetDeploymentListLogic) GetDeploymentList(req *types.GetDeploymentListR
 			AppName:         deployment.AppName,
 			Status:          string(deployment.Status),
 			PackageVersion:  deployment.PackageVersion,
-			ConfigPath:      deployment.ConfigPath,
 			GrayMachineId:   deployment.GrayMachineId,
 			NodeDeployments: nodeDeployments,
 			CreatedAt:       deployment.CreatedTime,

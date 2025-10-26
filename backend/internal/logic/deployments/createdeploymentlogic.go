@@ -69,7 +69,6 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 		AppId:           application[0].Id,
 		Status:          model.DeploymentStatusPending,
 		PackageVersion:  req.PackageVersion,
-		ConfigPath:      req.ConfigPath,
 		GrayMachineId:   req.GrayMachineId,
 		Platform:        platform,
 		NodeDeployments: nodeDeployments,

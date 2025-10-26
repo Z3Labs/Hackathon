@@ -13,7 +13,6 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
   const [formData, setFormData] = useState<CreateDeploymentRequest>({
     app_name: '',
     package_version: '',
-    config_path: '',
     gray_machine_id: '',
   });
   const [loading, setLoading] = useState(false);
@@ -143,25 +142,6 @@ const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess, onCancel }) 
               </option>
             ))}
           </select>
-        </div>
-
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            配置文件路径 <span style={{ color: '#ff4d4f' }}>*</span>
-          </label>
-          <input
-            type="text"
-            value={formData.config_path}
-            onChange={(e) => handleChange('config_path', e.target.value)}
-            required
-            placeholder="例如: /etc/app/config.yaml"
-            style={{
-              width: '100%',
-              padding: '8px',
-              border: '1px solid #d9d9d9',
-              borderRadius: '4px',
-            }}
-          />
         </div>
 
         <div style={{ marginBottom: '16px' }}>

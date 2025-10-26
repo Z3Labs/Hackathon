@@ -15,6 +15,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [countdown, setCountdown] = useState(5);
   const [report, setReport] = useState<Report | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -83,6 +84,13 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
 
   const formatTime = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleString('zh-CN');
+  };
+
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
   };
 
   const refreshDetail = async () => {
@@ -204,13 +212,14 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       alert('请先选择要发布的设备');
       return;
     }
-    if (!confirm(`确定要发布选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
     
     setActionLoading(true);
     try {
       await deploymentService.deployNodeDeployment(deploymentId, selectedNodeIds);
       await refreshDetail();
-      alert('批量发布操作成功');
+      // 清除选择状态，因为设备已进入发布中状态
+      setSelectedNodeIds([]);
+      showSuccessMessage(`成功发布 ${selectedNodeIds.length} 个设备`);
     } catch (err) {
       console.error('批量发布失败:', err);
       alert('批量发布操作失败');
@@ -224,13 +233,14 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       alert('请先选择要重试的设备');
       return;
     }
-    if (!confirm(`确定要重试选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
     
     setActionLoading(true);
     try {
       await deploymentService.retryNodeDeployment(deploymentId, selectedNodeIds);
       await refreshDetail();
-      alert('批量重试操作成功');
+      // 清除选择状态
+      setSelectedNodeIds([]);
+      showSuccessMessage(`成功重试 ${selectedNodeIds.length} 个设备`);
     } catch (err) {
       console.error('批量重试失败:', err);
       alert('批量重试操作失败');
@@ -244,13 +254,14 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       alert('请先选择要跳过的设备');
       return;
     }
-    if (!confirm(`确定要跳过选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
     
     setActionLoading(true);
     try {
       await deploymentService.skipNodeDeployment(deploymentId, selectedNodeIds);
       await refreshDetail();
-      alert('批量跳过操作成功');
+      // 清除选择状态
+      setSelectedNodeIds([]);
+      showSuccessMessage(`成功跳过 ${selectedNodeIds.length} 个设备`);
     } catch (err) {
       console.error('批量跳过失败:', err);
       alert('批量跳过操作失败');
@@ -264,36 +275,17 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       alert('请先选择要回滚的设备');
       return;
     }
-    if (!confirm(`确定要回滚选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
     
     setActionLoading(true);
     try {
       await deploymentService.rollbackNodeDeployment(deploymentId, selectedNodeIds);
       await refreshDetail();
-      alert('批量回滚操作成功');
+      // 清除选择状态
+      setSelectedNodeIds([]);
+      showSuccessMessage(`成功回滚 ${selectedNodeIds.length} 个设备`);
     } catch (err) {
       console.error('批量回滚失败:', err);
       alert('批量回滚操作失败');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleBatchCancel = async () => {
-    if (selectedNodeIds.length === 0) {
-      alert('请先选择要取消的设备');
-      return;
-    }
-    if (!confirm(`确定要取消选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
-    
-    setActionLoading(true);
-    try {
-      await deploymentService.cancelNodeDeployment(deploymentId, selectedNodeIds);
-      await refreshDetail();
-      alert('批量取消操作成功');
-    } catch (err) {
-      console.error('批量取消失败:', err);
-      alert('批量取消操作失败');
     } finally {
       setActionLoading(false);
     }
@@ -350,6 +342,29 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
           </button>
         )}
       </div>
+
+      {successMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#f6ffed',
+          border: '1px solid #b7eb8f',
+          borderRadius: '6px',
+          padding: '12px 16px',
+          color: '#52c41a',
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+          minWidth: '200px',
+        }}>
+          <span style={{ fontSize: '16px' }}>✓</span>
+          {successMessage}
+        </div>
+      )}
 
       <div style={{ background: '#fafafa', padding: '12px', borderRadius: '4px', marginBottom: '16px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
@@ -478,21 +493,6 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                 }}
               >
                 回滚
-              </button>
-              <button
-                onClick={handleBatchCancel}
-                disabled={actionLoading || selectedNodeIds.length === 0}
-                style={{
-                  padding: '6px 16px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: actionLoading || selectedNodeIds.length === 0 ? '#d9d9d9' : '#f5222d',
-                  color: 'white',
-                  cursor: actionLoading || selectedNodeIds.length === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                }}
-              >
-                取消
               </button>
             </>
           )}

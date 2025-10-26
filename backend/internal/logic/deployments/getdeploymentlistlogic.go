@@ -32,6 +32,9 @@ func (l *GetDeploymentListLogic) GetDeploymentList(req *types.GetDeploymentListR
 		Status:  req.Status,
 	}
 
+	// 创建分页参数，按创建时间降序排序
+	pagination := model.NewPaginationWithDefaultSort(req.Page, req.PageSize)
+
 	// 获取总数
 	total, err := l.svcCtx.DeploymentModel.Count(l.ctx, cond)
 	if err != nil {
@@ -39,10 +42,10 @@ func (l *GetDeploymentListLogic) GetDeploymentList(req *types.GetDeploymentListR
 		return nil, errors.New("获取部署列表失败")
 	}
 
-	// 获取部署列表
-	deployments, err := l.svcCtx.DeploymentModel.Search(l.ctx, cond)
+	// 获取部署列表（带分页和排序）
+	deployments, err := l.svcCtx.DeploymentModel.SearchWithPagination(l.ctx, cond, pagination)
 	if err != nil {
-		l.Errorf("[GetDeploymentList] DeploymentModel.Search error:%v", err)
+		l.Errorf("[GetDeploymentList] DeploymentModel.SearchWithPagination error:%v", err)
 		return nil, errors.New("获取部署列表失败")
 	}
 
@@ -73,22 +76,10 @@ func (l *GetDeploymentListLogic) GetDeploymentList(req *types.GetDeploymentListR
 		})
 	}
 
-	// 实现分页逻辑
-	start := (req.Page - 1) * req.PageSize
-	end := start + req.PageSize
-
-	var pagedDeployments []types.Deployment
-	if start < len(deploymentList) {
-		if end > len(deploymentList) {
-			end = len(deploymentList)
-		}
-		pagedDeployments = deploymentList[start:end]
-	}
-
 	l.Infof("[GetDeploymentList] Successfully retrieved deployment list, total: %d, page: %d, pageSize: %d", total, req.Page, req.PageSize)
 
 	return &types.GetDeploymentListResp{
-		Deployments: pagedDeployments,
+		Deployments: deploymentList,
 		Total:       total,
 		Page:        req.Page,
 		PageSize:    req.PageSize,

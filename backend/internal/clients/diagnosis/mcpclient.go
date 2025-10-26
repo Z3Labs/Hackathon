@@ -85,15 +85,16 @@ func (c *mcpClient) GenerateCompletion(ctx context.Context, prompt string) (stri
 	// 执行命令
 	err := cmd.Run()
 	if err != nil {
-		return "", 0, fmt.Errorf("执行容器内 Python 脚本失败: %w, stderr: %s", err, stderr.String())
+		return "", 0, fmt.Errorf("生成分析报告是比：执行容器内 Python 脚本失败: %w\n, stdout: %s\n stderr: %s", err, stdout.String(), stderr.String())
 	}
 
 	// 直接返回文本结果
 	result := strings.TrimSpace(stdout.String())
 
 	if result == "" {
-		return "", 0, fmt.Errorf("Python 脚本返回空结果")
+		return "", 0, fmt.Errorf("python 脚本返回空结果")
 	}
+	c.logger.Infof("Python 脚本执行成功，输出: \n%s", result)
 
 	// MCP 模式下无法获取准确的 token 使用量，返回 0
 	return result, 0, nil

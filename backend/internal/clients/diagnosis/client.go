@@ -58,6 +58,7 @@ func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (strin
 	if err != nil {
 		// AI 调用失败，更新状态为失败
 		report.Status = model.ReportStatusFailed
+		report.Content = err.Error()
 		report.UpdatedTime = time.Now()
 		if updateErr := c.reportModel.Update(c.ctx, report); updateErr != nil {
 			c.Errorf("更新报告状态失败: %v", updateErr)

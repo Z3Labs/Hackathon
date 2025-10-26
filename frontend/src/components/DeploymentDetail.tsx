@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { deploymentService } from '../services/deployment';
 import { monitoringService } from '../services/monitoring';
 import { PromQL } from '../utils/promql';
-import type { Deployment, NodeDeployment, Report } from '../types/deployment';
+import type { Deployment, NodeDeployment, Report, ReportData } from '../types/deployment';
 import MonitorChart from './common/MonitorChart';
 
 interface DeploymentDetailProps {
@@ -16,7 +16,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(30);
   const [report, setReport] = useState<Report | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
@@ -30,6 +30,9 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   
   // 自动刷新控制
   const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
+  
+  // 诊断报告的 promQL 查询结果
+  const [reportPromQLResults, setReportPromQLResults] = useState<Record<string, any[]>>({});
 
   // 获取单台机器的监控数据
   const fetchMachineMonitorData = useCallback(async (machineIp: string, minutes: number = 30, metric?: string) => {
@@ -115,6 +118,54 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     fetchDetail();
   }, [deploymentId]);
 
+  // 解析诊断报告内容
+  const parseReportContent = (report: Report): ReportData => {
+    try {
+      // 尝试解析 content 为 JSON
+      const parsed = JSON.parse(report.content);
+      if (parsed.promQL && parsed.content) {
+        return {
+          promQL: parsed.promQL,
+          content: parsed.content,
+        };
+      }
+    } catch (e) {
+      // 如果解析失败，说明 content 是纯文本
+    }
+    
+    // 如果没有 promQL 字段，使用 report 对象的 promQL
+    return {
+      promQL: report.promQL,
+      content: report.content,
+    };
+  };
+
+  // 查询报告的 promQL
+  const fetchReportPromQLResults = useCallback(async (promQLArray: string[]) => {
+    const results: Record<string, any[]> = {};
+    
+    for (const query of promQLArray) {
+      try {
+        const now = Math.floor(Date.now() / 1000);
+        const start = now - 30 * 60; // 最近 30 分钟
+        
+        const response = await monitoringService.queryMetrics({
+          query: query,
+          start: start.toString(),
+          end: now.toString(),
+          step: '60s',
+        });
+        
+        results[query] = response.series || [];
+      } catch (err) {
+        console.error(`查询 promQL 失败: ${query}`, err);
+        results[query] = [];
+      }
+    }
+    
+    setReportPromQLResults(results);
+  }, []);
+
   useEffect(() => {
     if (!autoRefresh) return;
     
@@ -127,7 +178,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
             // 使用最新的 monitorMetric 和 monitorTimeRange
             fetchMachineMonitorData(expandedMonitorMachine, monitorTimeRange, monitorMetric);
           }
-          return 5;
+          return 30;
         }
         return prev - 1;
       });
@@ -135,6 +186,16 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
 
     return () => clearInterval(countdownTimer);
   }, [deploymentId, autoRefresh, expandedMonitorMachine, fetchMachineMonitorData, monitorMetric, monitorTimeRange]);
+
+  // 当报告加载时，如果有 promQL，自动查询
+  useEffect(() => {
+    if (report && report.status === 'completed') {
+      const reportData = parseReportContent(report);
+      if (reportData.promQL && reportData.promQL.length > 0) {
+        fetchReportPromQLResults(reportData.promQL);
+      }
+    }
+  }, [report, fetchReportPromQLResults]);
 
   const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -185,7 +246,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       const response = await deploymentService.getDeploymentDetail(deploymentId);
       setDeployment(response.deployment);
       setReport(response.report ?? null);
-      setCountdown(5);
+      setCountdown(30);
       
       // 如果监控图表是展开的，也刷新监控数据
       if (expandedMonitorMachine) {
@@ -225,6 +286,8 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       failed: '报告生成失败',
     };
 
+    const reportData = parseReportContent(report);
+
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0' }}>
@@ -257,18 +320,55 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
           )}
 
           {report.status === 'completed' && (
-            <div style={{
-              background: '#fafafa',
-              border: '1px solid #f0f0f0',
-              borderRadius: 4,
-              padding: 8,
-              whiteSpace: 'pre-wrap',
-              lineHeight: 1.5,
-              color: '#262626',
-              fontSize: '13px',
-            }}>
-              {report.content}
-            </div>
+            <>
+              {/* 如果有 promQL，显示查询结果 */}
+              {reportData.promQL && reportData.promQL.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ marginBottom: 12, fontWeight: 500, fontSize: '14px', color: '#262626' }}>
+                    监控数据指标
+                  </div>
+                  {reportData.promQL.map((query, index) => {
+                    const results = reportPromQLResults[query];
+                    return (
+                      <div key={index} style={{ marginBottom: 16, border: '1px solid #e8e8e8', borderRadius: 4 }}>
+                        <div style={{ padding: '8px 12px', background: '#fafafa', borderBottom: '1px solid #e8e8e8' }}>
+                          <div style={{ fontSize: '12px', color: '#8c8c8c', marginBottom: 4 }}>PromQL 查询</div>
+                          <div style={{ fontSize: '13px', fontFamily: 'monospace', color: '#1890ff', wordBreak: 'break-all' }}>{query}</div>
+                        </div>
+                        <div style={{ padding: 12 }}>
+                          {results && results.length > 0 ? (
+                            <MonitorChart 
+                              series={results} 
+                              height={300} 
+                              initialTimeRange={30}
+                              showTimeSelector={false}
+                            />
+                          ) : (
+                            <div style={{ padding: '20px', textAlign: 'center', color: '#8c8c8c', fontSize: '13px' }}>
+                              加载中...
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              
+              {/* 显示报告内容 */}
+              <div style={{
+                background: '#fafafa',
+                border: '1px solid #f0f0f0',
+                borderRadius: 4,
+                padding: 8,
+                whiteSpace: 'pre-wrap',
+                lineHeight: 1.5,
+                color: '#262626',
+                fontSize: '13px',
+              }}>
+                {reportData.content}
+              </div>
+            </>
           )}
 
           <div style={{ marginTop: 8, color: '#8c8c8c', fontSize: 11 }}>
@@ -775,7 +875,15 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
         <div style={{ padding: '20px', textAlign: 'center', color: '#8c8c8c' }}>暂无发布机器</div>
       )}
 
-      {renderReportSection()}
+      <div style={{ marginTop: '24px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+        {renderReportSection()}
+      </div>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

@@ -120,13 +120,31 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 }
 
 func pkgInfo(kodo *qiniu.Client, app, version string) (model.PackageInfo, error) {
-	file := app + "/" + version
-	fileInfo, err := kodo.GetFileStat(context.Background(), file)
+	// 先获取应用的所有版本
+	versions, err := kodo.GetAppVersions(context.Background(), app)
+	if err != nil {
+		return model.PackageInfo{}, err
+	}
+
+	// 查找指定版本的文件
+	var targetFile string
+	for _, v := range versions {
+		if v.Version == version {
+			targetFile = app + "/" + v.FileName
+			break
+		}
+	}
+
+	if targetFile == "" {
+		return model.PackageInfo{}, errors.New("版本文件不存在")
+	}
+
+	fileInfo, err := kodo.GetFileStat(context.Background(), targetFile)
 	if err != nil {
 		return model.PackageInfo{}, err
 	}
 	return model.PackageInfo{
-		URL:       kodo.GetFileURL(context.Background(), file, time.Now().Add(time.Hour*24*7).Unix()),
+		URL:       kodo.GetFileURL(context.Background(), targetFile, time.Now().Add(time.Hour*24*7).Unix()),
 		MD5:       fileInfo.Md5,
 		CreatedAt: time.Unix(fileInfo.PutTime, 0),
 	}, nil

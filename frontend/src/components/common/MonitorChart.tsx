@@ -154,30 +154,34 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         axisLine: {
           show: true,
           lineStyle: {
-            color: '#d9d9d9',
+            color: '#e0e0e0',
             width: 1,
           },
         },
         axisLabel: {
-          fontSize: 12,
-          color: '#8c8c8c',
+          fontSize: 11,
+          color: '#999',
           formatter: (value: any) => {
             const date = new Date(value);
             const hours = date.getHours();
             const minutes = date.getMinutes();
             return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
           },
-          margin: 8,
+          margin: 10,
+          rotate: 0,
         },
         axisTick: {
           show: true,
           lineStyle: {
-            color: '#d9d9d9',
+            color: '#e0e0e0',
+            width: 1,
           },
+          length: 4,
         },
         splitLine: {
           show: false,
         },
+        minInterval: 300000, // 5分钟 - 自动控制标签间隔
       },
       yAxis: {
         type: 'value',
@@ -224,27 +228,7 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         },
         {
           type: 'slider',
-          show: true,
-          right: '6%',
-          height: 20,
-          borderColor: '#e0e0e0',
-          dataBackground: {
-            areaStyle: {
-              color: '#f0f0f0',
-            },
-          },
-          selectedDataBackground: {
-            areaStyle: {
-              color: '#e6f7ff',
-            },
-          },
-          handleStyle: {
-            color: '#1890ff',
-          },
-          textStyle: {
-            color: '#666',
-            fontSize: 11,
-          },
+          show: false,
         },
       ],
       series: chartSeries,

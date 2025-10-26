@@ -58,6 +58,7 @@ type (
 		Delete(ctx context.Context, id string) error
 		FindById(ctx context.Context, id string) (*Deployment, error)
 		Search(ctx context.Context, cond *DeploymentCond) ([]*Deployment, error)
+		SearchWithPagination(ctx context.Context, cond *DeploymentCond, pagination *Pagination) ([]*Deployment, error)
 		Count(ctx context.Context, cond *DeploymentCond) (int64, error)
 	}
 
@@ -145,6 +146,17 @@ func (m *defaultDeploymentModel) Search(ctx context.Context, cond *DeploymentCon
 	filter := cond.genCond()
 
 	err := m.model.Find(ctx, &result, filter)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (m *defaultDeploymentModel) SearchWithPagination(ctx context.Context, cond *DeploymentCond, pagination *Pagination) ([]*Deployment, error) {
+	var result []*Deployment
+	filter := cond.genCond()
+
+	err := m.model.Find(ctx, &result, filter, pagination.ToFindOptions())
 	if err != nil {
 		return nil, err
 	}

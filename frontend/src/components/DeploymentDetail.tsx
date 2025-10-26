@@ -15,6 +15,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [countdown, setCountdown] = useState(5);
   const [report, setReport] = useState<Report | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -85,6 +86,13 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     return new Date(timestamp * 1000).toLocaleString('zh-CN');
   };
 
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 3000);
+  };
+
   const refreshDetail = async () => {
     setLoading(true);
     try {
@@ -103,12 +111,14 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const renderReportSection = () => {
     if (!report) {
       return (
-        <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0 }}>诊断报告</h3>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0' }}>
+            <h3 style={{ margin: 0, fontSize: '16px' }}>诊断报告</h3>
             <span style={{ color: '#8c8c8c', fontSize: 12 }}>暂无报告</span>
           </div>
-          <div style={{ color: '#8c8c8c' }}>当发布触发异常或完成分析后将自动生成诊断报告。</div>
+          <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 6, padding: 12 }}>
+            <div style={{ color: '#8c8c8c', fontSize: '13px' }}>当发布触发异常或完成分析后将自动生成诊断报告。</div>
+          </div>
         </div>
       );
     }
@@ -125,52 +135,54 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     };
 
     return (
-      <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0 }}>诊断报告</h3>
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0' }}>
+          <h3 style={{ margin: 0, fontSize: '16px' }}>诊断报告</h3>
           <span
             style={{
-              padding: '4px 8px',
-              borderRadius: 4,
+              padding: '3px 6px',
+              borderRadius: 3,
               background: statusColor[report.status],
               color: '#fff',
-              fontSize: 12,
+              fontSize: 11,
             }}
           >
             {statusText[report.status]}
           </span>
         </div>
 
-        {report.status === 'generating' && (
-          <div style={{ marginTop: 12, color: '#8c8c8c', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className="spin" style={{ width: 16, height: 16, border: '2px solid #1890ff', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 1s linear infinite' }} />
-            报告生成中，请稍候...
-          </div>
-        )}
+        <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 6, padding: 12 }}>
+          {report.status === 'generating' && (
+            <div style={{ color: '#8c8c8c', display: 'flex', alignItems: 'center', gap: 6, fontSize: '13px' }}>
+              <span className="spin" style={{ width: 14, height: 14, border: '2px solid #1890ff', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 1s linear infinite' }} />
+              报告生成中，请稍候...
+            </div>
+          )}
 
-        {report.status === 'failed' && (
-          <div style={{ marginTop: 12, color: '#f5222d' }}>
-            生成失败，请稍后重试或刷新页面。
-          </div>
-        )}
+          {report.status === 'failed' && (
+            <div style={{ color: '#f5222d', fontSize: '13px' }}>
+              生成失败，请稍后重试或刷新页面。
+            </div>
+          )}
 
-        {report.status === 'completed' && (
-          <div style={{
-            marginTop: 12,
-            background: '#fafafa',
-            border: '1px solid #f0f0f0',
-            borderRadius: 6,
-            padding: 12,
-            whiteSpace: 'pre-wrap',
-            lineHeight: 1.7,
-            color: '#262626',
-          }}>
-            {report.content}
-          </div>
-        )}
+          {report.status === 'completed' && (
+            <div style={{
+              background: '#fafafa',
+              border: '1px solid #f0f0f0',
+              borderRadius: 4,
+              padding: 8,
+              whiteSpace: 'pre-wrap',
+              lineHeight: 1.5,
+              color: '#262626',
+              fontSize: '13px',
+            }}>
+              {report.content}
+            </div>
+          )}
 
-        <div style={{ marginTop: 8, color: '#8c8c8c', fontSize: 12 }}>
-          更新时间：{new Date((report.updated_at || report.created_at) * 1000).toLocaleString('zh-CN')}
+          <div style={{ marginTop: 8, color: '#8c8c8c', fontSize: 11 }}>
+            更新时间：{new Date((report.updated_at || report.created_at) * 1000).toLocaleString('zh-CN')}
+          </div>
         </div>
       </div>
     );
@@ -200,13 +212,14 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       alert('请先选择要发布的设备');
       return;
     }
-    if (!confirm(`确定要发布选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
     
     setActionLoading(true);
     try {
       await deploymentService.deployNodeDeployment(deploymentId, selectedNodeIds);
       await refreshDetail();
-      alert('批量发布操作成功');
+      // 清除选择状态，因为设备已进入发布中状态
+      setSelectedNodeIds([]);
+      showSuccessMessage(`成功发布 ${selectedNodeIds.length} 个设备`);
     } catch (err) {
       console.error('批量发布失败:', err);
       alert('批量发布操作失败');
@@ -220,13 +233,14 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       alert('请先选择要重试的设备');
       return;
     }
-    if (!confirm(`确定要重试选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
     
     setActionLoading(true);
     try {
       await deploymentService.retryNodeDeployment(deploymentId, selectedNodeIds);
       await refreshDetail();
-      alert('批量重试操作成功');
+      // 清除选择状态
+      setSelectedNodeIds([]);
+      showSuccessMessage(`成功重试 ${selectedNodeIds.length} 个设备`);
     } catch (err) {
       console.error('批量重试失败:', err);
       alert('批量重试操作失败');
@@ -240,13 +254,14 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       alert('请先选择要跳过的设备');
       return;
     }
-    if (!confirm(`确定要跳过选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
     
     setActionLoading(true);
     try {
       await deploymentService.skipNodeDeployment(deploymentId, selectedNodeIds);
       await refreshDetail();
-      alert('批量跳过操作成功');
+      // 清除选择状态
+      setSelectedNodeIds([]);
+      showSuccessMessage(`成功跳过 ${selectedNodeIds.length} 个设备`);
     } catch (err) {
       console.error('批量跳过失败:', err);
       alert('批量跳过操作失败');
@@ -260,36 +275,17 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       alert('请先选择要回滚的设备');
       return;
     }
-    if (!confirm(`确定要回滚选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
     
     setActionLoading(true);
     try {
       await deploymentService.rollbackNodeDeployment(deploymentId, selectedNodeIds);
       await refreshDetail();
-      alert('批量回滚操作成功');
+      // 清除选择状态
+      setSelectedNodeIds([]);
+      showSuccessMessage(`成功回滚 ${selectedNodeIds.length} 个设备`);
     } catch (err) {
       console.error('批量回滚失败:', err);
       alert('批量回滚操作失败');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleBatchCancel = async () => {
-    if (selectedNodeIds.length === 0) {
-      alert('请先选择要取消的设备');
-      return;
-    }
-    if (!confirm(`确定要取消选中的 ${selectedNodeIds.length} 个设备吗？`)) return;
-    
-    setActionLoading(true);
-    try {
-      await deploymentService.cancelNodeDeployment(deploymentId, selectedNodeIds);
-      await refreshDetail();
-      alert('批量取消操作成功');
-    } catch (err) {
-      console.error('批量取消失败:', err);
-      alert('批量取消操作失败');
     } finally {
       setActionLoading(false);
     }
@@ -328,17 +324,18 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>发布详情</h2>
+    <div style={{ padding: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h2 style={{ margin: 0, fontSize: '18px' }}>发布详情</h2>
         {onClose && (
           <button
             onClick={onClose}
             style={{
-              padding: '8px 16px',
+              padding: '6px 12px',
               border: '1px solid #d9d9d9',
               borderRadius: '4px',
               cursor: 'pointer',
+              fontSize: '14px',
             }}
           >
             返回
@@ -346,30 +343,53 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
         )}
       </div>
 
-      <div style={{ background: '#fafafa', padding: '16px', borderRadius: '4px', marginBottom: '20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      {successMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#f6ffed',
+          border: '1px solid #b7eb8f',
+          borderRadius: '6px',
+          padding: '12px 16px',
+          color: '#52c41a',
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+          minWidth: '200px',
+        }}>
+          <span style={{ fontSize: '16px' }}>✓</span>
+          {successMessage}
+        </div>
+      )}
+
+      <div style={{ background: '#fafafa', padding: '12px', borderRadius: '4px', marginBottom: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>应用名称</div>
-            <div style={{ fontWeight: 'bold' }}>{deployment.app_name}</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>应用名称</div>
+            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{deployment.app_name}</div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>包版本</div>
-            <div style={{ fontWeight: 'bold' }}>{deployment.package_version}</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>包版本</div>
+            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{deployment.package_version}</div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>灰度设备</div>
-            <div>{getGrayMachineInfo(deployment.gray_machine_id)}</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>灰度设备</div>
+            <div style={{ fontSize: '14px' }}>{getGrayMachineInfo(deployment.gray_machine_id)}</div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>发布状态</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>发布状态</div>
             <div>
               <span
                 style={{
-                  padding: '4px 8px',
-                  borderRadius: '4px',
+                  padding: '2px 6px',
+                  borderRadius: '3px',
                   background: getStatusColor(deployment.status),
                   color: 'white',
-                  fontSize: '12px',
+                  fontSize: '11px',
                 }}
               >
                 {getStatusText(deployment.status)}
@@ -377,28 +397,26 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
             </div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>配置文件路径</div>
-            <div>{deployment.config_path}</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>配置文件路径</div>
+            <div style={{ fontSize: '14px' }}>{deployment.config_path}</div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>机器数量</div>
-            <div>{deployment.node_deployments?.length || 0}</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>机器数量</div>
+            <div style={{ fontSize: '14px' }}>{deployment.node_deployments?.length || 0}</div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>创建时间</div>
-            <div>{formatTime(deployment.created_at)}</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>创建时间</div>
+            <div style={{ fontSize: '14px' }}>{formatTime(deployment.created_at)}</div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '4px' }}>更新时间</div>
-            <div>{formatTime(deployment.updated_at)}</div>
+            <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>更新时间</div>
+            <div style={{ fontSize: '14px' }}>{formatTime(deployment.updated_at)}</div>
           </div>
         </div>
       </div>
 
-      {renderReportSection()}
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0' }}>
-        <h3 style={{ margin: 0 }}>发布机器列表</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0' }}>
+        <h3 style={{ margin: 0, fontSize: '16px' }}>发布机器列表</h3>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={refreshDetail}
@@ -476,21 +494,6 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
               >
                 回滚
               </button>
-              <button
-                onClick={handleBatchCancel}
-                disabled={actionLoading || selectedNodeIds.length === 0}
-                style={{
-                  padding: '6px 16px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: actionLoading || selectedNodeIds.length === 0 ? '#d9d9d9' : '#f5222d',
-                  color: 'white',
-                  cursor: actionLoading || selectedNodeIds.length === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                }}
-              >
-                取消
-              </button>
             </>
           )}
         </div>
@@ -554,6 +557,8 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       ) : (
         <div style={{ padding: '20px', textAlign: 'center', color: '#8c8c8c' }}>暂无发布机器</div>
       )}
+
+      {renderReportSection()}
     </div>
   );
 };

@@ -1,0 +1,56 @@
+# Mark common binary file types
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.bin binary
+*.o binary
+*.a binary
+*.lib binary
+*.obj binary
+*.pdb binary
+*.ilk binary
+*.exp binary
+*.map binary
+*.dmp binary
+*.core binary
+*.dump binary
+*.tar binary
+*.tar.gz binary
+*.zip binary
+*.rar binary
+*.7z binary
+*.deb binary
+*.rpm binary
+*.msi binary
+*.dmg binary
+*.pkg binary
+*.app binary
+*.apk binary
+*.ipa binary
+*.jar binary
+*.war binary
+*.ear binary
+*.class binary
+*.pyc binary
+*.pyo binary
+*.pyd binary
+
+# Mark Go binaries (no extension) as binary
+# This will help Git treat them as binary files
+hackathon-api binary
+hackathon binary
+main binary
+server binary
+client binary
+app binary
+cmd binary
+
+# Mark files in common build directories as binary
+bin/* binary
+dist/* binary
+build/* binary
+target/* binary
+out/* binary
+release/* binary
+debug/* binary

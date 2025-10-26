@@ -84,6 +84,12 @@ type NodeDeployment struct {
 	Ip               string `json:"ip"`                 // IP地址
 	NodeDeployStatus string `json:"node_deploy_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
 	ReleaseLog       string `json:"release_log"`        // 发布日志
+	CurrentVersion   string `json:"current_version"`    // 当前版本
+	DeployingVersion string `json:"deploying_version"`  // 正在部署的版本
+	PrevVersion      string `json:"prev_version"`       // 之前版本
+	Platform         string `json:"platform"`           // 平台类型
+	UpdatedAt        int64  `json:"updated_at"`         // 更新时间戳
+	CreatedAt        int64  `json:"created_at"`         // 创建时间戳
 }
 
 type Deployment struct {
@@ -285,17 +291,8 @@ type DeleteMachineReq struct {
 	Id string `path:"id"` // 机器ID
 }
 
-type NodeDeployment struct {
-	Id               string `json:"id"`                 // 机器唯一标识
-	Ip               string `json:"ip"`                 // IP地址
-	NodeDeployStatus string `json:"node_deploy_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
-	ReleaseLog       string `json:"release_log"`        // 发布日志
-	CurrentVersion   string `json:"current_version"`    // 当前版本
-	DeployingVersion string `json:"deploying_version"`  // 正在部署的版本
-	PrevVersion      string `json:"prev_version"`       // 之前版本
-	Platform         string `json:"platform"`           // 平台类型
-	UpdatedAt        int64  `json:"updated_at"`         // 更新时间戳
-	CreatedAt        int64  `json:"created_at"`         // 创建时间戳
+type DeleteMachineResp struct {
+	Success bool `json:"success"` // 删除是否成功
 }
 
 type TestMachineConnectionReq struct {

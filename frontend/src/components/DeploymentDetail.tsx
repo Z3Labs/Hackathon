@@ -397,10 +397,6 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
             </div>
           </div>
           <div>
-            <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>配置文件路径</div>
-            <div style={{ fontSize: '14px' }}>{deployment.config_path}</div>
-          </div>
-          <div>
             <div style={{ color: '#8c8c8c', marginBottom: '2px', fontSize: '12px' }}>机器数量</div>
             <div style={{ fontSize: '14px' }}>{deployment.node_deployments?.length || 0}</div>
           </div>

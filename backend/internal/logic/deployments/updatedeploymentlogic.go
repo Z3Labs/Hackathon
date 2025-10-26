@@ -36,7 +36,6 @@ func (l *UpdateDeploymentLogic) UpdateDeployment(req *types.UpdateDeploymentReq)
 	// 更新部署信息
 	existingDeployment.AppName = req.AppName
 	existingDeployment.PackageVersion = req.PackageVersion
-	existingDeployment.ConfigPath = req.ConfigPath
 	existingDeployment.GrayMachineId = req.GrayMachineId
 	existingDeployment.UpdatedTime = time.Now().Unix()
 

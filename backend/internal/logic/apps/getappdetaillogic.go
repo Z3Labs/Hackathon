@@ -56,6 +56,7 @@ func (l *GetAppDetailLogic) GetAppDetail(req *types.GetAppDetailReq) (resp *type
 		Id:               application.Id,
 		Name:             application.Name,
 		DeployPath:       application.DeployPath,
+		ConfigPath:       application.ConfigPath,
 		StartCmd:         application.StartCmd,
 		StopCmd:          application.StopCmd,
 		CurrentVersion:   application.CurrentVersion,

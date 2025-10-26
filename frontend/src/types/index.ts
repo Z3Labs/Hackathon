@@ -62,6 +62,7 @@ export interface Application {
   id: string
   name: string
   deploy_path: string
+  config_path?: string
   start_cmd: string
   stop_cmd: string
   currentVersion: string
@@ -105,6 +106,7 @@ export interface Deployment {
 export interface CreateAppReq {
   name: string
   deploy_path: string
+  config_path?: string
   start_cmd: string
   stop_cmd: string
   rollback_policy?: RollbackPolicy
@@ -119,6 +121,7 @@ export interface UpdateAppReq {
   id: string
   name: string
   deploy_path: string
+  config_path?: string
   start_cmd: string
   stop_cmd: string
   machine_ids?: string[]

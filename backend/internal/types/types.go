@@ -27,6 +27,7 @@ type Application struct {
 	Id               string          `json:"id"`                 // 应用唯一标识
 	Name             string          `json:"name"`               // 应用名称
 	DeployPath       string          `json:"deploy_path"`        // 部署路径
+	ConfigPath       string          `json:"config_path"`        // 配置文件路径
 	StartCmd         string          `json:"start_cmd"`          // 启动命令
 	StopCmd          string          `json:"stop_cmd"`           // 停止命令
 	CurrentVersion   string          `json:"currentVersion"`     // 当前版本
@@ -97,7 +98,6 @@ type Deployment struct {
 	AppName         string           `json:"app_name"`         // 应用名称
 	Status          string           `json:"status"`           // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败, rolled_back-已回滚
 	PackageVersion  string           `json:"package_version"`  // 包版本
-	ConfigPath      string           `json:"config_path"`      // 配置文件路径
 	GrayMachineId   string           `json:"gray_machine_id"`  // 灰度设备ID
 	NodeDeployments []NodeDeployment `json:"node_deployments"` // 发布机器列表
 	CreatedAt       int64            `json:"created_at"`       // 创建时间戳
@@ -105,10 +105,11 @@ type Deployment struct {
 }
 
 type CreateAppReq struct {
-	Name       string `json:"name"`        // 应用名称
-	DeployPath string `json:"deploy_path"` // 部署路径
-	StartCmd   string `json:"start_cmd"`   // 启动命令
-	StopCmd    string `json:"stop_cmd"`    // 停止命令
+	Name       string `json:"name"`                  // 应用名称
+	DeployPath string `json:"deploy_path"`           // 部署路径
+	ConfigPath string `json:"config_path,omitempty"` // 配置文件路径
+	StartCmd   string `json:"start_cmd"`             // 启动命令
+	StopCmd    string `json:"stop_cmd"`              // 停止命令
 }
 
 type CreateAppResp struct {
@@ -119,6 +120,7 @@ type UpdateAppReq struct {
 	Id               string          `json:"id"`                          // 应用ID
 	Name             string          `json:"name"`                        // 应用名称
 	DeployPath       string          `json:"deploy_path"`                 // 部署路径
+	ConfigPath       string          `json:"config_path,optional"`        // 配置文件路径
 	StartCmd         string          `json:"start_cmd"`                   // 启动命令
 	StopCmd          string          `json:"stop_cmd"`                    // 停止命令
 	MachineIds       []string        `json:"machine_ids,optional"`        // 关联的机器ID列表
@@ -167,7 +169,6 @@ type AppVersion struct {
 type CreateDeploymentReq struct {
 	AppName        string `json:"app_name"`        // 应用名称
 	PackageVersion string `json:"package_version"` // 包版本
-	ConfigPath     string `json:"config_path"`     // 配置文件路径
 	GrayMachineId  string `json:"gray_machine_id"` // 灰度设备ID（可选，用于灰度发布）
 }
 
@@ -179,7 +180,6 @@ type UpdateDeploymentReq struct {
 	Id             string `json:"id"`              // 发布记录ID
 	AppName        string `json:"app_name"`        // 应用名称
 	PackageVersion string `json:"package_version"` // 包版本
-	ConfigPath     string `json:"config_path"`     // 配置文件路径
 	GrayMachineId  string `json:"gray_machine_id"` // 灰度设备ID（可选，用于灰度发布）
 }
 

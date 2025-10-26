@@ -56,6 +56,7 @@ export const appApi = {
   createApp: (data: {
     name: string
     deploy_path: string
+    config_path?: string
     start_cmd: string
     stop_cmd: string
     rollback_policy?: any
@@ -67,6 +68,7 @@ export const appApi = {
     id: string
     name: string
     deploy_path: string
+    config_path?: string
     start_cmd: string
     stop_cmd: string
     machine_ids?: string[]
@@ -94,7 +96,6 @@ export const deploymentApi = {
   createDeployment: (data: {
     app_name: string
     package_version: string
-    config_path: string
     gray_machine_id?: string
   }) => api.post('/deployments', data),
 
@@ -102,7 +103,6 @@ export const deploymentApi = {
   updateDeployment: (id: string, data: {
     app_name: string
     package_version: string
-    config_path: string
     gray_machine_id?: string
   }) => api.put(`/deployments/${id}`, data),
 

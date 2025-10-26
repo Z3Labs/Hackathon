@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
@@ -17,7 +18,11 @@ const (
 	// Docker 容器配置
 	diagnosisContainerName = "diagnosis-service"
 	diagnosisImageName     = "diagnosis-service:latest"
+
+	pyReturnSplit = "#####"
 )
+
+var jsonRegex = regexp.MustCompile(`\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}`)
 
 type mcpClient struct {
 	containerName  string        // Docker 容器名称
@@ -106,9 +111,19 @@ func (c *mcpClient) GenerateCompletion(ctx context.Context, prompt string) (stri
 	if result == "" {
 		return "", 0, fmt.Errorf("python 脚本返回空结果")
 	}
-	//c.logger.Infof("Python 脚本执行成功，输出: \n%s", result)
+	split := strings.Split(result, pyReturnSplit)
+
+	c.logger.Infof("Python 脚本执行成功，执行日志: \n%s", split[0])
 
 	// MCP 模式下无法获取准确的 token 使用量，返回 0
+	if len(split) > 1 {
+		returnValue := strings.Trim(strings.TrimSpace(strings.Join(split[1:], pyReturnSplit)), "\n")
+		findString := jsonRegex.FindString(returnValue)
+		if findString != "" {
+			return findString, 0, nil
+		}
+		return returnValue, 0, nil
+	}
 	return result, 0, nil
 }
 

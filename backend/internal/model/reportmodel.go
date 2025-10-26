@@ -33,7 +33,7 @@ type (
 
 func NewReportModel(url, db string) ReportModel {
 	return &defaultReportModel{
-		model: mon.MustNewModel(url, db, "Reports"),
+		model: mon.MustNewModel(url, db, CollectionReport),
 	}
 }
 

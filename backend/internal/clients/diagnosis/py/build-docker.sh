@@ -15,6 +15,9 @@ IMAGE_TAG="${1:-latest}"  # 默认 tag 为 latest，可通过第一个参数指�
 PLATFORM="${2:-}"         # 可选的平台参数（如 linux/amd64）
 FULL_IMAGE_NAME="${IMAGE_NAME}:${IMAGE_TAG}"
 
+docker rm -f diagnosis-service
+docker rmi diagnosis-service
+
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}构建 AI 诊断服务 Docker 镜像${NC}"
 echo -e "${BLUE}========================================${NC}"

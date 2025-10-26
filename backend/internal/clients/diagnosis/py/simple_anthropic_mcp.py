@@ -167,6 +167,7 @@ async def simple_diagnosis(
                         final_text += block.text
 
                 print(f"\n[AI] ✅ 分析完成")
+                print(f"\n#####") # 切割日志和ai结果
 
                 # 直接返回纯文本
                 return final_text.strip()

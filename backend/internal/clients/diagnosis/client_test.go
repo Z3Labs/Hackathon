@@ -117,7 +117,7 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 		BaseURL:        baseURL,
 		Model:          model,
 		PrometheusURL:  prometheusURL,
-		GitHubToken:    githubToken,    // 提供后自动启用 GitHub MCP
+		GitHubToken:    githubToken, // 提供后自动启用 GitHub MCP
 		GitHubToolsets: githubToolsets,
 		Timeout:        120,
 	}
@@ -139,8 +139,9 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 		GeneratorURL: "http://127.0.0.1:9300/graph?g0.expr=...",
 		NeedHandle:   true,
 		IsEmergent:   true,
+		RepoAddress:  "Z3Labs/MockServer",
 		Labels: map[string]string{
-			"instance":  "localhost:9301",
+			"hostname":  "VM-12-17-ubuntu",
 			"job":       "node_exporter",
 			"alertname": "HighCPUUsage",
 		},

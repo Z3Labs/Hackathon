@@ -295,6 +295,17 @@ type (
 		Success bool   `json:"success"` // 连接是否成功
 		Message string `json:"message"` // 连接结果消息
 	}
+	GetMachineHostnameReq {
+		Ip       string `json:"ip"`       // IP地址
+		Port     int    `json:"port"`     // SSH端口号
+		Username string `json:"username"` // SSH用户名
+		Password string `json:"password"` // SSH密码
+	}
+	GetMachineHostnameResp {
+		Hostname string `json:"hostname"` // 机器hostname
+		Success  bool   `json:"success"`  // 获取是否成功
+		Message  string `json:"message"`  // 结果消息
+	}
 	PostAlertCallbackReq {
 		Key          string            `json:"key"`
 		Status       string            `json:"status"`
@@ -464,6 +475,10 @@ service hackathon-api {
 	@doc "测试机器连接"
 	@handler TestMachineConnection
 	post /api/v1/machines/:id/test (TestMachineConnectionReq) returns (TestMachineConnectionResp)
+
+	@doc "获取机器hostname"
+	@handler GetMachineHostname
+	post /api/v1/machines/hostname (GetMachineHostnameReq) returns (GetMachineHostnameResp)
 }
 
 @server (

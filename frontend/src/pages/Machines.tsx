@@ -33,6 +33,7 @@ const Machines: React.FC = () => {
 
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
   const [testMessage, setTestMessage] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const fetchMachines = async () => {
     const result = await request(
@@ -82,8 +83,8 @@ const Machines: React.FC = () => {
   }, [showCreateModal, showEditModal, showDetailModal])
 
   const handleTestConnectionInModal = async () => {
-    if (!formData.name || !formData.ip || !formData.username || !formData.password) {
-      alert('请填写完整的机器信息')
+    if (!formData.ip || !formData.username || !formData.password) {
+      alert('请填写IP、端口、用户名和密码')
       return
     }
 
@@ -91,16 +92,26 @@ const Machines: React.FC = () => {
     setTestMessage('')
 
     try {
-      const tempMachine = await machineApi.createMachine({ ...formData })
-      const testResult = await machineApi.testMachineConnection(tempMachine.data.id) as unknown as { success: boolean; message: string }
+      const result = await request(
+        () => machineApi.getMachineHostname({
+          ip: formData.ip,
+          port: formData.port,
+          username: formData.username,
+          password: formData.password,
+        }) as unknown as Promise<{ hostname: string; success: boolean; message: string }>,
+        {
+          errorMessage: '获取hostname失败',
+        }
+      )
       
-      if (testResult.success) {
+      if (result && result.success && result.hostname) {
         setTestStatus('success')
-        setTestMessage('连接测试成功')
+        setTestMessage(`连接测试成功，获取hostname: ${result.hostname}`)
+        // 自动填充hostname到Name字段
+        setFormData(prev => ({ ...prev, name: result.hostname }))
       } else {
         setTestStatus('failed')
-        setTestMessage(testResult.message || '连接测试失败')
-        await machineApi.deleteMachine(tempMachine.data.id)
+        setTestMessage(result?.message || '连接测试失败')
       }
     } catch (err) {
       setTestStatus('failed')
@@ -109,16 +120,32 @@ const Machines: React.FC = () => {
   }
 
   const handleCreateMachine = async () => {
+    if (!formData.name || !formData.ip || !formData.username || !formData.password) {
+      alert('请填写完整的机器信息')
+      return
+    }
+
     if (testStatus !== 'success') {
       alert('请先测试连接并且测试通过后才能创建机器')
       return
     }
 
-    setShowCreateModal(false)
-    resetForm()
-    setTestStatus('idle')
-    setTestMessage('')
-    fetchMachines()
+    const result = await request(
+      () => machineApi.createMachine(formData) as unknown as Promise<{ id: string }>,
+      {
+        successMessage: '机器创建成功',
+        errorMessage: '创建机器失败',
+        showSuccessToast: true
+      }
+    )
+    
+    if (result) {
+      setShowCreateModal(false)
+      resetForm()
+      setTestStatus('idle')
+      setTestMessage('')
+      fetchMachines()
+    }
   }
 
   const handleUpdateMachine = async () => {
@@ -390,8 +417,13 @@ const Machines: React.FC = () => {
                 <label>机器名称 <span style={{ color: 'red' }}>*</span></label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  value={formData.name || '点击"测试连接"后自动获取'}
+                  readOnly
+                  style={{ 
+                    backgroundColor: '#f5f5f5',
+                    cursor: 'not-allowed'
+                  }}
+                  title="机器名称将通过SSH自动获取，无法手动修改"
                 />
               </div>
               <div className="form-group">
@@ -420,11 +452,33 @@ const Machines: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>SSH密码 <span style={{ color: 'red' }}>*</span></label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    style={{ paddingRight: '40px', width: '100%' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '5px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '4px 8px',
+                      fontSize: '14px',
+                      color: '#666'
+                    }}
+                    title={showPassword ? '隐藏密码' : '显示密码'}
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
               </div>
               <div className="form-group">
                 <label>机器描述</label>

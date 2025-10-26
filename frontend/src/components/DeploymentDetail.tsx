@@ -35,37 +35,36 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const [reportPromQLResults, setReportPromQLResults] = useState<Record<string, any[]>>({});
 
   // 获取单台机器的监控数据
-  const fetchMachineMonitorData = useCallback(async (machineIp: string, minutes: number = 30, metric?: string) => {
+  const fetchMachineMonitorData = useCallback(async (machineName: string, minutes: number = 30, metric?: string) => {
     if (!deployment) return;
     
     // 使用传入的 metric 或当前的 monitorMetric
     const currentMetric = metric || monitorMetric;
     
     try {
-      // TODO: 暂时查询所有数据，因为 VictoriaMetrics 中的 instance 标签值是 localhost:9301
-      // 而不是机器的 IP 地址。后续需要在机器配置中保存实际的监控 instance 值
       let promQL;
       let metricName;
       let unit;
       
+      // 根据机器名称进行筛选（hostname 标签值就是机器名称）
       switch (currentMetric) {
         case 'cpu':
-          promQL = PromQL.cpuUsage(); // 暂时不传 IP，查询所有
+          promQL = PromQL.cpuUsage(machineName);
           metricName = 'CPU使用率';
           unit = '%';
           break;
         case 'memory':
-          promQL = PromQL.memoryUsage();
+          promQL = PromQL.memoryUsage(machineName);
           metricName = '内存使用率';
           unit = '%';
           break;
         case 'network':
-          promQL = PromQL.networkReceiveRate();
+          promQL = PromQL.networkReceiveRate(machineName);
           metricName = '网络接收速率';
           unit = 'bytes/s';
           break;
         default:
-          promQL = PromQL.cpuUsage();
+          promQL = PromQL.cpuUsage(machineName);
           metricName = 'CPU使用率';
           unit = '%';
       }
@@ -79,7 +78,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
         step: '60s',
       });
       
-      console.log(`[监控] 指标类型: ${currentMetric}, 单位: ${unit}, 数据点数: ${response.series.length}`);
+      console.log(`[监控] 机器: ${machineName}, 指标类型: ${currentMetric}, 单位: ${unit}, 数据点数: ${response.series.length}`);
       
       // 为每个 series 添加 metric 名称和单位
       const enrichedSeries = response.series.map(s => ({
@@ -92,7 +91,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       
       setMachineMonitorData((prev) => ({
         ...prev,
-        [machineIp]: enrichedSeries || [],
+        [machineName]: enrichedSeries || [],
       }));
     } catch (err) {
       console.error('获取机器监控数据失败:', err);
@@ -485,19 +484,19 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const canOperate = !['canceled', 'rolled_back'].includes(deployment?.status || '');
 
   // 切换机器监控展开/收起
-  const toggleMachineMonitor = (machineIp: string) => {
-    if (expandedMonitorMachine === machineIp) {
+  const toggleMachineMonitor = (machineName: string) => {
+    if (expandedMonitorMachine === machineName) {
       setExpandedMonitorMachine(null);
     } else {
-      setExpandedMonitorMachine(machineIp);
+      setExpandedMonitorMachine(machineName);
       // 加载该机器的监控数据，使用当前的 monitorTimeRange
-      fetchMachineMonitorData(machineIp, monitorTimeRange, monitorMetric);
+      fetchMachineMonitorData(machineName, monitorTimeRange, monitorMetric);
     }
   };
 
   // 渲染单台机器的监控图表
-  const renderMachineMonitorChart = (machineIp: string) => {
-    const data = machineMonitorData[machineIp] || [];
+  const renderMachineMonitorChart = (machineName: string) => {
+    const data = machineMonitorData[machineName] || [];
     
     return (
       <div style={{ 
@@ -515,12 +514,12 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                 // 先清空旧数据，避免显示错误
                 setMachineMonitorData((prev) => ({
                   ...prev,
-                  [machineIp]: [],
+                  [machineName]: [],
                 }));
                 // 更新指标类型
                 setMonitorMetric(metric);
                 // 立即使用新的 metric 加载数据，使用当前的 monitorTimeRange
-                fetchMachineMonitorData(machineIp, monitorTimeRange, metric);
+                fetchMachineMonitorData(machineName, monitorTimeRange, metric);
               }}
               style={{
                 padding: '6px 16px',
@@ -547,7 +546,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
             onTimeRangeChange={(minutes) => {
               // 更新时间范围状态并重新加载数据
               setMonitorTimeRange(minutes);
-              fetchMachineMonitorData(machineIp, minutes, monitorMetric);
+              fetchMachineMonitorData(machineName, minutes, monitorMetric);
             }}
           />
         ) : (
@@ -838,7 +837,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                 </td>
                 <td style={{ padding: '12px' }}>
                   <button
-                    onClick={() => toggleMachineMonitor(machine.ip)}
+                    onClick={() => toggleMachineMonitor(machine.name)}
                     style={{
                       padding: '4px 12px',
                       border: 'none',
@@ -852,7 +851,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                       gap: '4px',
                     }}
                   >
-                    {expandedMonitorMachine === machine.ip ? (
+                    {expandedMonitorMachine === machine.name ? (
                       <>收起 <span style={{ fontSize: '10px' }}>▽</span></>
                     ) : (
                       <>指标监控 <span style={{ fontSize: '10px' }}>▶</span></>
@@ -860,10 +859,10 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   </button>
                 </td>
                 </tr>
-                {expandedMonitorMachine === machine.ip && (
+                {expandedMonitorMachine === machine.name && (
                   <tr>
                     <td colSpan={6} style={{ padding: '12px', background: '#fafafa' }}>
-                      {renderMachineMonitorChart(machine.ip)}
+                      {renderMachineMonitorChart(machine.name)}
                     </td>
                   </tr>
                 )}

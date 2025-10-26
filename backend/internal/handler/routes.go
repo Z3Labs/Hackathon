@@ -157,6 +157,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/api/v1/machines/:id/test",
 				Handler: machines.TestMachineConnectionHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/v1/machines/hostname",
+				Handler: machines.GetMachineHostnameHandler(serverCtx),
+			},
 		},
 	)
 

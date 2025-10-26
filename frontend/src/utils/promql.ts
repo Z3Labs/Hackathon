@@ -106,16 +106,16 @@ function buildInstanceFilter(instance?: string | string[]): string {
       return '';
     }
     if (instance.length === 1) {
-      // 单个实例时，使用通配符匹配（因为实际标签可能是 IP:PORT 格式）
-      return `,instance=~".*${instance[0]}.*"`;
+      // 单个实例时，使用通配符匹配 hostname 标签
+      return `,hostname=~".*${instance[0]}.*"`;
     }
     // 多个实例，构建正则表达式，每个实例使用通配符匹配
     const patterns = instance.map(ip => `.*${ip}.*`).join('|');
-    return `,instance=~"${patterns}"`;
+    return `,hostname=~"${patterns}"`;
   }
   
-  // 单个实例字符串，使用通配符匹配
-  return `,instance=~".*${instance}.*"`;
+  // 单个实例字符串，使用通配符匹配 hostname 标签
+  return `,hostname=~".*${instance}.*"`;
 }
 
 /**

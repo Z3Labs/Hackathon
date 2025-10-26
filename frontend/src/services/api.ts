@@ -159,6 +159,14 @@ export const machineApi = {
 
   // 测试机器连接
   testMachineConnection: (id: string) => api.post(`/machines/${id}/test`),
+
+  // 获取机器hostname
+  getMachineHostname: (data: {
+    ip: string
+    port: number
+    username: string
+    password: string
+  }) => api.post('/machines/hostname', data),
 }
 
 export default api

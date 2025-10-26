@@ -52,7 +52,7 @@ func (l *AlertCallBackLogic) AlertCallBack(req *types.PostAlertCallbackReq) erro
 		l.Errorf("ApplicationModel.FindById error: %v", err)
 		return err
 	}
-	req.RepoAddress = application.RepoAddress
+	req.RepoAddress = application.Repo
 	// 耗时操作，约需要30～60s
 	_, err = diagnosis.New(context.Background(), l.svcCtx, l.svcCtx.Config.AI).GenerateReport(req)
 	if err != nil {

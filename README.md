@@ -76,6 +76,9 @@
 ### 集成环境
 http://118.89.104.170:13354/
 
+### demo视频
+https://meeting.tencent.com/crm/29e64vLxd8
+
 ## 贡献者
 
 本项目由 Z³Labs 团队开发。

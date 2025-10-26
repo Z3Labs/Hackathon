@@ -160,8 +160,8 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         },
       },
       legend: {
-        data: series.map((s) => s.instance),
-        bottom: 15,
+        data: series.map((s) => s.instance).filter(instance => instance !== 'unknown'),
+        bottom: 25,
         left: 'center',
         type: 'scroll',
         itemGap: 20,
@@ -172,11 +172,11 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         icon: 'circle',
       },
       grid: {
-        left: '3%',
-        right: '3%',
-        top: '45px',
-        bottom: '18%',
-        containLabel: false,
+        left: '1%',
+        right: '10%',
+        top: '20px',
+        bottom: '10%',
+        containLabel: true,
       },
       xAxis: {
         type: 'time',
@@ -217,7 +217,7 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         type: 'value',
         name: series.length > 0 ? (series[0]?.unit || '') : '',
         nameLocation: 'end',
-        nameGap: 15,
+        nameGap: 20,
         nameTextStyle: {
           color: '#666',
           fontSize: 13,
@@ -248,7 +248,7 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         axisLabel: {
           fontSize: 12,
           color: '#666',
-          margin: 8,
+          margin: 12,
           formatter: (value: number) => {
             // 格式化数值，避免显示过长
             if (Math.abs(value) >= 1000000) {

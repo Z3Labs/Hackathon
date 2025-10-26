@@ -146,16 +146,23 @@ async def simple_diagnosis(
         # ==================== 7. AI 对话循环 ====================
         print(f"\n[AI] 开始分析...\n")
 
+        import traceback
 
         for iteration in range(20):  # 最多 20 轮
             print(f"[AI] 第 {iteration + 1} 轮对话")
 
-            response = await client.messages.create(
-                model=model,
-                max_tokens=4096,
-                messages=messages,
-                tools=tools,
-            )
+            try:
+                response = await client.messages.create(
+                    model=model,
+                    max_tokens=4096,
+                    messages=messages,
+                    tools=tools,
+                )
+            except Exception as e:
+                error_detail = traceback.format_exc()
+                print(f"\n[AI] ❌ API 调用失败:")
+                print(error_detail)
+                return f"API 调用失败: {str(e)}\n\n详细错误:\n{error_detail}"
 
             print(f"[AI] Stop reason: {response.stop_reason}")
 
@@ -220,11 +227,13 @@ async def simple_diagnosis(
                         })
 
                     except Exception as e:
-                        print(f"[{mcp_name}] ❌ 工具调用失败: {e}")
+                        error_detail = traceback.format_exc()
+                        print(f"[{mcp_name}] ❌ 工具调用失败:")
+                        print(error_detail)
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
-                            "content": f"工具调用失败: {str(e)}",
+                            "content": f"工具调用失败: {str(e)}\n\n详细错误:\n{error_detail}",
                             "is_error": True,
                         })
 

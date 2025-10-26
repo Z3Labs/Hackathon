@@ -1,9 +1,12 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { deploymentService } from '../services/deployment';
 import { monitoringService } from '../services/monitoring';
+import { appApi } from '../services/api';
 import { PromQL } from '../utils/promql';
 import type { Deployment, NodeDeployment, Report, ReportData } from '../types/deployment';
+import type { REDMetrics } from '../types';
 import MonitorChart from './common/MonitorChart';
+import TimeRangeSelector from './common/TimeRangeSelector';
 
 interface DeploymentDetailProps {
   deploymentId: string;
@@ -19,6 +22,13 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const [countdown, setCountdown] = useState(30);
   const [report, setReport] = useState<Report | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // RED 指标相关状态
+  const [redMetrics, setRedMetrics] = useState<REDMetrics | null>(null);
+  const [redMetricsData, setRedMetricsData] = useState<Record<string, any>>({});
+  const [redMetricsError, setRedMetricsError] = useState<string | null>(null);
+  const [selectedRedMachines, setSelectedRedMachines] = useState<string[]>([]); // 选中的机器名称列表
+  const [redMetricsTimeRange, setRedMetricsTimeRange] = useState<number>(30); // RED 指标时间范围
   
   // 监控数据相关状态
   const [monitorMetric, setMonitorMetric] = useState<string>('cpu');
@@ -98,6 +108,154 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     }
   }, [deployment, monitorMetric, monitorTimeRange]);
 
+  // 获取应用的 RED 指标配置
+  const fetchRedMetrics = useCallback(async (appName: string) => {
+    try {
+      // 通过名称查询应用列表
+      const result = await appApi.getAppList({ name: appName, page: 1, page_size: 1 }) as any;
+      console.log('[RED指标] 查询应用列表结果:', result);
+      
+      if (result && result.apps && result.apps.length > 0) {
+        const app = result.apps[0];
+        console.log('[RED指标] 应用配置:', app);
+        console.log('[RED指标] RED配置:', app.red_metrics_config);
+        
+        if (app.red_metrics_config && app.red_metrics_config.enabled) {
+          console.log('[RED指标] 设置 RED 指标配置');
+          setRedMetrics(app.red_metrics_config);
+        } else {
+          console.log('[RED指标] 应用未启用 RED 指标');
+        }
+      } else {
+        console.log('[RED指标] 未找到应用');
+      }
+    } catch (err) {
+      console.error('[RED指标] 获取 RED 指标配置失败:', err);
+    }
+  }, []);
+
+  // 替换 PromQL 中的模板变量
+  const replaceTemplateVariables = useCallback((promql: string, selectedMachines: string[]): string => {
+    if (!promql) return promql;
+    
+    // 替换 {{hostname}}
+    if (promql.includes('{{hostname}}')) {
+      let hostnameValue = '';
+      
+      if (selectedMachines.length > 0) {
+        // 如果选择了机器，构建正则表达式
+        // 不转义，直接使用名称（因为已经用了 =~，这是正则匹配）
+        hostnameValue = `".*${selectedMachines.join('.*|.*')}.*"`;
+      } else {
+        // 如果没有选择机器，查询所有机器（使用 .* 匹配所有）
+        hostnameValue = `".*"`;
+      }
+      
+      return promql.replace(/\{\{hostname\}\}/g, hostnameValue);
+    }
+    
+    return promql;
+  }, []);
+
+  // 机器选择器下拉状态
+  const [machineSelectOpen, setMachineSelectOpen] = useState(false);
+  const machineSelectRef = useRef<HTMLDivElement>(null);
+
+  // 查询 RED 指标数据
+  const fetchRedMetricsData = useCallback(async (minutes: number) => {
+    if (!redMetrics) {
+      console.log('[RED指标] 无 RED 指标配置，跳过查询');
+      return;
+    }
+
+    console.log('[RED指标] 开始查询 RED 指标数据，选中的机器:', selectedRedMachines, '时间范围:', minutes, '分钟');
+    const data: Record<string, any> = {};
+    const errors: string[] = [];
+    const now = Math.floor(Date.now() / 1000);
+    const start = now - minutes * 60;
+
+    // 查询 Rate 指标
+    if (redMetrics.rate_metric?.promql) {
+      try {
+        const query = replaceTemplateVariables(redMetrics.rate_metric.promql, selectedRedMachines);
+        console.log('[RED指标] 查询 Rate 指标:', query);
+        const response = await monitoringService.queryMetrics({
+          query: query,
+          start: start.toString(),
+          end: now.toString(),
+          step: '60s',
+        });
+        data['rate'] = {
+          series: response.series || [],
+          metric: 'Rate',
+          unit: 'req/s',
+        };
+        console.log('[RED指标] Rate 数据点数:', response.series?.length || 0);
+      } catch (err: any) {
+        const errorMsg = err?.message || '查询 Rate 指标失败';
+        console.error('[RED指标] 查询 Rate 指标失败:', err);
+        errors.push(`Rate 指标: ${errorMsg}`);
+      }
+    }
+
+    // 查询 Error 指标
+    if (redMetrics.error_metric?.promql) {
+      try {
+        const query = replaceTemplateVariables(redMetrics.error_metric.promql, selectedRedMachines);
+        console.log('[RED指标] 查询 Error 指标:', query);
+        const response = await monitoringService.queryMetrics({
+          query: query,
+          start: start.toString(),
+          end: now.toString(),
+          step: '60s',
+        });
+        data['error'] = {
+          series: response.series || [],
+          metric: 'Error',
+          unit: '%',
+        };
+        console.log('[RED指标] Error 数据点数:', response.series?.length || 0);
+      } catch (err: any) {
+        const errorMsg = err?.message || '查询 Error 指标失败';
+        console.error('[RED指标] 查询 Error 指标失败:', err);
+        errors.push(`Error 指标: ${errorMsg}`);
+      }
+    }
+
+    // 查询 Duration 指标
+    if (redMetrics.duration_metric?.promql) {
+      try {
+        const query = replaceTemplateVariables(redMetrics.duration_metric.promql, selectedRedMachines);
+        console.log('[RED指标] 查询 Duration 指标:', query);
+        const response = await monitoringService.queryMetrics({
+          query: query,
+          start: start.toString(),
+          end: now.toString(),
+          step: '60s',
+        });
+        data['duration'] = {
+          series: response.series || [],
+          metric: 'Duration',
+          unit: 's',
+        };
+        console.log('[RED指标] Duration 数据点数:', response.series?.length || 0);
+      } catch (err: any) {
+        const errorMsg = err?.message || '查询 Duration 指标失败';
+        console.error('[RED指标] 查询 Duration 指标失败:', err);
+        errors.push(`Duration 指标: ${errorMsg}`);
+      }
+    }
+
+    console.log('[RED指标] 查询完成，数据:', Object.keys(data));
+    setRedMetricsData(data);
+    
+    if (errors.length > 0) {
+      const errorMsg = errors.slice(0, 1).join('; '); // 只显示第一个错误
+      setRedMetricsError(errorMsg);
+      setTimeout(() => setRedMetricsError(null), 5000);
+    }
+  }, [redMetrics, selectedRedMachines, replaceTemplateVariables]);
+
   useEffect(() => {
     const fetchDetail = async () => {
       setLoading(true);
@@ -106,6 +264,11 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
         const response = await deploymentService.getDeploymentDetail(deploymentId);
         setDeployment(response.deployment);
         setReport(response.report ?? null);
+        
+        // 获取应用的 RED 指标配置
+        if (response.deployment?.app_name) {
+          await fetchRedMetrics(response.deployment.app_name);
+        }
       } catch (err) {
         setError('获取发布详情失败');
         console.error(err);
@@ -115,7 +278,15 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     };
 
     fetchDetail();
-  }, [deploymentId]);
+  }, [deploymentId, fetchRedMetrics]);
+
+  // 当 RED 指标配置加载后，查询数据
+  useEffect(() => {
+    if (redMetrics) {
+      fetchRedMetricsData(redMetricsTimeRange);
+    }
+  }, [redMetrics, selectedRedMachines, redMetricsTimeRange, fetchRedMetricsData]);
+
 
   // 解析诊断报告内容
   const parseReportContent = (report: Report): ReportData => {
@@ -339,7 +510,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                             <MonitorChart 
                               series={results} 
                               height={300} 
-                              initialTimeRange={30}
+                              initialTimeRange={redMetricsTimeRange}
                               showTimeSelector={false}
                             />
                           ) : (
@@ -632,6 +803,30 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
         </div>
       )}
 
+      {redMetricsError && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#fff1f0',
+          border: '1px solid #ffccc7',
+          borderRadius: '6px',
+          padding: '12px 16px',
+          color: '#f5222d',
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+          minWidth: '200px',
+          maxWidth: '400px',
+        }}>
+          <span style={{ fontSize: '16px' }}>✕</span>
+          <span style={{ wordBreak: 'break-word' }}>{redMetricsError}</span>
+        </div>
+      )}
+
       <div style={{ background: '#fafafa', padding: '12px', borderRadius: '4px', marginBottom: '16px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
           <div>
@@ -676,6 +871,231 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
           </div>
         </div>
       </div>
+
+      {/* RED 指标图表 */}
+      {redMetrics && (
+        <div style={{ marginBottom: '32px' }}>
+          <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>RED 关键指标</h3>
+          
+          {/* 机器选择下拉框和时间范围选择器 */}
+          {deployment?.node_deployments && deployment.node_deployments.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', color: '#666' }}>筛选机器:</span>
+                  
+                  {/* 自定义多选下拉框 */}
+                  <div style={{ position: 'relative' }} ref={machineSelectRef}>
+                    <button
+                      onClick={() => setMachineSelectOpen(!machineSelectOpen)}
+                      style={{
+                        padding: '6px 30px 6px 12px',
+                        border: '1px solid #d9d9d9',
+                        borderRadius: '4px',
+                        background: 'white',
+                        fontSize: '13px',
+                        minWidth: '180px',
+                        height: '32px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>
+                        {selectedRedMachines.length === 0 
+                          ? '全部机器' 
+                          : selectedRedMachines.length === 1 
+                          ? selectedRedMachines[0]
+                          : `已选择 ${selectedRedMachines.length} 台`}
+                      </span>
+                      <span style={{ fontSize: '10px' }}>▼</span>
+                    </button>
+                    
+                    {machineSelectOpen && (
+                      <>
+                        {/* 点击外部关闭 */}
+                        <div
+                          style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 999,
+                          }}
+                          onClick={() => setMachineSelectOpen(false)}
+                        />
+                        {/* 下拉菜单 */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            marginTop: '4px',
+                            background: 'white',
+                            border: '1px solid #d9d9d9',
+                            borderRadius: '4px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            zIndex: 1000,
+                            minWidth: '180px',
+                            maxHeight: '300px',
+                            overflowY: 'auto',
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {/* 全部机器选项 */}
+                          <div
+                            onClick={() => {
+                              setSelectedRedMachines([]);
+                              setMachineSelectOpen(false);
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              cursor: 'pointer',
+                              background: selectedRedMachines.length === 0 ? '#f0f7ff' : 'white',
+                              color: selectedRedMachines.length === 0 ? '#1890ff' : '#333',
+                              fontSize: '13px',
+                              borderBottom: '1px solid #f0f0f0',
+                            }}
+                          >
+                            ✓ 全部机器
+                          </div>
+                          
+                          {/* 机器列表 */}
+                          {deployment.node_deployments.map((machine: NodeDeployment) => {
+                            const isSelected = selectedRedMachines.includes(machine.name);
+                            return (
+                              <div
+                                key={machine.id}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedRedMachines(selectedRedMachines.filter(m => m !== machine.name));
+                                  } else {
+                                    setSelectedRedMachines([...selectedRedMachines, machine.name]);
+                                  }
+                                }}
+                                style={{
+                                  padding: '8px 12px',
+                                  cursor: 'pointer',
+                                  background: isSelected ? '#f0f7ff' : 'white',
+                                  color: isSelected ? '#1890ff' : '#333',
+                                  fontSize: '13px',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isSelected) {
+                                    e.currentTarget.style.background = '#fafafa';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isSelected) {
+                                    e.currentTarget.style.background = 'white';
+                                  }
+                                }}
+                              >
+                                {isSelected ? '☑' : '☐'} {machine.name} ({machine.ip})
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', color: '#666' }}>时间范围:</span>
+                  <TimeRangeSelector 
+                    value={redMetricsTimeRange}
+                    onChange={(minutes) => setRedMetricsTimeRange(minutes)}
+                  />
+                </div>
+              </div>
+            )}
+          
+          {Object.keys(redMetricsData).length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {/* Rate 指标 */}
+            {redMetricsData['rate'] && (
+              <div style={{ 
+                background: '#fff', 
+                border: '1px solid #e6f0ff', 
+                borderRadius: '8px', 
+                padding: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 500, color: '#262626' }}>
+                  {redMetricsData['rate'].metric}
+                </div>
+                <MonitorChart 
+                  series={redMetricsData['rate'].series.map((s: any) => ({
+                    ...s,
+                    metric: redMetricsData['rate'].metric,
+                    unit: redMetricsData['rate'].unit,
+                  }))} 
+                  height={250} 
+                  initialTimeRange={redMetricsTimeRange}
+                  showTimeSelector={false}
+                  threshold={redMetrics?.health_threshold?.rate_min}
+                />
+              </div>
+            )}
+            
+            {/* Error 指标 */}
+            {redMetricsData['error'] && (
+              <div style={{ 
+                background: '#fff', 
+                border: '1px solid #e6f0ff', 
+                borderRadius: '8px', 
+                padding: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 500, color: '#262626' }}>
+                  {redMetricsData['error'].metric}
+                </div>
+                <MonitorChart 
+                  series={redMetricsData['error'].series.map((s: any) => ({
+                    ...s,
+                    metric: redMetricsData['error'].metric,
+                    unit: redMetricsData['error'].unit,
+                  }))} 
+                  height={250} 
+                  initialTimeRange={redMetricsTimeRange}
+                  showTimeSelector={false}
+                  threshold={redMetrics?.health_threshold?.error_rate_max}
+                />
+              </div>
+            )}
+            
+            {/* Duration 指标 */}
+            {redMetricsData['duration'] && (
+              <div style={{ 
+                background: '#fff', 
+                border: '1px solid #e6f0ff', 
+                borderRadius: '8px', 
+                padding: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 500, color: '#262626' }}>
+                  {redMetricsData['duration'].metric}
+                </div>
+                <MonitorChart 
+                  series={redMetricsData['duration'].series.map((s: any) => ({
+                    ...s,
+                    metric: redMetricsData['duration'].metric,
+                    unit: redMetricsData['duration'].unit,
+                  }))} 
+                  height={250} 
+                  initialTimeRange={redMetricsTimeRange}
+                  showTimeSelector={false}
+                  threshold={redMetrics?.health_threshold?.duration_p99_max}
+                />
+              </div>
+            )}
+          </div>
+          )}
+        </div>
+      )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0' }}>
         <h3 style={{ margin: 0, fontSize: '16px' }}>发布机器列表</h3>

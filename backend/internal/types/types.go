@@ -43,10 +43,10 @@ type Application struct {
 }
 
 type RollbackPolicy struct {
-	Enabled       bool              `json:"enabled"`        // 是否启用自动回滚
-	AlertRules    []PrometheusAlert `json:"alert_rules"`    // Prometheus告警规则列表
-	AutoRollback  bool              `json:"auto_rollback"`  // 是否自动执行回滚
-	NotifyChannel string            `json:"notify_channel"` // 通知渠道
+	Enabled       bool              `json:"enabled"`              // 是否启用自动回滚
+	AlertRules    []PrometheusAlert `json:"alert_rules,optional"` // Prometheus告警规则列表
+	AutoRollback  bool              `json:"auto_rollback"`        // 是否自动执行回滚
+	NotifyChannel string            `json:"notify_channel"`       // 通知渠道
 }
 
 type PrometheusAlert struct {

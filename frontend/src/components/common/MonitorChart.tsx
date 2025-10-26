@@ -18,6 +18,7 @@ interface MonitorChartProps {
   showTimeSelector?: boolean;
   initialTimeRange?: number;
   onTimeRangeChange?: (minutes: number) => void;
+  threshold?: number; // 阈值线
 }
 
 const MonitorChart: React.FC<MonitorChartProps> = ({ 
@@ -25,7 +26,8 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
   height = 300,
   showTimeSelector = true,
   initialTimeRange = 30,
-  onTimeRangeChange 
+  onTimeRangeChange,
+  threshold
 }) => {
   const [timeRange, setTimeRange] = useState(initialTimeRange);
   const chartRef = useRef<HTMLDivElement>(null);
@@ -57,7 +59,7 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
       const minValue = Math.min(...s.data.map(p => p.value));
       console.log(`[图表] Series ${s.instance}: unit=${s.unit}, min=${minValue}, max=${maxValue}`);
       
-      return {
+      const seriesConfig: any = {
         name: s.instance,
         type: 'line',
         smooth: true,
@@ -78,6 +80,27 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
           },
         },
       };
+      
+      // 如果有阈值，添加阈值线
+      if (threshold !== undefined && threshold !== null) {
+        seriesConfig.markLine = {
+          data: [{ yAxis: threshold }],
+          lineStyle: {
+            color: '#ff4d4f',
+            type: 'dashed',
+            width: 2,
+          },
+          label: {
+            show: true,
+            position: 'end',
+            formatter: `阈值: ${threshold}`,
+            fontSize: 11,
+            color: '#ff4d4f',
+          },
+        };
+      }
+      
+      return seriesConfig;
     });
 
     // 配置选项
@@ -125,6 +148,13 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
             let displayValue = value.toFixed(2);
             result += `<div style="margin: 2px 0;">${p.marker} ${p.seriesName}: <strong>${displayValue}${unit}</strong></div>`;
           });
+          
+          // 如果有阈值，显示阈值
+          if (threshold !== undefined && threshold !== null) {
+            result += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2);">`;
+            result += `<div style="margin: 2px 0; color: #ffccc7;">阈值: <strong>${threshold.toFixed(2)}${unit}</strong></div>`;
+            result += `</div>`;
+          }
           
           return result;
         },
@@ -193,6 +223,23 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
           fontSize: 13,
           fontWeight: 500,
         },
+        // 如果有阈值，确保 y 轴最大值包含阈值
+        max: threshold !== undefined && threshold !== null 
+          ? (() => {
+              // 计算数据最大值
+              let dataMax = 0;
+              for (const s of series) {
+                for (const point of s.data) {
+                  if (point.value > dataMax) {
+                    dataMax = point.value;
+                  }
+                }
+              }
+              // 取数据最大值和阈值的最大值，然后加 20% 的余量
+              const maxValue = Math.max(dataMax, threshold);
+              return maxValue * 1.2;
+            })()
+          : undefined,
         axisLine: {
           lineStyle: {
             color: '#e0e0e0',
@@ -245,7 +292,24 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [series, height]);
+  }, [series, height, threshold]);
+
+  // 判断是否有数据超过阈值
+  const hasExceededThreshold = React.useMemo(() => {
+    if (threshold === undefined || threshold === null) {
+      return null; // 没有阈值，不显示背景色
+    }
+    
+    // 检查所有数据点，看是否有任何一个超过阈值
+    for (const s of series) {
+      for (const point of s.data) {
+        if (point.value > threshold) {
+          return true; // 有数据超过阈值，返回红色
+        }
+      }
+    }
+    return false; // 所有数据都在阈值以下，返回绿色
+  }, [series, threshold]);
 
   // 同步外部传入的 initialTimeRange 变化到内部状态
   useEffect(() => {
@@ -278,6 +342,12 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         style={{
           width: '100%',
           height: `${height}px`,
+          backgroundColor: hasExceededThreshold === true 
+            ? '#fff1f0' // 红色警示背景（有数据超过阈值）
+            : hasExceededThreshold === false 
+            ? '#f6ffed' // 绿色背景（所有数据都在阈值以下）
+            : 'transparent', // 没有阈值，不显示背景色
+          borderRadius: '4px',
         }}
       />
     </div>

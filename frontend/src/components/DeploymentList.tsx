@@ -204,12 +204,12 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
     return machine ? machine.name : deployment.gray_machine_id;
   };
 
-  // 判断是否是某个应用的第一个发布单
-  const isFirstDeploymentForApp = (deployment: Deployment, allDeployments: Deployment[]) => {
+  // 判断是否是某个应用的最新发布单（创建时间最晚的）
+  const isLatestDeploymentForApp = (deployment: Deployment, allDeployments: Deployment[]) => {
     const deploymentsForApp = allDeployments.filter(d => d.app_name === deployment.app_name);
-    // 按创建时间排序，最早的排在最前面
-    deploymentsForApp.sort((a, b) => a.created_at - b.created_at);
-    // 如果是第一个，返回 true
+    // 按创建时间排序，最晚的排在最前面
+    deploymentsForApp.sort((a, b) => b.created_at - a.created_at);
+    // 如果是最晚的，返回 true
     return deploymentsForApp[0]?.id === deployment.id;
   };
 
@@ -335,7 +335,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
                   <td style={{ padding: '12px', maxWidth: '300px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flexWrap: 'wrap' }}>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 1 }}>{deployment.app_name}</span>
-                      {isFirstDeploymentForApp(deployment, deployments) && redMetricsData[deployment.id] && redMetricsConfigs[deployment.id] && (
+                      {isLatestDeploymentForApp(deployment, deployments) && redMetricsData[deployment.id] && redMetricsConfigs[deployment.id] && (
                         <>
                           {redMetricsConfigs[deployment.id].rate_metric && (
                             <div>

@@ -52,11 +52,13 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     const currentMetric = metric || monitorMetric;
     
     try {
+      const now = Math.floor(Date.now() / 1000);
+      const start = now - minutes * 60;
+      
       let promQL;
       let metricName;
       let unit;
       
-      // 根据机器名称进行筛选（hostname 标签值就是机器名称）
       switch (currentMetric) {
         case 'cpu':
           promQL = PromQL.cpuUsage(machineName);
@@ -68,18 +70,67 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
           metricName = '内存使用率';
           unit = '%';
           break;
-        case 'network':
+        case 'network-in':
+          // 查询网络接收速率
           promQL = PromQL.networkReceiveRate(machineName);
-          metricName = '网络接收速率';
-          unit = 'bytes/s';
-          break;
+          
+          const receiveResponse = await monitoringService.queryMetrics({
+            query: promQL,
+            start: start.toString(),
+            end: now.toString(),
+            step: '60s',
+          });
+          
+          const receiveSeries = receiveResponse.series.map(s => {
+            // 使用网卡名称
+            const deviceName = s.labels?.device || s.instance;
+            return {
+              ...s,
+              instance: deviceName,
+              metric: '网络接收',
+              unit: 'bytes/s',
+            };
+          });
+          
+          setMachineMonitorData((prev) => ({
+            ...prev,
+            [machineName]: receiveSeries || [],
+          }));
+          
+          return;
+        case 'network-out':
+          // 查询网络发送速率
+          promQL = PromQL.networkTransmitRate(machineName);
+          
+          const transmitResponse = await monitoringService.queryMetrics({
+            query: promQL,
+            start: start.toString(),
+            end: now.toString(),
+            step: '60s',
+          });
+          
+          const transmitSeries = transmitResponse.series.map(s => {
+            // 使用网卡名称
+            const deviceName = s.labels?.device || s.instance;
+            return {
+              ...s,
+              instance: deviceName,
+              metric: '网络发送',
+              unit: 'bytes/s',
+            };
+          });
+          
+          setMachineMonitorData((prev) => ({
+            ...prev,
+            [machineName]: transmitSeries || [],
+          }));
+          
+          return;
         default:
           promQL = PromQL.cpuUsage(machineName);
           metricName = 'CPU使用率';
           unit = '%';
       }
-      const now = Math.floor(Date.now() / 1000);
-      const start = now - minutes * 60;
       
       const response = await monitoringService.queryMetrics({
         query: promQL,
@@ -678,7 +729,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
         boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
       }}>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          {['cpu', 'memory', 'network'].map((metric) => (
+          {['cpu', 'memory', 'network-in', 'network-out'].map((metric) => (
             <button
               key={metric}
               onClick={async () => {
@@ -704,7 +755,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                 transition: 'all 0.2s',
               }}
             >
-              {metric === 'cpu' ? 'CPU' : metric === 'memory' ? '内存' : '网络'}
+              {metric === 'cpu' ? 'CPU' : metric === 'memory' ? '内存' : metric === 'network-in' ? '网卡(in)' : '网卡(out)'}
             </button>
           ))}
         </div>
@@ -993,7 +1044,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                                   }
                                 }}
                               >
-                                {isSelected ? '☑' : '☐'} {machine.name} ({machine.ip})
+                                {isSelected ? '☑' : '☐'} {machine.name}
                               </div>
                             );
                           })}

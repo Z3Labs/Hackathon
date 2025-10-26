@@ -6,6 +6,7 @@ interface MonitorSeries {
   instance: string;
   metric: string;
   unit: string;
+  labels?: Record<string, string>; // 原始标签
   data: Array<{
     timestamp: number;
     value: number;
@@ -59,8 +60,14 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
       const minValue = Math.min(...s.data.map(p => p.value));
       console.log(`[图表] Series ${s.instance}: unit=${s.unit}, min=${minValue}, max=${maxValue}`);
       
+      // 如果有 device 标签（网络指标），则显示网卡名称
+      let displayName = s.instance;
+      if (s.labels && s.labels.device) {
+        displayName = s.labels.device;
+      }
+      
       const seriesConfig: any = {
-        name: s.instance,
+        name: displayName,
         type: 'line',
         smooth: true,
         data: s.data.map((point) => [point.timestamp * 1000, point.value]),
@@ -160,8 +167,14 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         },
       },
       legend: {
-        data: series.map((s) => s.instance).filter(instance => instance !== 'unknown'),
-        bottom: 25,
+        data: series.map((s) => {
+          // 如果有 device 标签（网络指标），则显示网卡名称
+          if (s.labels && s.labels.device) {
+            return s.labels.device;
+          }
+          return s.instance;
+        }).filter(instance => instance !== 'unknown'),
+        bottom: 20,
         left: 'center',
         type: 'scroll',
         itemGap: 20,
@@ -175,7 +188,7 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         left: '1%',
         right: '10%',
         top: '20px',
-        bottom: '10%',
+        bottom: '20%',
         containLabel: true,
       },
       xAxis: {

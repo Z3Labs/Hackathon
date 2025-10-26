@@ -223,10 +223,11 @@ type QueryMetricsResp struct {
 }
 
 type MonitorSeries struct {
-	Instance string      `json:"instance"` // 实例标识（机器IP）
-	Metric   string      `json:"metric"`   // 指标名称
-	Unit     string      `json:"unit"`     // 单位
-	Data     []DataPoint `json:"data"`     // 数据点列表
+	Instance string            `json:"instance"` // 实例标识（机器名称）
+	Metric   string            `json:"metric"`   // 指标名称
+	Unit     string            `json:"unit"`     // 单位
+	Data     []DataPoint       `json:"data"`     // 数据点列表
+	Labels   map[string]string `json:"labels"`   // 原始标签（包含 device 等）
 }
 
 type DataPoint struct {

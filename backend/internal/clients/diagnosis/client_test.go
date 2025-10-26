@@ -105,12 +105,21 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 		t.Fatal("PROMETHEUS_URL environment variable is required")
 	}
 
+	// GitHub MCP 配置（可选，提供 token 后自动启用）
+	githubToken := os.Getenv("GITHUB_TOKEN")
+	githubToolsets := os.Getenv("GITHUB_TOOLSETS")
+	if githubToolsets == "" {
+		githubToolsets = "repos,issues,pull_requests,releases"
+	}
+
 	cfg := config.AIConfig{
-		APIKey:        apiKey,
-		BaseURL:       baseURL,
-		Model:         model,
-		PrometheusURL: prometheusURL,
-		Timeout:       120,
+		APIKey:         apiKey,
+		BaseURL:        baseURL,
+		Model:          model,
+		PrometheusURL:  prometheusURL,
+		GitHubToken:    githubToken,    // 提供后自动启用 GitHub MCP
+		GitHubToolsets: githubToolsets,
+		Timeout:        120,
 	}
 
 	// 2. 创建 MCP 客户端

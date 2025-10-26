@@ -24,14 +24,21 @@ async def main():
     parser.add_argument('--model', required=True, help='模型名称')
     parser.add_argument('--prometheus-url', required=True, help='Prometheus URL')
 
+    # GitHub MCP 参数（可选）
+    parser.add_argument('--github-token', help='GitHub Personal Access Token')
+    parser.add_argument('--github-toolsets', default='repos,issues,pull_requests,releases', help='GitHub MCP 工具集')
+
     args = parser.parse_args()
 
     try:
-        # 调用诊断函数
+        # 调用诊断函数（如果提供了 github_token，自动启用 GitHub MCP）
         result = await simple_diagnosis(
             prompt=args.prompt,
             anthropic_api_key=args.api_key,
             prometheus_url=args.prometheus_url,
+            github_token=args.github_token,
+            enable_github_mcp=(args.github_token is not None and args.github_token != ''),
+            github_toolsets=args.github_toolsets,
             anthropic_base_url=args.base_url,
             model=args.model,
         )

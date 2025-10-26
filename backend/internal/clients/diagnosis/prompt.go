@@ -81,6 +81,8 @@ func buildPromptTemplate(req *types.PostAlertCallbackReq) string {
 - 报告应该简洁明了，便于运维人员快速理解和处理
 - 如果某些指标查询失败，请说明并基于现有信息进行分析
 
+%s
+
 现在请开始诊断分析：`,
 		req.Alertname,
 		req.Status,
@@ -95,10 +97,40 @@ func buildPromptTemplate(req *types.PostAlertCallbackReq) string {
 		req.IsEmergent,
 		labelsStr,
 		annotationsStr,
+		github_search_prompt,
 	)
 
 	return prompt
 }
+
+// 若问题不存在则输出分析结果
+var github_search_prompt = `根据以上排查信息，
+若确定问题的存在，则进一步分析 GitHub 仓库 Z3Labs/MockServer 最新 release 中的潜在 bug：
+
+  1. 用 "get_latest_release" 获取最新 release，从 body 中提取该次发布的 PR 编号，若该次发布存在pr，则继续，否则结束分析。
+
+  2. 逐个分析 PR，对每个 PR 编号，依次调用以下工具：
+  ### 2.1 获取 PR 基本信息
+  工具：pull_request_read
+  - method: "get"
+  - pullNumber: [PR编号]
+  ### 2.2 获取代码变更文件
+  工具：pull_request_read
+  - method: "get_files"
+  - pullNumber: [PR编号]
+  ### 2.3 获取代码 Diff
+  工具：pull_request_read
+  - method: "get_diff"
+  - pullNumber: [PR编号]
+
+  3. 分析每个 PR 的 diff，查找常见的致命 bug（忽略不会导致发布失败的小问题）：
+     - 空指针问题
+     - 资源泄漏（未关闭连接、文件句柄）
+     - 并发安全
+     - 逻辑错误
+	 - ...
+
+  4. 若查找到可能的错误，则输出：PR编号 + 文件路径 + 问题描述 + 建议修复`
 
 // formatMap 格式化 map 为易读的字符串
 func formatMap(m map[string]string) string {

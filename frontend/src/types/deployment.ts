@@ -1,5 +1,6 @@
 export interface NodeDeployment {
   id: string;
+  name: string;
   ip: string;
   node_deploy_status: 'pending' | 'deploying' | 'success' | 'failed' | 'skipped' | 'rolled_back';
   release_log: string;

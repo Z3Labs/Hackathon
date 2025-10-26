@@ -8,6 +8,7 @@ import (
 	apps "github.com/Z3Labs/Hackathon/backend/internal/handler/apps"
 	deployments "github.com/Z3Labs/Hackathon/backend/internal/handler/deployments"
 	machines "github.com/Z3Labs/Hackathon/backend/internal/handler/machines"
+	monitoring "github.com/Z3Labs/Hackathon/backend/internal/handler/monitoring"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -110,6 +111,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/api/v1/deployments/:id/node-deployments/cancel",
 				Handler: deployments.CancelNodeDeploymentHandler(serverCtx),
+			},
+		},
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/v1/metrics/query",
+				Handler: monitoring.QueryMetricsHandler(serverCtx),
 			},
 		},
 	)

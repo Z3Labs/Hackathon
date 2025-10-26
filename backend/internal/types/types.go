@@ -82,6 +82,7 @@ type HealthThreshold struct {
 
 type NodeDeployment struct {
 	Id               string `json:"id"`                 // 机器唯一标识
+	Name             string `json:"name"`               // 机器名称
 	Ip               string `json:"ip"`                 // IP地址
 	NodeDeployStatus string `json:"node_deploy_status"` // 发布状态: pending-待发布, deploying-发布中, success-成功, failed-失败
 	ReleaseLog       string `json:"release_log"`        // 发布日志
@@ -208,6 +209,29 @@ type GetDeploymentDetailReq struct {
 type GetDeploymentDetailResp struct {
 	Deployment Deployment `json:"deployment"`       // 发布记录详情
 	Report     *Report    `json:"report,omitempty"` // 诊断报告（可能为空）
+}
+
+type QueryMetricsReq struct {
+	Query string `form:"query"`            // PromQL查询语句
+	Start string `form:"start"`            // 开始时间（Unix时间戳）
+	End   string `form:"end"`              // 结束时间（Unix时间戳）
+	Step  string `form:"step,default=60s"` // 采样间隔，默认60s
+}
+
+type QueryMetricsResp struct {
+	Series []MonitorSeries `json:"series"` // 时序数据系列
+}
+
+type MonitorSeries struct {
+	Instance string      `json:"instance"` // 实例标识（机器IP）
+	Metric   string      `json:"metric"`   // 指标名称
+	Unit     string      `json:"unit"`     // 单位
+	Data     []DataPoint `json:"data"`     // 数据点列表
+}
+
+type DataPoint struct {
+	Timestamp int64   `json:"timestamp"` // 时间戳（秒）
+	Value     float64 `json:"value"`     // 数值
 }
 
 type Report struct {

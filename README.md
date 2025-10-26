@@ -60,12 +60,21 @@
             └──────────────────────┴──────────────────────────┘
 ```
 
+### mockServer 设计
+- [MockServer 设计文档](doc/mockserver_design.md) - MockExecutor 测试平台实现与技术方案
+
+### 快速开始
+- [部署](doc/PRODUCTION_DEPLOYMENT.md)
+
 ### 模块设计文档
 - [部署执行器设计](doc/deploy_executor.md)
 - [发布计划设计](doc/deploy_plan.md)
-- [部署文档](doc/deploy.md)
+- [部署设计文档](doc/deploy.md)
 - [AI 诊断实现](doc/diagnosis_implementation.md)
 - [Prometheus MCP 集成](doc/prometheus-mcp-server.md)
+
+### 集成环境
+http://118.89.104.170:13354/
 
 ## 贡献者
 

@@ -95,7 +95,7 @@ func (am *AlertMonitor) CheckAlerts(ctx context.Context) error {
 
 		for _, alert := range alerts {
 			if err := am.checkSingleAlert(ctx, deployment, alert, now); err != nil {
-				logx.Errorf("Failed to check alert %s for deployment %s: %v", 
+				logx.Errorf("Failed to check alert %s for deployment %s: %v",
 					alert.AlertRule.Name, deploymentID, err)
 			}
 		}
@@ -114,9 +114,9 @@ func (am *AlertMonitor) shouldStopMonitoring(deployment *model.Deployment, now t
 	return false
 }
 
-func (am *AlertMonitor) checkSingleAlert(ctx context.Context, deployment *model.Deployment, 
+func (am *AlertMonitor) checkSingleAlert(ctx context.Context, deployment *model.Deployment,
 	alert *DeploymentAlert, now time.Time) error {
-	
+
 	alert.LastCheckTime = now
 
 	queryExpr := alert.AlertRule.AlertExpr
@@ -132,7 +132,7 @@ func (am *AlertMonitor) checkSingleAlert(ctx context.Context, deployment *model.
 			alert.IsFiring = true
 			firingStart := now
 			alert.FiringStart = &firingStart
-			logx.Infof("Alert %s started firing for deployment %s", 
+			logx.Infof("Alert %s started firing for deployment %s",
 				alert.AlertRule.Name, deployment.Id)
 		} else {
 			duration, err := time.ParseDuration(alert.AlertRule.Duration)
@@ -148,7 +148,7 @@ func (am *AlertMonitor) checkSingleAlert(ctx context.Context, deployment *model.
 		}
 	} else {
 		if alert.IsFiring {
-			logx.Infof("Alert %s stopped firing for deployment %s", 
+			logx.Infof("Alert %s stopped firing for deployment %s",
 				alert.AlertRule.Name, deployment.Id)
 			alert.IsFiring = false
 			alert.FiringStart = nil
@@ -188,16 +188,16 @@ func (am *AlertMonitor) matchesLabels(metric map[string]string, ruleLabels map[s
 	return true
 }
 
-func (am *AlertMonitor) triggerAlert(ctx context.Context, deployment *model.Deployment, 
+func (am *AlertMonitor) triggerAlert(ctx context.Context, deployment *model.Deployment,
 	alert *DeploymentAlert, results []prom.InstantQueryResult) error {
-	
-	logx.Infof("Triggering alert %s for deployment %s after duration threshold", 
+
+	logx.Infof("Triggering alert %s for deployment %s after duration threshold",
 		alert.AlertRule.Name, deployment.Id)
 
 	now := time.Now()
-	desc := fmt.Sprintf("Alert %s has been firing for %s", 
+	desc := fmt.Sprintf("Alert %s has been firing for %s",
 		alert.AlertRule.Name, alert.AlertRule.Duration)
-	
+
 	if len(alert.AlertRule.Annotations) > 0 {
 		if d, ok := alert.AlertRule.Annotations["description"]; ok {
 			desc = d

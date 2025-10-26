@@ -45,7 +45,14 @@ func (l *RollbackDeploymentLogic) RollbackDeployment(req *types.RollbackDeployme
 		}
 	}
 
-	deployment.Status = model.DeploymentStatusRolledBack
+	// 对当前发布 成功/失败的节点做回滚
+	for i, machine := range deployment.NodeDeployments {
+		if machine.NodeDeployStatus == model.NodeDeploymentStatusSuccess || machine.NodeDeployStatus == model.NodeDeploymentStatusFailed {
+			deployment.NodeDeployments[i].NodeDeployStatus = model.NodeDeploymentStatusRollingBack
+		}
+	}
+
+	deployment.Status = model.DeploymentStatusRollingBack
 	deployment.UpdatedTime = time.Now().Unix()
 
 	err = l.svcCtx.DeploymentModel.Update(l.ctx, deployment)

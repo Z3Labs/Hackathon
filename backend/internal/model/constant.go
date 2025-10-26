@@ -32,21 +32,21 @@ const (
 	AlertStatusNormal AlertStatus = "normal" // 正常
 	AlertStatusAlert  AlertStatus = "alert"  // 告警
 
-	NodeDeploymentStatusPending    NodeDeploymentStatus = "pending"     // 待发布
-	NodeDeploymentStatusDeploying  NodeDeploymentStatus = "deploying"   // 发布中
-	NodeDeploymentStatusSkipped    NodeDeploymentStatus = "skipped"     // 跳过
-	NodeDeploymentStatusSuccess    NodeDeploymentStatus = "success"     // 成功
-	NodeDeploymentStatusRolledBack NodeDeploymentStatus = "rolled_back" // 已回滚
-	NodeDeploymentStatusFailed     NodeDeploymentStatus = "failed"      // 失败
+	NodeDeploymentStatusPending     NodeDeploymentStatus = "pending"      // 待发布
+	NodeDeploymentStatusDeploying   NodeDeploymentStatus = "deploying"    // 发布中
+	NodeDeploymentStatusSkipped     NodeDeploymentStatus = "skipped"      // 跳过
+	NodeDeploymentStatusSuccess     NodeDeploymentStatus = "success"      // 成功
+	NodeDeploymentStatusRollingBack NodeDeploymentStatus = "rolling_back" // 回滚中
+	NodeDeploymentStatusRolledBack  NodeDeploymentStatus = "rolled_back"  // 已回滚
+	NodeDeploymentStatusFailed      NodeDeploymentStatus = "failed"       // 失败
 
-	DeploymentStatusPending        DeploymentStatus = "pending"         // 待发布
-	DeploymentStatusDeploying      DeploymentStatus = "deploying"       // 发布中
-	DeploymentStatusPartialSuccess DeploymentStatus = "partial_success" // 部分成功
-	DeploymentStatusSuccess        DeploymentStatus = "success"         // 成功
-	DeploymentStatusFailed         DeploymentStatus = "failed"          // 失败
-	DeploymentStatusRollingBack    DeploymentStatus = "rolling_back"    // 回滚中
-	DeploymentStatusRolledBack     DeploymentStatus = "rolled_back"     // 已回滚
-	DeploymentStatusCanceled       DeploymentStatus = "canceled"        // 已取消
+	DeploymentStatusPending     DeploymentStatus = "pending"      // 待发布
+	DeploymentStatusDeploying   DeploymentStatus = "deploying"    // 发布中
+	DeploymentStatusSuccess     DeploymentStatus = "success"      // 成功
+	DeploymentStatusFailed      DeploymentStatus = "failed"       // 失败
+	DeploymentStatusRollingBack DeploymentStatus = "rolling_back" // 回滚中
+	DeploymentStatusRolledBack  DeploymentStatus = "rolled_back"  // 已回滚
+	DeploymentStatusCanceled    DeploymentStatus = "canceled"     // 已取消
 
 	GrayStrategyCanary    GrayStrategy = "canary"     // 金丝雀发布
 	GrayStrategyBlueGreen GrayStrategy = "blue-green" // 蓝绿发布

@@ -66,6 +66,7 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 	deployment := &model.Deployment{
 		Id:              deploymentId,
 		AppName:         req.AppName,
+		AppId:           application[0].Id,
 		Status:          model.DeploymentStatusPending,
 		PackageVersion:  req.PackageVersion,
 		ConfigPath:      req.ConfigPath,
@@ -126,32 +127,14 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 }
 
 func pkgInfo(kodo *qiniu.Client, app, version string) (model.PackageInfo, error) {
-	// 先获取应用的所有版本
-	versions, err := kodo.GetAppVersions(context.Background(), app)
-	if err != nil {
-		return model.PackageInfo{}, err
-	}
-
-	// 查找指定版本的文件
-	var targetFile string
-	for _, v := range versions {
-		if v.Version == version {
-			targetFile = app + "/" + v.FileName
-			break
-		}
-	}
-
-	if targetFile == "" {
-		return model.PackageInfo{}, errors.New("版本文件不存在")
-	}
-
-	fileInfo, err := kodo.GetFileStat(context.Background(), targetFile)
+	file := app + "/" + version + ".tar.gz"
+	fileInfo, err := kodo.GetFileStat(context.Background(), file)
 	if err != nil {
 		return model.PackageInfo{}, err
 	}
 	return model.PackageInfo{
-		URL:       kodo.GetFileURL(context.Background(), targetFile, time.Now().Add(time.Hour*24*7).Unix()),
+		URL:       kodo.GetFileURL(context.Background(), file, time.Now().Add(time.Hour*24*7).Unix()),
 		MD5:       fileInfo.Md5,
-		CreatedAt: time.Unix(fileInfo.PutTime, 0),
+		CreatedAt: time.Unix(fileInfo.PutTime/1e7, 0),
 	}, nil
 }

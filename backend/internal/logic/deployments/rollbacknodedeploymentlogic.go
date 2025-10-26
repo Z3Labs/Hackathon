@@ -72,7 +72,7 @@ func (l *RollbackNodeDeploymentLogic) RollbackNodeDeployment(req *types.Rollback
 	for i := range deployment.NodeDeployments {
 		if nodeDeploymentIdMap[deployment.NodeDeployments[i].Id] {
 			if deployment.NodeDeployments[i].NodeDeployStatus == model.NodeDeploymentStatusSuccess {
-				deployment.NodeDeployments[i].NodeDeployStatus = model.NodeDeploymentStatusRolledBack
+				deployment.NodeDeployments[i].NodeDeployStatus = model.NodeDeploymentStatusRollingBack
 				rollbackCount++
 			}
 		}

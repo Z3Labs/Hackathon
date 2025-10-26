@@ -16,7 +16,7 @@ type AnsibleExecutor struct {
 }
 
 func NewAnsibleExecutor(config ExecutorConfig) *AnsibleExecutor {
-	playbookPath := "/workspace/backend/playbooks/deploy.yml"
+	playbookPath := "/etc/playbook/deploy.yml"
 	if path := os.Getenv("ANSIBLE_PLAYBOOK_PATH"); path != "" {
 		playbookPath = path
 	}
@@ -28,7 +28,7 @@ func NewAnsibleExecutor(config ExecutorConfig) *AnsibleExecutor {
 }
 
 func (a *AnsibleExecutor) Deploy(ctx context.Context) error {
-	extraVars := fmt.Sprintf("ansible_user=root service_name=%s deploy_version=%s package_url=%s package_md5=%s prev_version=%s",
+	extraVars := fmt.Sprintf("ansible_user=root service_name=%s deploy_version=%s package_url=%s package_md5sum=%s prev_version=%s",
 		a.config.Service,
 		a.config.Version,
 		a.config.PackageURL,
@@ -60,7 +60,7 @@ func (a *AnsibleExecutor) Rollback(ctx context.Context) error {
 		return fmt.Errorf("no previous version to rollback to")
 	}
 
-	extraVars := fmt.Sprintf("ansible_user=root service_name=%s deploy_version=%s package_url=%s package_sha256=%s prev_version=%s rollback=true",
+	extraVars := fmt.Sprintf("ansible_user=root service_name=%s deploy_version=%s package_url=%s package_md5sum=%s prev_version=%s rollback=true",
 		a.config.Service,
 		a.config.Version,
 		a.config.PackageURL,

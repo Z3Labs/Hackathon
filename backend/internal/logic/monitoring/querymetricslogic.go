@@ -75,6 +75,14 @@ func (l *QueryMetricsLogic) QueryMetrics(req *types.QueryMetricsReq) (resp *type
 	l.Infof("[QueryMetrics] Processing %d series", len(series))
 	for i, s := range series {
 		l.Infof("[QueryMetrics] Series %d: metric=%v, values count=%d", i, s.Metric, len(s.Values))
+		// 打印 metric 中的所有标签键，便于调试
+		if i == 0 && len(s.Metric) > 0 {
+			keys := make([]string, 0, len(s.Metric))
+			for k := range s.Metric {
+				keys = append(keys, k)
+			}
+			l.Infof("[QueryMetrics] Available metric keys: %v", keys)
+		}
 		var dataPoints []types.DataPoint
 		for j, value := range s.Values {
 			// 记录前3个数据点用于调试
@@ -102,8 +110,11 @@ func (l *QueryMetricsLogic) QueryMetrics(req *types.QueryMetricsReq) (resp *type
 			})
 		}
 
+		instance := extractInstanceFromMetric(s.Metric)
+		l.Infof("[QueryMetrics] Series %d: extracted instance/hostname: %s", i, instance)
+
 		monitorSeries = append(monitorSeries, types.MonitorSeries{
-			Instance: extractInstanceFromMetric(s.Metric),
+			Instance: instance,
 			Metric:   "custom",
 			Unit:     "",
 			Data:     dataPoints,
@@ -174,8 +185,17 @@ func (l *QueryMetricsLogic) queryVMAPI(baseURL, promQL string, start, end int64,
 
 // extractInstanceFromMetric 从metric map中提取instance标识
 func extractInstanceFromMetric(metric map[string]string) string {
-	if instance, ok := metric["instance"]; ok {
-		return instance
+	// 使用 hostname 标签（实际监控数据使用 hostname）
+	if hostname, ok := metric["hostname"]; ok {
+		return hostname
 	}
+
+	// 如果没有 hostname，尝试其他可能的标签
+	for key, value := range metric {
+		if key == "instance" || key == "hostname" || key == "host" {
+			return value
+		}
+	}
+
 	return "unknown"
 }

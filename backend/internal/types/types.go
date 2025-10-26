@@ -43,10 +43,10 @@ type Application struct {
 }
 
 type RollbackPolicy struct {
-	Enabled       bool              `json:"enabled"`        // 是否启用自动回滚
-	AlertRules    []PrometheusAlert `json:"alert_rules"`    // Prometheus告警规则列表
-	AutoRollback  bool              `json:"auto_rollback"`  // 是否自动执行回滚
-	NotifyChannel string            `json:"notify_channel"` // 通知渠道
+	Enabled       bool              `json:"enabled"`              // 是否启用自动回滚
+	AlertRules    []PrometheusAlert `json:"alert_rules,optional"` // Prometheus告警规则列表
+	AutoRollback  bool              `json:"auto_rollback"`        // 是否自动执行回滚
+	NotifyChannel string            `json:"notify_channel"`       // 通知渠道
 }
 
 type PrometheusAlert struct {
@@ -326,6 +326,19 @@ type TestMachineConnectionReq struct {
 type TestMachineConnectionResp struct {
 	Success bool   `json:"success"` // 连接是否成功
 	Message string `json:"message"` // 连接结果消息
+}
+
+type GetMachineHostnameReq struct {
+	Ip       string `json:"ip"`       // IP地址
+	Port     int    `json:"port"`     // SSH端口号
+	Username string `json:"username"` // SSH用户名
+	Password string `json:"password"` // SSH密码
+}
+
+type GetMachineHostnameResp struct {
+	Hostname string `json:"hostname"` // 机器hostname
+	Success  bool   `json:"success"`  // 获取是否成功
+	Message  string `json:"message"`  // 结果消息
 }
 
 type PostAlertCallbackReq struct {

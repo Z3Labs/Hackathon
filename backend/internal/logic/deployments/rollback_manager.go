@@ -9,172 +9,80 @@ import (
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type RollbackManager struct {
-	deploymentModel model.DeploymentModel
-	executorFactory executor.ExecutorFactoryInterface
-	taskRegistry    map[string]context.CancelFunc
-	taskMutex       sync.RWMutex
+	deploymentModel  model.DeploymentModel
+	applicationModel model.ApplicationModel
+	executorFactory  executor.ExecutorFactoryInterface
+	taskRegistry     map[string]context.CancelFunc
+	taskMutex        sync.RWMutex
 }
 
 func NewRollbackManager(ctx context.Context, svcCtx *svc.ServiceContext) *RollbackManager {
 	return &RollbackManager{
-		deploymentModel: svcCtx.DeploymentModel,
-		executorFactory: executor.NewExecutorFactory(),
-		taskRegistry:    make(map[string]context.CancelFunc),
+		deploymentModel:  svcCtx.DeploymentModel,
+		applicationModel: svcCtx.ApplicationModel,
+		executorFactory:  executor.NewExecutorFactory(),
+		taskRegistry:     make(map[string]context.CancelFunc),
 	}
 }
 
-func (rm *RollbackManager) registerTask(deploymentID string, cancel context.CancelFunc) {
-	rm.taskMutex.Lock()
-	defer rm.taskMutex.Unlock()
-
-	if oldCancel, exists := rm.taskRegistry[deploymentID]; exists {
-		oldCancel()
+func (rm *RollbackManager) executeRollback(ctx context.Context, deployment *model.Deployment, nodes []string, prevVersion string) {
+	if len(nodes) == 0 {
+		return
 	}
-
-	rm.taskRegistry[deploymentID] = cancel
-}
-
-func (rm *RollbackManager) unregisterTask(deploymentID string) {
-	rm.taskMutex.Lock()
-	defer rm.taskMutex.Unlock()
-	delete(rm.taskRegistry, deploymentID)
-}
-
-func (rm *RollbackManager) cancelTask(deploymentID string) bool {
-	rm.taskMutex.RLock()
-	cancel, exists := rm.taskRegistry[deploymentID]
-	rm.taskMutex.RUnlock()
-
-	if exists {
-		cancel()
-		return true
-	}
-	return false
-}
-
-func (rm *RollbackManager) RollbackDeployment(ctx context.Context, deploymentID string, hosts []string) error {
-	deployment, err := rm.deploymentModel.FindById(ctx, deploymentID)
-	if err != nil {
-		return fmt.Errorf("failed to find deployment: %w", err)
-	}
-
-	if deployment.Status != model.DeploymentStatusFailed && deployment.Status != model.DeploymentStatusPartialSuccess {
-		return fmt.Errorf("cannot rollback deployment with status: %s", deployment.Status)
-	}
-
-	deployment.Status = model.DeploymentStatusRollingBack
-	if err := rm.deploymentModel.Update(ctx, deployment); err != nil {
-		return fmt.Errorf("failed to update deployment status: %w", err)
-	}
-
-	var nodesToRollback []int
-	for i := range deployment.NodeDeployments {
-		node := &deployment.NodeDeployments[i]
-		if len(hosts) == 0 || rm.containsHost(hosts, node.Id) {
-			if node.NodeDeployStatus == model.NodeDeploymentStatusFailed || node.NodeDeployStatus == model.NodeDeploymentStatusSuccess {
-				nodesToRollback = append(nodesToRollback, i)
-			}
-		}
-	}
-
-	if len(nodesToRollback) == 0 {
-		return fmt.Errorf("no nodes found to rollback")
-	}
-
-	taskCtx, cancel := context.WithCancel(context.Background())
-	rm.registerTask(deploymentID, cancel)
-
-	go func() {
-		defer rm.unregisterTask(deploymentID)
-		rm.executeRollback(taskCtx, deployment, nodesToRollback)
-	}()
-
-	return nil
-}
-
-func (rm *RollbackManager) executeRollback(ctx context.Context, deployment *model.Deployment, nodeIndexes []int) {
 	var wg sync.WaitGroup
 	successCount := 0
 	var mu sync.Mutex
-
-	for _, nodeIndex := range nodeIndexes {
-		select {
-		case <-ctx.Done():
-			wg.Wait()
-			rm.handleRollbackCancellation(deployment, successCount, len(nodeIndexes))
-			return
-		default:
-		}
-
+	for _, id := range nodes {
+		logx.Infof("start rolling back deployment:%s, node:%s", deployment.Id, id)
 		wg.Add(1)
-		go func(idx int) {
+		go func(id string) {
 			defer wg.Done()
-
-			if err := rm.rollbackNode(ctx, deployment, idx); err == nil {
+			err := rm.rollbackNode(ctx, deployment, id, prevVersion)
+			if err != nil {
+				logx.Errorf("rolling back deployment:%s, node:%s, failed, err = %s ", deployment.Id, id, err)
+			} else {
 				mu.Lock()
 				successCount++
 				mu.Unlock()
 			}
-		}(nodeIndex)
+		}(id)
 	}
 
 	wg.Wait()
 
-	if successCount == len(nodeIndexes) {
+	if successCount == len(nodes) {
 		deployment.Status = model.DeploymentStatusRolledBack
-	} else if successCount > 0 {
-		deployment.Status = model.DeploymentStatusPartialSuccess
 	} else {
 		deployment.Status = model.DeploymentStatusFailed
 	}
 
-	rm.deploymentModel.Update(context.Background(), deployment)
+	rm.deploymentModel.UpdateStatus(context.Background(), deployment.Id, deployment.Status)
 }
 
-func (rm *RollbackManager) handleRollbackCancellation(deployment *model.Deployment, successCount, totalCount int) {
-	current, _ := rm.deploymentModel.FindById(context.Background(), deployment.Id)
-	if current != nil {
-		if successCount > 0 && successCount < totalCount {
-			current.Status = model.DeploymentStatusPartialSuccess
-		} else if successCount == 0 {
-			current.Status = model.DeploymentStatusFailed
-		}
-		rm.deploymentModel.Update(context.Background(), current)
-	}
-}
-
-func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.Deployment, nodeIndex int) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
+func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.Deployment, id string, preVersion string) error {
 
 	deployment, err := rm.deploymentModel.FindById(context.Background(), deployment.Id)
 	if err != nil {
 		return err
 	}
 
-	if nodeIndex >= len(deployment.NodeDeployments) {
+	nodeIndex := findNodeIndex(deployment.NodeDeployments, id)
+	if nodeIndex < 0 {
 		return fmt.Errorf("node index out of range")
 	}
 
 	node := &deployment.NodeDeployments[nodeIndex]
-
-	if node.PrevVersion == "" {
-		return fmt.Errorf("no previous version to rollback to")
-	}
-
 	executor, err := rm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
 		Platform:    string(node.Platform),
 		Host:        node.Id,
 		IP:          node.Ip,
 		Service:     deployment.AppName,
 		Version:     node.CurrentVersion,
-		PrevVersion: node.PrevVersion,
+		PrevVersion: preVersion,
 		PackageURL:  deployment.Package.URL,
 		MD5:         deployment.Package.MD5,
 	})
@@ -186,7 +94,7 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.D
 		rm.deploymentModel.Update(context.Background(), deployment)
 		return err
 	}
-
+	logx.Infof("%s@%s start rolling_back", deployment.AppName, node.Id)
 	if err := executor.Rollback(ctx); err != nil {
 		if ctx.Err() != nil {
 			node.NodeDeployStatus = model.NodeDeploymentStatusFailed
@@ -213,66 +121,57 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.D
 	return nil
 }
 
-func (rm *RollbackManager) containsHost(hosts []string, host string) bool {
-	for _, h := range hosts {
-		if h == host {
-			return true
-		}
-	}
-	return false
-}
-
-func (rm *RollbackManager) GetRollbackStatus(ctx context.Context, deploymentID string) (*model.Deployment, error) {
-	return rm.deploymentModel.FindById(ctx, deploymentID)
-}
-
-func (rm *RollbackManager) CancelRollback(ctx context.Context, deploymentID string) error {
-	deployment, err := rm.deploymentModel.FindById(ctx, deploymentID)
-	if err != nil {
-		return fmt.Errorf("failed to find deployment: %w", err)
-	}
-
-	if deployment.Status != model.DeploymentStatusRollingBack {
-		return fmt.Errorf("deployment is not in rolling back status")
-	}
-
-	deployment.Status = model.DeploymentStatusFailed
-	if err := rm.deploymentModel.Update(ctx, deployment); err != nil {
-		return err
-	}
-
-	rm.cancelTask(deploymentID)
-
-	return nil
-}
-
 func (rm *RollbackManager) ContinueRollingBackDeployments(ctx context.Context) error {
-	deployments, err := rm.deploymentModel.Search(ctx, &model.DeploymentCond{
-		Status: string(model.DeploymentStatusRollingBack),
-	})
+
+	// 发布中任务，单节点回滚
+	deployments, err := rm.deploymentModel.Search(ctx, &model.DeploymentCond{Status: string(model.DeploymentStatusDeploying)})
 	if err != nil {
-		return fmt.Errorf("failed to search rolling back deployments: %w", err)
+		return fmt.Errorf("failed to search deployments with status %s: %w", model.DeploymentStatusDeploying, err)
 	}
 
 	for _, deployment := range deployments {
-		var nodesToRollback []int
-		for i := range deployment.NodeDeployments {
-			node := &deployment.NodeDeployments[i]
-			if node.NodeDeployStatus == model.NodeDeploymentStatusFailed || node.NodeDeployStatus == model.NodeDeploymentStatusSuccess {
-				nodesToRollback = append(nodesToRollback, i)
+		var nodesToRollback []string
+		for _, node := range deployment.NodeDeployments {
+			if node.NodeDeployStatus == model.NodeDeploymentStatusRollingBack {
+				nodesToRollback = append(nodesToRollback, node.Id)
 			}
 		}
-
+		preVersion, err := rm.findApplicationPrevVersion(ctx, deployment)
+		if err != nil {
+			logx.Infof("find application %s, prev version failed, err = %s ", deployment.AppName, err)
+		}
 		if len(nodesToRollback) > 0 {
-			taskCtx, cancel := context.WithCancel(context.Background())
-			rm.registerTask(deployment.Id, cancel)
-
-			go func(dep *model.Deployment, nodes []int) {
-				defer rm.unregisterTask(dep.Id)
-				rm.executeRollback(taskCtx, dep, nodes)
-			}(deployment, nodesToRollback)
+			rm.executeRollback(ctx, deployment, nodesToRollback, preVersion)
 		}
 	}
+	// 整个发布回滚，多节点会滚
+	deployments, err = rm.deploymentModel.Search(ctx, &model.DeploymentCond{Status: string(model.DeploymentStatusRollingBack)})
+	if err != nil {
+		return fmt.Errorf("failed to search deployments with status %s: %w", model.DeploymentStatusRollingBack, err)
+	}
 
+	for _, deployment := range deployments {
+		var nodesToRollback []string
+		for _, node := range deployment.NodeDeployments {
+			if node.NodeDeployStatus == model.NodeDeploymentStatusSuccess {
+				nodesToRollback = append(nodesToRollback, node.Id)
+			}
+		}
+		preVersion, err := rm.findApplicationPrevVersion(ctx, deployment)
+		if err != nil {
+			logx.Infof("find application %s, prev version failed, err =  %s", deployment.AppName, err)
+		}
+		if len(nodesToRollback) > 0 {
+			rm.executeRollback(ctx, deployment, nodesToRollback, preVersion)
+		}
+	}
 	return nil
+}
+
+func (rm *RollbackManager) findApplicationPrevVersion(ctx context.Context, deployment *model.Deployment) (string, error) {
+	app, err := rm.applicationModel.FindById(ctx, deployment.AppId)
+	if err != nil {
+		return "", err
+	}
+	return app.CurrentVersion, nil
 }

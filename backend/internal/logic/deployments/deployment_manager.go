@@ -9,6 +9,7 @@ import (
 	"github.com/Z3Labs/Hackathon/backend/internal/logic/deployments/executor"
 	"github.com/Z3Labs/Hackathon/backend/internal/model"
 	"github.com/Z3Labs/Hackathon/backend/internal/svc"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type DeploymentManager struct {
@@ -117,59 +118,36 @@ func (dm *DeploymentManager) executeNodes(ctx context.Context, deployment *model
 	if batchSize <= 0 {
 		batchSize = 1
 	}
-	intervalSeconds := deployment.Pacer.IntervalSeconds
 
-	nodes := deployment.NodeDeployments
-	for i := 0; i < len(nodes); i += batchSize {
-		select {
-		case <-ctx.Done():
-			dm.handleCancellation(deployment)
-			return
-		default:
+	batchNodes := []model.NodeDeployment{}
+	for i := 0; i < len(deployment.NodeDeployments); i++ {
+		if deployment.NodeDeployments[i].NodeDeployStatus != model.NodeDeploymentStatusDeploying {
+			continue
 		}
-
-		current, err := dm.deploymentModel.FindById(context.Background(), deployment.Id)
-		if err != nil || current.Status == model.DeploymentStatusCanceled {
-			dm.handleCancellation(deployment)
-			return
-		}
-
-		end := i + batchSize
-		if end > len(nodes) {
-			end = len(nodes)
-		}
-
-		batch := nodes[i:end]
-		if err := dm.executeBatch(ctx, deployment, batch); err != nil {
-			if ctx.Err() != nil {
-				dm.handleCancellation(deployment)
-				return
-			}
-
-			deployment.Status = model.DeploymentStatusFailed
-			dm.deploymentModel.Update(context.Background(), deployment)
-			return
-		}
-
-		if end < len(nodes) {
-			select {
-			case <-time.After(time.Duration(intervalSeconds) * time.Second):
-			case <-ctx.Done():
-				dm.handleCancellation(deployment)
-				return
-			}
-		}
+		batchNodes = append(batchNodes, deployment.NodeDeployments[i])
 	}
 
-	deployment.Status = model.DeploymentStatusSuccess
-	dm.deploymentModel.Update(context.Background(), deployment)
-}
-
-func (dm *DeploymentManager) handleCancellation(deployment *model.Deployment) {
-	current, _ := dm.deploymentModel.FindById(context.Background(), deployment.Id)
-	if current != nil && current.Status != model.DeploymentStatusCanceled {
-		current.Status = model.DeploymentStatusCanceled
-		dm.deploymentModel.Update(context.Background(), current)
+	if err := dm.executeBatch(ctx, deployment, batchNodes); err != nil {
+		dm.deploymentModel.UpdateStatus(context.Background(), deployment.Id, model.DeploymentStatusFailed)
+		return
+	}
+	// 全部节点发布完成，设置本次发布完成状态
+	deployment, _ = dm.deploymentModel.FindById(context.Background(), deployment.Id)
+	if deployment.Status != model.DeploymentStatusDeploying {
+		return
+	}
+	succCount := 0
+	for _, node := range deployment.NodeDeployments {
+		if node.NodeDeployStatus == model.NodeDeploymentStatusSuccess {
+			succCount++
+		}
+	}
+	if succCount == len(deployment.NodeDeployments) {
+		dm.deploymentModel.UpdateStatus(ctx, deployment.Id, model.DeploymentStatusSuccess)
+		if app, err := dm.applicationModel.FindById(ctx, deployment.AppId); err == nil {
+			app.CurrentVersion = deployment.PackageVersion
+			dm.applicationModel.Update(ctx, app)
+		}
 	}
 }
 
@@ -179,13 +157,13 @@ func (dm *DeploymentManager) executeBatch(ctx context.Context, deployment *model
 
 	for i := range nodes {
 		wg.Add(1)
-		go func(nodeIndex int) {
+		go func(nodeID string) {
 			defer wg.Done()
 
-			if err := dm.executeNode(ctx, deployment, nodeIndex); err != nil {
+			if err := dm.executeNode(ctx, deployment, nodeID); err != nil {
 				errChan <- err
 			}
-		}(i)
+		}(nodes[i].Id)
 	}
 
 	wg.Wait()
@@ -200,24 +178,25 @@ func (dm *DeploymentManager) executeBatch(ctx context.Context, deployment *model
 	return nil
 }
 
-func (dm *DeploymentManager) executeNode(ctx context.Context, deployment *model.Deployment, nodeIndex int) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
+func findNodeIndex(nodes []model.NodeDeployment, nodeId string) int {
+	for i := range nodes {
+		if nodes[i].Id == nodeId {
+			return i
+		}
 	}
-
+	return -1
+}
+func (dm *DeploymentManager) executeNode(ctx context.Context, deployment *model.Deployment, nodeId string) error {
 	deployment, err := dm.deploymentModel.FindById(context.Background(), deployment.Id)
 	if err != nil {
 		return err
 	}
-
-	if nodeIndex >= len(deployment.NodeDeployments) {
-		return fmt.Errorf("node index out of range")
+	nodeIndex := findNodeIndex(deployment.NodeDeployments, nodeId)
+	if nodeIndex < 0 {
+		return fmt.Errorf("node %s not found", nodeId)
 	}
-
 	node := &deployment.NodeDeployments[nodeIndex]
-	node.NodeDeployStatus = model.NodeDeploymentStatusDeploying
+	logx.Infof("start executing node(%d) %s, deployment %s", nodeIndex, node.Id, deployment.Id)
 	node.DeployingVersion = deployment.PackageVersion
 	node.Platform = deployment.Platform
 	node.UpdatedAt = time.Now()
@@ -241,27 +220,29 @@ func (dm *DeploymentManager) executeNode(ctx context.Context, deployment *model.
 	})
 
 	if err != nil {
+		logx.Errorf("failed to create executor: %w", err)
 		node.NodeDeployStatus = model.NodeDeploymentStatusFailed
 		node.ReleaseLog = err.Error()
 		node.UpdatedAt = time.Now()
 		dm.deploymentModel.Update(context.Background(), deployment)
 		return err
 	}
-
 	if err := executor.Deploy(ctx); err != nil {
 		if ctx.Err() != nil {
+			logx.Errorf("deployment canceled")
 			node.NodeDeployStatus = model.NodeDeploymentStatusFailed
 			node.ReleaseLog = "deployment canceled"
 			node.UpdatedAt = time.Now()
 			dm.deploymentModel.Update(context.Background(), deployment)
 			return ctx.Err()
 		}
-
+		logx.Errorf("deployment failed: %w", err)
 		node.NodeDeployStatus = model.NodeDeploymentStatusFailed
 		node.ReleaseLog = err.Error()
 		node.UpdatedAt = time.Now()
 
 		if rollbackErr := executor.Rollback(ctx); rollbackErr != nil {
+			logx.Errorf("rollback failed: %w", rollbackErr)
 			node.ReleaseLog = fmt.Sprintf("deploy failed: %s, rollback failed: %s", err.Error(), rollbackErr.Error())
 		} else {
 			node.NodeDeployStatus = model.NodeDeploymentStatusRolledBack
@@ -277,6 +258,7 @@ func (dm *DeploymentManager) executeNode(ctx context.Context, deployment *model.
 	node.CurrentVersion = deployment.PackageVersion
 	node.DeployingVersion = ""
 	node.UpdatedAt = time.Now()
+	logx.Infof("deployment successful: %s, node: %s, version: %s, deploying version: %s", deployment.Id, node.Id, deployment.PackageVersion, node.DeployingVersion)
 	dm.deploymentModel.Update(context.Background(), deployment)
 
 	return nil
@@ -306,27 +288,9 @@ func (dm *DeploymentManager) CancelDeployment(ctx context.Context, deploymentID 
 	return nil
 }
 
-func (dm *DeploymentManager) ProcessPendingDeployments(ctx context.Context) error {
-	deployments, err := dm.deploymentModel.Search(ctx, &model.DeploymentCond{
-		Status: string(model.DeploymentStatusPending),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to search pending deployments: %w", err)
-	}
-
-	for _, deployment := range deployments {
-		if err := dm.ExecuteDeployment(ctx, deployment.Id); err != nil {
-			fmt.Printf("failed to execute deployment %s: %v\n", deployment.Id, err)
-		}
-	}
-
-	return nil
-}
-
 func (dm *DeploymentManager) ContinueDeployingDeployments(ctx context.Context) error {
 	statuses := []model.DeploymentStatus{
 		model.DeploymentStatusDeploying,
-		model.DeploymentStatusPartialSuccess,
 	}
 
 	for _, status := range statuses {
@@ -342,6 +306,7 @@ func (dm *DeploymentManager) ContinueDeployingDeployments(ctx context.Context) e
 			dm.registerTask(deployment.Id, cancel)
 
 			go func(dep *model.Deployment) {
+				logx.Infof("continuing deployment: %s", dep.Id)
 				defer dm.unregisterTask(dep.Id)
 				dm.executeNodes(taskCtx, dep)
 			}(deployment)

@@ -27,16 +27,22 @@
         url: "{{ package_url }}"
         dest: "{{ release_dir }}/{{ svc }}.tar.gz"
         mode: '0644'
+    - name: Verify MD5 checksum
+      block:
+        - name: Calculate MD5 checksum
+          shell: "md5sum {{ release_dir }}/{{ svc }}.tar.gz | awk '{print $1}'"
+          register: md5sum_out
+          changed_when: false
 
-    - name: Verify md5 checksum
-      shell: "md5sum {{ release_dir }}/{{ svc }}.tar.gz | awk '{print $1}'"
-      register: md5sum_out 
-      changed_when: false
+        - name: Fail if checksum mismatch
+          fail:
+            msg: "❌ MD5 checksum mismatch for {{ svc }} version {{ version }} (expected: {{ package_md5sum }}, got: {{ md5sum_out.stdout }})"
+          when: md5sum_out.stdout != package_md5sum
 
-    - name: Fail if checksum mismatch
-      fail:
-        msg: "md5 checksum mismatch for {{ svc }} version {{ version }}"
-      when: md5sum_out.stdout != package_md5sum
+        - name: Success message if checksum OK
+          debug:
+            msg: "✅ MD5 checksum verified successfully for {{ svc }} version {{ version }}"
+          when: md5sum_out.stdout == package_md5sum
 
     - name: Extract package
       unarchive:

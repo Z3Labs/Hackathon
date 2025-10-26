@@ -10,21 +10,22 @@ import (
 
 type (
 	Application struct {
-		Id               string          `bson:"_id"              json:"id,omitempty"`       // mongo id
-		Name             string          `bson:"name"             json:"name"`               // 应用名称
-		DeployPath       string          `bson:"deployPath"       json:"deploy_path"`        // 部署路径
-		StartCmd         string          `bson:"startCmd"         json:"start_cmd"`          // 启动命令
-		StopCmd          string          `bson:"stopCmd"          json:"stop_cmd"`           // 停止命令
-		CurrentVersion   string          `bson:"currentVersion"   json:"currentVersion"`     // 当前版本
-		MachineCount     int             `bson:"machineCount"     json:"machine_count"`      // 机器总数量
-		HealthCount      int             `bson:"healthCount"      json:"health_count"`       // 健康机器数量
-		ErrorCount       int             `bson:"errorCount"       json:"error_count"`        // 异常机器数量
-		AlertCount       int             `bson:"alertCount"       json:"alert_count"`        // 告警机器数量
-		Machines         []Machine       `bson:"machines"         json:"machines"`           // 机器列表
-		UpStreamAppIds   []string        `bson:"upStreamAppIds" json:"up_stream_ids"`        // 上游应用
-		DownstreamAppIds []string        `bson:"downStreamAppIds" json:"down_stream_ids"`    // 下游服务
-		RollbackPolicy   *RollbackPolicy `bson:"rollbackPolicy"   json:"rollback_policy"`    // 回滚策略配置
-		REDMetricsConfig *REDMetrics     `bson:"redMetricsConfig" json:"red_metrics_config"` // RED指标配置,在做基于 AI 的异常分析时可以使用这些指标
+		Id                 string          `bson:"_id"              json:"id,omitempty"`          // mongo id
+		Name               string          `bson:"name"             json:"name"`                  // 应用名称
+		DeploymentPlatform PlatformType    `bson:"deploymentPlatform" json:"deployment_platform"` // 部署平台
+		DeployPath         string          `bson:"deployPath"       json:"deploy_path"`           // 部署路径
+		StartCmd           string          `bson:"startCmd"         json:"start_cmd"`             // 启动命令
+		StopCmd            string          `bson:"stopCmd"          json:"stop_cmd"`              // 停止命令
+		CurrentVersion     string          `bson:"currentVersion"   json:"currentVersion"`        // 当前版本
+		MachineCount       int             `bson:"machineCount"     json:"machine_count"`         // 机器总数量
+		HealthCount        int             `bson:"healthCount"      json:"health_count"`          // 健康机器数量
+		ErrorCount         int             `bson:"errorCount"       json:"error_count"`           // 异常机器数量
+		AlertCount         int             `bson:"alertCount"       json:"alert_count"`           // 告警机器数量
+		Machines           []Machine       `bson:"machines"         json:"machines"`              // 机器列表
+		UpStreamAppIds     []string        `bson:"upStreamAppIds" json:"up_stream_ids"`           // 上游应用
+		DownstreamAppIds   []string        `bson:"downStreamAppIds" json:"down_stream_ids"`       // 下游服务
+		RollbackPolicy     *RollbackPolicy `bson:"rollbackPolicy"   json:"rollback_policy"`       // 回滚策略配置
+		REDMetricsConfig   *REDMetrics     `bson:"redMetricsConfig" json:"red_metrics_config"`    // RED指标配置,在做基于 AI 的异常分析时可以使用这些指标
 
 		CreatedTime time.Time `bson:"createdTime"      json:"createdTime"` // 创建时间
 		UpdatedTime time.Time `bson:"updatedTime"      json:"updatedTime"` // 更新时间

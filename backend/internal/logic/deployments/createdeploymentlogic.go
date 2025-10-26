@@ -126,7 +126,7 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 }
 
 func pkgInfo(kodo *qiniu.Client, app, version string) (model.PackageInfo, error) {
-	file := app + "/" + version
+	file := app + "/" + version + ".tar.gz"
 	fileInfo, err := kodo.GetFileStat(context.Background(), file)
 	if err != nil {
 		return model.PackageInfo{}, err

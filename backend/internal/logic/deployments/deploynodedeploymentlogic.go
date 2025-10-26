@@ -64,8 +64,8 @@ func (l *DeployNodeDeploymentLogic) DeployNodeDeployment(req *types.DeployNodeDe
 	for i := range deployment.NodeDeployments {
 		if nodeDeploymentIdMap[deployment.NodeDeployments[i].Id] {
 			currentStatus := deployment.NodeDeployments[i].NodeDeployStatus
-			if currentStatus == model.NodeDeploymentStatusPending || 
-			   currentStatus == model.NodeDeploymentStatusFailed {
+			if currentStatus == model.NodeDeploymentStatusPending ||
+				currentStatus == model.NodeDeploymentStatusFailed {
 				deployment.NodeDeployments[i].NodeDeployStatus = model.NodeDeploymentStatusDeploying
 				deployCount++
 			}

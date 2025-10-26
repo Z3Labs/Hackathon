@@ -55,6 +55,7 @@ func (c *Client) GetAppVersions(ctx context.Context, appName string) ([]AppVersi
 			fileName := strings.TrimPrefix(entry.Key, prefix)
 
 			if strings.HasSuffix(fileName, ".tar.gz") {
+				fileName = strings.TrimSuffix(fileName, ".tar.gz")
 				parts := strings.Split(fileName, "_")
 				if len(parts) > 0 {
 					version := parts[0]

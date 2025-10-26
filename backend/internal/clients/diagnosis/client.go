@@ -35,7 +35,7 @@ func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (strin
 	if !req.NeedHandle {
 		return "", nil
 	}
-	deploymentId := req.Annotations["deployment_id"]
+	deploymentId := req.Labels["deploymentId"]
 
 	// 锁，待优化
 	deploy, _ := c.reportModel.FindByDeploymentId(c.ctx, deploymentId)

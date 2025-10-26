@@ -1,6 +1,18 @@
 # AI 诊断服务 Docker 镜像
-# 包含 Python 环境、Prometheus MCP Server (Python) 和诊断脚本
+# 包含 Python 环境、Prometheus MCP Server (Python)、GitHub MCP Server (Go) 和诊断脚本
 
+# ==================== 阶段 1: 编译 GitHub MCP Server ====================
+FROM golang:1.24-alpine AS github-mcp-builder
+
+# 安装编译依赖
+RUN apk add --no-cache git ca-certificates
+
+# 克隆并编译 github-mcp-server
+WORKDIR /build
+RUN git clone https://github.com/github/github-mcp-server.git . && \
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o github-mcp-server cmd/github-mcp-server/main.go
+
+# ==================== 阶段 2: Python 运行环境 ====================
 FROM python:3.11-slim
 
 # 设置工作目录
@@ -26,6 +38,10 @@ COPY requirements.txt .
 
 # 安装 Python 依赖
 RUN pip install --no-cache-dir -r requirements.txt
+
+# 复制 GitHub MCP Server 二进制（从第一阶段）
+COPY --from=github-mcp-builder /build/github-mcp-server /usr/local/bin/github-mcp-server
+RUN chmod +x /usr/local/bin/github-mcp-server
 
 # 复制所有 Python 脚本到容器
 COPY simple_anthropic_mcp.py .

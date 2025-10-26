@@ -12,6 +12,7 @@ AI:
   Model: ${AI_MODEL}                # 从环境变量读取 如 claude-3-5-sonnet-20241022, qwen-max
   Timeout: 120                      # 超时时间（秒），MCP 模式需要更长时间
   PrometheusURL: ${PROMETHEUS_URL}  # Prometheus 地址（MCP 服务器需要）
+  GitHubToken: ${GITHUB_TOKEN}      # GitHub 访问令牌（MCP 服务器需要）
 
 Qiniu:
   AccessKey: ${QINIU_ACCESS_KEY}    # 七牛云 Access Key

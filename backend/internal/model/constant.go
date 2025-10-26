@@ -6,6 +6,7 @@ const (
 	CollectionDeployment  = "deployment"   // 发布
 	CollectionMachine     = "machine"      // 机器
 	CollectionReleasePlan = "release_plan" // 发布计划
+	CollectionReport      = "report"       // 发布错误分析报告
 )
 
 type (

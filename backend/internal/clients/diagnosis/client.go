@@ -37,6 +37,12 @@ func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (strin
 	}
 	deploymentId := req.Annotations["deployment_id"]
 
+	// 锁，待优化
+	deploy, _ := c.reportModel.FindByDeploymentId(c.ctx, deploymentId)
+	if deploy != nil {
+		return "", fmt.Errorf("部署 %s 的诊断报告已存在，避免重复生成", deploymentId)
+	}
+
 	// 1. 先插入一条状态为"生成中"的记录
 	report := &model.Report{
 		DeploymentId: deploymentId,
@@ -58,6 +64,7 @@ func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (strin
 	if err != nil {
 		// AI 调用失败，更新状态为失败
 		report.Status = model.ReportStatusFailed
+		report.Content = err.Error()
 		report.UpdatedTime = time.Now()
 		if updateErr := c.reportModel.Update(c.ctx, report); updateErr != nil {
 			c.Errorf("更新报告状态失败: %v", updateErr)

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
@@ -17,30 +18,38 @@ const (
 	// Docker 容器配置
 	diagnosisContainerName = "diagnosis-service"
 	diagnosisImageName     = "diagnosis-service:latest"
+
+	pyReturnSplit = "#####"
 )
 
+var jsonRegex = regexp.MustCompile(`\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}`)
+
 type mcpClient struct {
-	containerName string        // Docker 容器名称
-	scriptPath    string        // 容器内 Python 脚本路径
-	apiKey        string        // AI API Key
-	baseURL       string        // AI Base URL
-	model         string        // AI 模型名称
-	prometheusURL string        // Prometheus URL
-	timeout       time.Duration // 超时时间
-	logger        logx.Logger   // 日志记录器
+	containerName  string        // Docker 容器名称
+	scriptPath     string        // 容器内 Python 脚本路径
+	apiKey         string        // AI API Key
+	baseURL        string        // AI Base URL
+	model          string        // AI 模型名称
+	prometheusURL  string        // Prometheus URL
+	githubToken    string        // GitHub Personal Access Token
+	githubToolsets string        // GitHub MCP 工具集
+	timeout        time.Duration // 超时时间
+	logger         logx.Logger   // 日志记录器
 }
 
 // NewMCPClient 创建 MCP AI 客户端
 func NewMCPClient(cfg config.AIConfig) AIClient {
 	client := &mcpClient{
-		containerName: diagnosisContainerName,
-		scriptPath:    "/app/diagnosis_runner.py", // 容器内脚本路径
-		apiKey:        cfg.APIKey,
-		baseURL:       cfg.BaseURL,
-		model:         cfg.Model,
-		prometheusURL: cfg.PrometheusURL,
-		timeout:       time.Duration(cfg.Timeout) * time.Second,
-		logger:        logx.WithContext(context.Background()), // 初始化日志记录器
+		containerName:  diagnosisContainerName,
+		scriptPath:     "/app/diagnosis_runner.py", // 容器内脚本路径
+		apiKey:         cfg.APIKey,
+		baseURL:        cfg.BaseURL,
+		model:          cfg.Model,
+		prometheusURL:  cfg.PrometheusURL,
+		githubToken:    cfg.GitHubToken,    // GitHub Token
+		githubToolsets: cfg.GitHubToolsets, // GitHub 工具集
+		timeout:        time.Duration(cfg.Timeout) * time.Second,
+		logger:         logx.WithContext(context.Background()), // 初始化日志记录器
 	}
 
 	// 启动容器（如果未运行）
@@ -76,6 +85,14 @@ func (c *mcpClient) GenerateCompletion(ctx context.Context, prompt string) (stri
 		"--prometheus-url", c.prometheusURL,
 	}
 
+	// 添加 GitHub MCP 参数（如果提供了 token，自动启用）
+	if c.githubToken != "" {
+		args = append(args, "--github-token", c.githubToken)
+		if c.githubToolsets != "" {
+			args = append(args, "--github-toolsets", c.githubToolsets)
+		}
+	}
+
 	cmd := exec.CommandContext(ctx, "docker", args...)
 
 	var stdout, stderr bytes.Buffer
@@ -85,17 +102,28 @@ func (c *mcpClient) GenerateCompletion(ctx context.Context, prompt string) (stri
 	// 执行命令
 	err := cmd.Run()
 	if err != nil {
-		return "", 0, fmt.Errorf("执行容器内 Python 脚本失败: %w, stderr: %s", err, stderr.String())
+		return "", 0, fmt.Errorf("生成分析报告是比：执行容器内 Python 脚本失败: %w\n, stdout: %s\n stderr: %s", err, stdout.String(), stderr.String())
 	}
 
 	// 直接返回文本结果
 	result := strings.TrimSpace(stdout.String())
 
 	if result == "" {
-		return "", 0, fmt.Errorf("Python 脚本返回空结果")
+		return "", 0, fmt.Errorf("python 脚本返回空结果")
 	}
+	split := strings.Split(result, pyReturnSplit)
+
+	c.logger.Infof("Python 脚本执行成功，执行日志: \n%s", split[0])
 
 	// MCP 模式下无法获取准确的 token 使用量，返回 0
+	if len(split) > 1 {
+		returnValue := strings.Trim(strings.TrimSpace(strings.Join(split[1:], pyReturnSplit)), "\n")
+		findString := jsonRegex.FindString(returnValue)
+		if findString != "" {
+			return findString, 0, nil
+		}
+		return returnValue, 0, nil
+	}
 	return result, 0, nil
 }
 

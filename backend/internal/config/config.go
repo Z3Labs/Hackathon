@@ -17,11 +17,13 @@ type MongoDBConfig struct {
 }
 
 type AIConfig struct {
-	BaseURL       string `json:",optional"` // API 基础 URL，从环境变量读取
-	APIKey        string // API 密钥，从环境变量读取
-	Model         string `json:",default=gpt-4"` // 模型名称
-	Timeout       int    `json:",default=30"`    // 超时时间（秒）
-	PrometheusURL string `json:",optional"`      // Prometheus URL（MCP 模式需要）
+	BaseURL        string `json:",optional"` // API 基础 URL，从环境变量读取
+	APIKey         string // API 密钥，从环境变量读取
+	Model          string `json:",default=gpt-4"`                               // 模型名称
+	Timeout        int    `json:",default=30"`                                  // 超时时间（秒）
+	PrometheusURL  string `json:",optional"`                                    // Prometheus URL（MCP 模式需要）
+	GitHubToken    string `json:",optional"`                                    // GitHub Personal Access Token（提供后自动启用 GitHub MCP）
+	GitHubToolsets string `json:",default=repos,issues,pull_requests,releases"` // GitHub MCP 工具集
 }
 
 type QiniuConfig struct {

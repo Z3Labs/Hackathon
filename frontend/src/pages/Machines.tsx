@@ -60,6 +60,27 @@ const Machines: React.FC = () => {
     fetchMachines()
   }, [pagination.page, pagination.pageSize, searchName, searchIp])
 
+  // ESC键关闭弹窗
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showCreateModal) {
+          setShowCreateModal(false)
+          resetForm()
+        } else if (showEditModal) {
+          setShowEditModal(false)
+        } else if (showDetailModal) {
+          setShowDetailModal(false)
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [showCreateModal, showEditModal, showDetailModal])
+
   const handleTestConnectionInModal = async () => {
     if (!formData.name || !formData.ip || !formData.username || !formData.password) {
       alert('请填写完整的机器信息')
@@ -71,7 +92,7 @@ const Machines: React.FC = () => {
 
     try {
       const tempMachine = await machineApi.createMachine({ ...formData })
-      const testResult = await machineApi.testMachineConnection(tempMachine.id) as unknown as { success: boolean; message: string }
+      const testResult = await machineApi.testMachineConnection(tempMachine.data.id) as unknown as { success: boolean; message: string }
       
       if (testResult.success) {
         setTestStatus('success')
@@ -79,7 +100,7 @@ const Machines: React.FC = () => {
       } else {
         setTestStatus('failed')
         setTestMessage(testResult.message || '连接测试失败')
-        await machineApi.deleteMachine(tempMachine.id)
+        await machineApi.deleteMachine(tempMachine.data.id)
       }
     } catch (err) {
       setTestStatus('failed')

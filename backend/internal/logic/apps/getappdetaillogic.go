@@ -37,11 +37,17 @@ func (l *GetAppDetailLogic) GetAppDetail(req *types.GetAppDetailReq) (resp *type
 	for _, machine := range application.Machines {
 		machines = append(machines, types.Machine{
 			Id:           machine.Id,
+			Name:         machine.Name,
 			Ip:           machine.Ip,
 			Port:         machine.Port,
+			Username:     machine.Username,
+			Password:     machine.Password,
+			Description:  machine.Description,
 			HealthStatus: string(machine.HealthStatus),
 			ErrorStatus:  string(machine.ErrorStatus),
 			AlertStatus:  string(machine.AlertStatus),
+			CreatedAt:    machine.CreatedTime.Unix(),
+			UpdatedAt:    machine.UpdatedTime.Unix(),
 		})
 	}
 

@@ -25,5 +25,21 @@ Thumbs.db
 *.dylib
 *.test
 *.out
-**/hackathon-api
+
+# Go compiled binaries (no extension)
 hackathon-api
+hackathon
+main
+server
+client
+app
+cmd
+
+# Build directories
+bin/
+dist/
+build/
+target/
+out/
+release/
+debug/

@@ -254,12 +254,12 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
           placeholder="应用名称"
           value={appNameFilter}
           onChange={(e) => setAppNameFilter(e.target.value)}
-          style={{ padding: '8px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
+          style={{ padding: '8px', border: '1px solid #d9d9d9', borderRadius: '4px', minWidth: '200px' }}
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          style={{ padding: '8px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
+          style={{ padding: '8px', border: '1px solid #d9d9d9', borderRadius: '4px', minWidth: '120px' }}
         >
           <option value="">全部状态</option>
           <option value="pending">待发布</option>

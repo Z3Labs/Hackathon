@@ -20,6 +20,7 @@ interface MonitorChartProps {
   initialTimeRange?: number;
   onTimeRangeChange?: (minutes: number) => void;
   threshold?: number; // 阈值线
+  metricType?: 'Rate' | 'Error' | 'Duration'; // 指标类型，用于判断阈值逻辑
 }
 
 const MonitorChart: React.FC<MonitorChartProps> = ({ 
@@ -28,7 +29,8 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
   showTimeSelector = true,
   initialTimeRange = 30,
   onTimeRangeChange,
-  threshold
+  threshold,
+  metricType
 }) => {
   const [timeRange, setTimeRange] = useState(initialTimeRange);
   const chartRef = useRef<HTMLDivElement>(null);
@@ -312,16 +314,29 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
       return null; // 没有阈值，不显示背景色
     }
     
-    // 检查所有数据点，看是否有任何一个超过阈值
-    for (const s of series) {
-      for (const point of s.data) {
-        if (point.value > threshold) {
-          return true; // 有数据超过阈值，返回红色
+    // 根据指标类型决定判断逻辑
+    if (metricType === 'Rate') {
+      // Rate的阈值是最小请求数，只要有任一数据点低于阈值就显示红色
+      for (const s of series) {
+        for (const point of s.data) {
+          if (point.value < threshold) {
+            return true; // 有数据低于阈值，返回红色
+          }
         }
       }
+      return false; // 所有数据都在阈值以上，返回绿色
+    } else {
+      // Error和Duration的阈值是最大值，只要有任一数据点超过阈值就显示红色
+      for (const s of series) {
+        for (const point of s.data) {
+          if (point.value > threshold) {
+            return true; // 有数据超过阈值，返回红色
+          }
+        }
+      }
+      return false; // 所有数据都在阈值以下，返回绿色
     }
-    return false; // 所有数据都在阈值以下，返回绿色
-  }, [series, threshold]);
+  }, [series, threshold, metricType]);
 
   // 同步外部传入的 initialTimeRange 变化到内部状态
   useEffect(() => {

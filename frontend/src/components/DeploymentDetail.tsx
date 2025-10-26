@@ -1088,6 +1088,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   initialTimeRange={redMetricsTimeRange}
                   showTimeSelector={false}
                   threshold={redMetrics?.health_threshold?.rate_min}
+                  metricType="Rate"
                 />
               </div>
             )}
@@ -1114,6 +1115,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   initialTimeRange={redMetricsTimeRange}
                   showTimeSelector={false}
                   threshold={redMetrics?.health_threshold?.error_rate_max}
+                  metricType="Error"
                 />
               </div>
             )}
@@ -1140,6 +1142,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   initialTimeRange={redMetricsTimeRange}
                   showTimeSelector={false}
                   threshold={redMetrics?.health_threshold?.duration_p95_max}
+                  metricType="Duration"
                 />
               </div>
             )}

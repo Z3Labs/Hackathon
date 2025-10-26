@@ -58,12 +58,20 @@ const REDMetricsMiniChart: React.FC<REDMetricsMiniChartProps> = ({
       data.push([d.timestamp, d.value]);
     });
 
-    // 判断背景色：检查所有数据点，只要有任何一点超过阈值就显示红色
-    // 所有指标统一逻辑：值越高越坏
+    // 判断背景色：根据不同指标使用不同逻辑
     if (threshold !== undefined) {
-      const hasExceededThreshold = timeSeriesData.some(d => d.value > threshold);
-      if (hasExceededThreshold) {
-        backgroundColor = '#fff1f0'; // 红色背景
+      if (metricName === 'Rate') {
+        // Rate的阈值是最小请求数，只要有任一数据点低于阈值就显示红色
+        const hasBelowThreshold = timeSeriesData.some(d => d.value < threshold);
+        if (hasBelowThreshold) {
+          backgroundColor = '#fff1f0'; // 红色背景
+        }
+      } else if (metricName === 'Error' || metricName === 'Duration') {
+        // Error和Duration的阈值是最大值，只要有任一数据点超过阈值就显示红色
+        const hasExceededThreshold = timeSeriesData.some(d => d.value > threshold);
+        if (hasExceededThreshold) {
+          backgroundColor = '#fff1f0'; // 红色背景
+        }
       }
     }
 

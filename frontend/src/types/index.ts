@@ -26,7 +26,6 @@ export interface MetricDefinition {
 export interface HealthThreshold {
   rate_min: number
   error_rate_max: number
-  duration_p99_max: number
   duration_p95_max: number
 }
 
@@ -61,6 +60,7 @@ export interface RollbackPolicy {
 export interface Application {
   id: string
   name: string
+  repo?: string
   deploy_path: string
   config_path?: string
   start_cmd: string
@@ -105,6 +105,7 @@ export interface Deployment {
 // API请求响应类型
 export interface CreateAppReq {
   name: string
+  repo?: string
   deploy_path: string
   config_path?: string
   start_cmd: string
@@ -120,6 +121,7 @@ export interface CreateAppResp {
 export interface UpdateAppReq {
   id: string
   name: string
+  repo?: string
   deploy_path: string
   config_path?: string
   start_cmd: string

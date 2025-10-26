@@ -6,6 +6,7 @@ interface MonitorSeries {
   instance: string;
   metric: string;
   unit: string;
+  labels?: Record<string, string>; // 原始标签
   data: Array<{
     timestamp: number;
     value: number;
@@ -59,8 +60,14 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
       const minValue = Math.min(...s.data.map(p => p.value));
       console.log(`[图表] Series ${s.instance}: unit=${s.unit}, min=${minValue}, max=${maxValue}`);
       
+      // 如果有 device 标签（网络指标），则显示网卡名称
+      let displayName = s.instance;
+      if (s.labels && s.labels.device) {
+        displayName = s.labels.device;
+      }
+      
       const seriesConfig: any = {
-        name: s.instance,
+        name: displayName,
         type: 'line',
         smooth: true,
         data: s.data.map((point) => [point.timestamp * 1000, point.value]),
@@ -141,18 +148,17 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
           });
           
           let result = `<div style="margin-bottom: 4px;"><strong>${timeStr}</strong></div>`;
-          const unit = series[0]?.unit || '';
           
           params.forEach((p: any) => {
             const value = p.value[1];
             let displayValue = value.toFixed(2);
-            result += `<div style="margin: 2px 0;">${p.marker} ${p.seriesName}: <strong>${displayValue}${unit}</strong></div>`;
+            result += `<div style="margin: 2px 0;">${p.marker} ${p.seriesName}: <strong>${displayValue}</strong></div>`;
           });
           
           // 如果有阈值，显示阈值
           if (threshold !== undefined && threshold !== null) {
             result += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2);">`;
-            result += `<div style="margin: 2px 0; color: #ffccc7;">阈值: <strong>${threshold.toFixed(2)}${unit}</strong></div>`;
+            result += `<div style="margin: 2px 0; color: #ffccc7;">阈值: <strong>${threshold.toFixed(2)}</strong></div>`;
             result += `</div>`;
           }
           
@@ -160,8 +166,14 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         },
       },
       legend: {
-        data: series.map((s) => s.instance),
-        bottom: 15,
+        data: series.map((s) => {
+          // 如果有 device 标签（网络指标），则显示网卡名称
+          if (s.labels && s.labels.device) {
+            return s.labels.device;
+          }
+          return s.instance;
+        }).filter(instance => instance !== 'unknown'),
+        bottom: 20,
         left: 'center',
         type: 'scroll',
         itemGap: 20,
@@ -172,11 +184,11 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         icon: 'circle',
       },
       grid: {
-        left: '3%',
-        right: '3%',
-        top: '45px',
-        bottom: '18%',
-        containLabel: false,
+        left: '1%',
+        right: '10%',
+        top: '20px',
+        bottom: '20%',
+        containLabel: true,
       },
       xAxis: {
         type: 'time',
@@ -217,7 +229,7 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         type: 'value',
         name: series.length > 0 ? (series[0]?.unit || '') : '',
         nameLocation: 'end',
-        nameGap: 15,
+        nameGap: 20,
         nameTextStyle: {
           color: '#666',
           fontSize: 13,
@@ -248,7 +260,7 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
         axisLabel: {
           fontSize: 12,
           color: '#666',
-          margin: 8,
+          margin: 12,
           formatter: (value: number) => {
             // 格式化数值，避免显示过长
             if (Math.abs(value) >= 1000000) {

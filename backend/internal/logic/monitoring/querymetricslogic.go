@@ -118,6 +118,7 @@ func (l *QueryMetricsLogic) QueryMetrics(req *types.QueryMetricsReq) (resp *type
 			Metric:   "custom",
 			Unit:     "",
 			Data:     dataPoints,
+			Labels:   s.Metric, // 保存所有标签用于前端显示
 		})
 	}
 

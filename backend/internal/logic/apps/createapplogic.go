@@ -35,6 +35,7 @@ func (l *CreateAppLogic) CreateApp(req *types.CreateAppReq) (resp *types.CreateA
 	application := &model.Application{
 		Id:             appId,
 		Name:           req.Name,
+		Repo:           req.Repo,
 		DeployPath:     req.DeployPath,
 		ConfigPath:     req.ConfigPath,
 		StartCmd:       req.StartCmd,

@@ -1,10 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { deploymentService } from '../services/deployment';
 import type { Deployment } from '../types/deployment';
+import { monitoringService } from '../services/monitoring';
+import { appApi } from '../services/api';
+import REDMetricsMiniChart from './common/REDMetricsMiniChart';
+import type { REDMetrics } from '../types';
 
 interface DeploymentListProps {
   onSelectDeployment?: (deployment: Deployment) => void;
   onCreateNew?: () => void;
+}
+
+interface REDMetricsData {
+  rate?: Array<{ timestamp: number; value: number }>;
+  error?: Array<{ timestamp: number; value: number }>;
+  duration?: Array<{ timestamp: number; value: number }>;
+  rateLatest?: number;
+  errorLatest?: number;
+  durationLatest?: number;
 }
 
 const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onCreateNew }) => {
@@ -16,6 +29,8 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
   const [pageSize] = useState(10);
   const [appNameFilter, setAppNameFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [redMetricsData, setRedMetricsData] = useState<Record<string, REDMetricsData>>({});
+  const [redMetricsConfigs, setRedMetricsConfigs] = useState<Record<string, REDMetrics>>({});
 
   const fetchDeployments = async () => {
     setLoading(true);
@@ -36,6 +51,122 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
       setLoading(false);
     }
   };
+
+  // 获取单个部署的RED指标数据
+  const fetchDeploymentREDMetrics = async (deployment: Deployment) => {
+    try {
+      // 获取应用配置
+      const appResult = await appApi.getAppList({ name: deployment.app_name, page: 1, page_size: 1 }) as any;
+      if (!appResult || !appResult.apps || appResult.apps.length === 0) return;
+      
+      const app = appResult.apps[0];
+      if (!app.red_metrics_config || !app.red_metrics_config.enabled) return;
+      
+      const redMetrics = app.red_metrics_config;
+      setRedMetricsConfigs(prev => ({ ...prev, [deployment.id]: redMetrics }));
+      
+      // 获取最新30分钟的RED指标数据
+      const now = Math.floor(Date.now() / 1000);
+      const start = now - 30 * 60; // 最近30分钟
+      const data: REDMetricsData = {};
+      
+      // 查询Rate
+      if (redMetrics.rate_metric?.promql) {
+        try {
+          const response = await monitoringService.queryMetrics({
+            query: redMetrics.rate_metric.promql.replace(/\{\{hostname\}\}/g, '".*"'),
+            start: start.toString(),
+            end: now.toString(),
+            step: '60s',
+          });
+          // 保存完整的时间序列数据
+          if (response.series && response.series.length > 0) {
+            const series = response.series[0];
+            if (series.data && series.data.length > 0) {
+              data.rate = series.data.map((d: { timestamp: number; value: number }) => ({
+                timestamp: d.timestamp * 1000, // 转为毫秒
+                value: d.value,
+              }));
+              const validValues = series.data.filter((d: { timestamp: number; value: number }) => d.value !== null && d.value !== undefined);
+              if (validValues.length > 0) {
+                data.rateLatest = validValues[validValues.length - 1].value;
+              }
+            }
+          }
+        } catch (err) {
+          console.error('查询Rate指标失败:', err);
+        }
+      }
+      
+      // 查询Error
+      if (redMetrics.error_metric?.promql) {
+        try {
+          const response = await monitoringService.queryMetrics({
+            query: redMetrics.error_metric.promql.replace(/\{\{hostname\}\}/g, '".*"'),
+            start: start.toString(),
+            end: now.toString(),
+            step: '60s',
+          });
+          if (response.series && response.series.length > 0) {
+            const series = response.series[0];
+            if (series.data && series.data.length > 0) {
+              data.error = series.data.map((d: { timestamp: number; value: number }) => ({
+                timestamp: d.timestamp * 1000, // 转为毫秒
+                value: d.value,
+              }));
+              const validValues = series.data.filter((d: { timestamp: number; value: number }) => d.value !== null && d.value !== undefined);
+              if (validValues.length > 0) {
+                data.errorLatest = validValues[validValues.length - 1].value;
+              }
+            }
+          }
+        } catch (err) {
+          console.error('查询Error指标失败:', err);
+        }
+      }
+      
+      // 查询Duration
+      if (redMetrics.duration_metric?.promql) {
+        try {
+          const response = await monitoringService.queryMetrics({
+            query: redMetrics.duration_metric.promql.replace(/\{\{hostname\}\}/g, '".*"'),
+            start: start.toString(),
+            end: now.toString(),
+            step: '60s',
+          });
+          if (response.series && response.series.length > 0) {
+            const series = response.series[0];
+            if (series.data && series.data.length > 0) {
+              data.duration = series.data.map((d: { timestamp: number; value: number }) => ({
+                timestamp: d.timestamp * 1000, // 转为毫秒
+                value: d.value,
+              }));
+              const validValues = series.data.filter((d: { timestamp: number; value: number }) => d.value !== null && d.value !== undefined);
+              if (validValues.length > 0) {
+                data.durationLatest = validValues[validValues.length - 1].value;
+              }
+            }
+          }
+        } catch (err) {
+          console.error('查询Duration指标失败:', err);
+        }
+      }
+      
+      setRedMetricsData(prev => ({ ...prev, [deployment.id]: data }));
+    } catch (err) {
+      console.error('获取RED指标失败:', err);
+    }
+  };
+
+  useEffect(() => {
+    const fetchAllREDMetrics = async () => {
+      for (const deployment of deployments) {
+        await fetchDeploymentREDMetrics(deployment);
+      }
+    };
+    
+    fetchAllREDMetrics();
+  }, [deployments]);
 
   useEffect(() => {
     fetchDeployments();
@@ -176,7 +307,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                <th style={{ padding: '12px', textAlign: 'left' }}>应用名称</th>
+                <th style={{ padding: '12px', textAlign: 'left', maxWidth: '200px' }}>应用名称</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>包版本</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>灰度设备</th>
                 <th style={{ padding: '12px', textAlign: 'left' }}>状态</th>
@@ -192,7 +323,42 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
                   style={{ borderBottom: '1px solid #f0f0f0', cursor: 'pointer' }}
                   onClick={() => onSelectDeployment?.(deployment)}
                 >
-                  <td style={{ padding: '12px' }}>{deployment.app_name}</td>
+                  <td style={{ padding: '12px', maxWidth: '200px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 1 }}>{deployment.app_name}</span>
+                      {redMetricsData[deployment.id] && redMetricsConfigs[deployment.id] && (
+                        <>
+                          {redMetricsConfigs[deployment.id].rate_metric && (
+                            <div>
+                              <REDMetricsMiniChart
+                                rate={redMetricsData[deployment.id].rate}
+                                rateThreshold={redMetricsConfigs[deployment.id].health_threshold?.rate_min}
+                                metricName="Rate"
+                              />
+                            </div>
+                          )}
+                          {redMetricsConfigs[deployment.id].error_metric && (
+                            <div>
+                              <REDMetricsMiniChart
+                                error={redMetricsData[deployment.id].error}
+                                errorThreshold={redMetricsConfigs[deployment.id].health_threshold?.error_rate_max}
+                                metricName="Error"
+                              />
+                            </div>
+                          )}
+                          {redMetricsConfigs[deployment.id].duration_metric && (
+                            <div>
+                              <REDMetricsMiniChart
+                                duration={redMetricsData[deployment.id].duration}
+                                durationThreshold={redMetricsConfigs[deployment.id].health_threshold?.duration_p95_max}
+                                metricName="Duration"
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </td>
                   <td style={{ padding: '12px' }}>{deployment.package_version}</td>
                   <td style={{ padding: '12px' }}>{getGrayMachineInfo(deployment)}</td>
                   <td style={{ padding: '12px' }}>

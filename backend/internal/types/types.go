@@ -26,6 +26,7 @@ type Machine struct {
 type Application struct {
 	Id               string          `json:"id"`                 // 应用唯一标识
 	Name             string          `json:"name"`               // 应用名称
+	Repo             string          `json:"repo"`               // 仓库地址
 	DeployPath       string          `json:"deploy_path"`        // 部署路径
 	ConfigPath       string          `json:"config_path"`        // 配置文件路径
 	StartCmd         string          `json:"start_cmd"`          // 启动命令
@@ -76,7 +77,6 @@ type MetricDefinition struct {
 type HealthThreshold struct {
 	RateMin        float64 `json:"rate_min"`         // 最低请求速率
 	ErrorRateMax   float64 `json:"error_rate_max"`   // 最大错误率
-	DurationP99Max float64 `json:"duration_p99_max"` // P99响应时长上限
 	DurationP95Max float64 `json:"duration_p95_max"` // P95响应时长上限
 }
 
@@ -107,6 +107,7 @@ type Deployment struct {
 
 type CreateAppReq struct {
 	Name       string `json:"name"`                  // 应用名称
+	Repo       string `json:"repo,omitempty"`        // 仓库地址
 	DeployPath string `json:"deploy_path"`           // 部署路径
 	ConfigPath string `json:"config_path,omitempty"` // 配置文件路径
 	StartCmd   string `json:"start_cmd"`             // 启动命令
@@ -120,6 +121,7 @@ type CreateAppResp struct {
 type UpdateAppReq struct {
 	Id               string          `json:"id"`                          // 应用ID
 	Name             string          `json:"name"`                        // 应用名称
+	Repo             string          `json:"repo,optional"`               // 仓库地址
 	DeployPath       string          `json:"deploy_path"`                 // 部署路径
 	ConfigPath       string          `json:"config_path,optional"`        // 配置文件路径
 	StartCmd         string          `json:"start_cmd"`                   // 启动命令
@@ -223,10 +225,11 @@ type QueryMetricsResp struct {
 }
 
 type MonitorSeries struct {
-	Instance string      `json:"instance"` // 实例标识（机器IP）
-	Metric   string      `json:"metric"`   // 指标名称
-	Unit     string      `json:"unit"`     // 单位
-	Data     []DataPoint `json:"data"`     // 数据点列表
+	Instance string            `json:"instance"` // 实例标识（机器名称）
+	Metric   string            `json:"metric"`   // 指标名称
+	Unit     string            `json:"unit"`     // 单位
+	Data     []DataPoint       `json:"data"`     // 数据点列表
+	Labels   map[string]string `json:"labels"`   // 原始标签（包含 device 等）
 }
 
 type DataPoint struct {

@@ -12,6 +12,7 @@ type (
 	Application struct {
 		Id                 string          `bson:"_id"                json:"id,omitempty"`        // mongo id
 		Name               string          `bson:"name"               json:"name"`                // 应用名称
+		Repo               string          `bson:"repo"               json:"repo"`                // 仓库地址
 		DeploymentPlatform PlatformType    `bson:"deploymentPlatform" json:"deployment_platform"` // 部署平台
 		DeployPath         string          `bson:"deployPath"         json:"deploy_path"`         // 部署路径
 		ConfigPath         string          `bson:"configPath"         json:"config_path"`         // 配置文件路径
@@ -68,7 +69,6 @@ type (
 	HealthThreshold struct {
 		RateMin        float64 `bson:"rateMin"        json:"rate_min"`         // 最低请求速率(req/s),低于此值告警
 		ErrorRateMax   float64 `bson:"errorRateMax"   json:"error_rate_max"`   // 最大错误率(%),超过此值告警
-		DurationP99Max float64 `bson:"durationP99Max" json:"duration_p99_max"` // P99 响应时长上限(ms)
 		DurationP95Max float64 `bson:"durationP95Max" json:"duration_p95_max"` // P95 响应时长上限(ms)
 	}
 

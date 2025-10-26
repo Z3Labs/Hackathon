@@ -30,6 +30,7 @@ const Apps: React.FC = () => {
   // 表单数据
   const [formData, setFormData] = useState<CreateAppReq>({
     name: '',
+    repo: '',
     deploy_path: '',
     config_path: '',
     start_cmd: '',
@@ -143,6 +144,7 @@ const Apps: React.FC = () => {
   const resetForm = () => {
     setFormData({
       name: '',
+      repo: '',
       deploy_path: '',
       config_path: '',
       start_cmd: '',
@@ -170,6 +172,7 @@ const Apps: React.FC = () => {
     setSelectedApp(app)
     setFormData({
       name: app.name,
+      repo: app.repo || '',
       deploy_path: app.deploy_path,
       config_path: app.config_path || '',
       start_cmd: app.start_cmd,
@@ -249,6 +252,7 @@ const Apps: React.FC = () => {
       () => appApi.updateApp(selectedApp.id, {
         id: selectedApp.id,
         name: selectedApp.name,
+        repo: selectedApp.repo,
         deploy_path: selectedApp.deploy_path,
         config_path: selectedApp.config_path,
         start_cmd: selectedApp.start_cmd,
@@ -465,6 +469,15 @@ const Apps: React.FC = () => {
                 />
               </div>
               <div className="form-group">
+                <label>仓库地址（可选）</label>
+                <input
+                  type="text"
+                  value={formData.repo}
+                  onChange={(e) => setFormData(prev => ({ ...prev, repo: e.target.value }))}
+                  placeholder="例如: https://github.com/owner/repo"
+                />
+              </div>
+              <div className="form-group">
                 <label>部署路径</label>
                 <input
                   type="text"
@@ -570,6 +583,15 @@ const Apps: React.FC = () => {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>仓库地址（可选）</label>
+                    <input
+                      type="text"
+                      value={formData.repo}
+                      onChange={(e) => setFormData(prev => ({ ...prev, repo: e.target.value }))}
+                      placeholder="例如: https://github.com/owner/repo"
                     />
                   </div>
                   <div className="form-group">
@@ -928,7 +950,6 @@ const Apps: React.FC = () => {
                                   ...prev.red_metrics_config?.health_threshold,
                                   rate_min: parseFloat(e.target.value) || 0,
                                   error_rate_max: prev.red_metrics_config?.health_threshold?.error_rate_max || 0,
-                                  duration_p99_max: prev.red_metrics_config?.health_threshold?.duration_p99_max || 0,
                                   duration_p95_max: prev.red_metrics_config?.health_threshold?.duration_p95_max || 0
                                 }
                               }
@@ -962,32 +983,6 @@ const Apps: React.FC = () => {
                             placeholder="例如: 0.05 (5%)"
                           />
                         </div>
-                        <div className="form-group" style={{ marginBottom: '16px' }}>
-                          <label style={{ 
-                            display: 'block', 
-                            marginBottom: '8px', 
-                            fontSize: '14px', 
-                            fontWeight: '500',
-                            color: '#495057'
-                          }}>P99 响应时长上限 (秒)</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            style={{ width: '100%' }}
-                            value={formData.red_metrics_config?.health_threshold?.duration_p99_max || ''}
-                            onChange={(e) => setFormData(prev => ({
-                              ...prev,
-                              red_metrics_config: {
-                                ...prev.red_metrics_config!,
-                                health_threshold: {
-                                  ...prev.red_metrics_config?.health_threshold!,
-                                  duration_p99_max: parseFloat(e.target.value) || 0
-                                }
-                              }
-                            }))}
-                            placeholder="例如: 1.0"
-                          />
-                        </div>
                         <div className="form-group" style={{ marginBottom: '0' }}>
                           <label style={{ 
                             display: 'block', 
@@ -995,7 +990,7 @@ const Apps: React.FC = () => {
                             fontSize: '14px', 
                             fontWeight: '500',
                             color: '#495057'
-                          }}>P95 响应时长上限 (秒)</label>
+                          }}>P95 响应时长上限 (毫秒)</label>
                           <input
                             type="number"
                             step="0.01"
@@ -1396,6 +1391,10 @@ const Apps: React.FC = () => {
                     <span>{selectedApp.name}</span>
                   </div>
                   <div className="detail-item">
+                    <label>仓库地址:</label>
+                    <span>{selectedApp.repo || '-'}</span>
+                  </div>
+                  <div className="detail-item">
                     <label>版本:</label>
                     <span>{selectedApp.currentVersion}</span>
                   </div>
@@ -1571,12 +1570,8 @@ const Apps: React.FC = () => {
                           <span>{selectedApp.red_metrics_config.health_threshold.error_rate_max}</span>
                         </div>
                         <div className="detail-item">
-                          <label>P99 响应时长上限:</label>
-                          <span>{selectedApp.red_metrics_config.health_threshold.duration_p99_max}s</span>
-                        </div>
-                        <div className="detail-item">
                           <label>P95 响应时长上限:</label>
-                          <span>{selectedApp.red_metrics_config.health_threshold.duration_p95_max}s</span>
+                          <span>{selectedApp.red_metrics_config.health_threshold.duration_p95_max}ms</span>
                         </div>
                       </>
                     )}

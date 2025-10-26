@@ -65,7 +65,6 @@ func convertHealthThreshold(threshold *model.HealthThreshold) *types.HealthThres
 	return &types.HealthThreshold{
 		RateMin:        threshold.RateMin,
 		ErrorRateMax:   threshold.ErrorRateMax,
-		DurationP99Max: threshold.DurationP99Max,
 		DurationP95Max: threshold.DurationP95Max,
 	}
 }
@@ -131,7 +130,6 @@ func convertTypesToModelHealthThreshold(threshold *types.HealthThreshold) *model
 	return &model.HealthThreshold{
 		RateMin:        threshold.RateMin,
 		ErrorRateMax:   threshold.ErrorRateMax,
-		DurationP99Max: threshold.DurationP99Max,
 		DurationP95Max: threshold.DurationP95Max,
 	}
 }

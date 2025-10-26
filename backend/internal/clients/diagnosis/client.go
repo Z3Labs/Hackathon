@@ -35,9 +35,9 @@ func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (strin
 	if !req.NeedHandle {
 		return "", nil
 	}
-	deploymentId := req.Annotations["deployment_id"]
+	deploymentId := req.Labels["deploymentId"]
 
-	// 锁，待优化
+	// TODO 锁，待优化
 	deploy, _ := c.reportModel.FindByDeploymentId(c.ctx, deploymentId)
 	if deploy != nil {
 		return "", fmt.Errorf("部署 %s 的诊断报告已存在，避免重复生成", deploymentId)

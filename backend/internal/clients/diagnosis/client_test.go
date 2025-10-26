@@ -140,6 +140,7 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 		NeedHandle:   true,
 		IsEmergent:   true,
 		RepoAddress:  "Z3Labs/MockServer",
+		Tag:          "v1.0.3",
 		Labels: map[string]string{
 			"hostname":  "VM-12-17-ubuntu",
 			"job":       "node_exporter",

@@ -26,6 +26,7 @@ type Machine struct {
 type Application struct {
 	Id               string          `json:"id"`                 // 应用唯一标识
 	Name             string          `json:"name"`               // 应用名称
+	Repo             string          `json:"repo"`               // 仓库地址
 	DeployPath       string          `json:"deploy_path"`        // 部署路径
 	ConfigPath       string          `json:"config_path"`        // 配置文件路径
 	StartCmd         string          `json:"start_cmd"`          // 启动命令
@@ -106,6 +107,7 @@ type Deployment struct {
 
 type CreateAppReq struct {
 	Name       string `json:"name"`                  // 应用名称
+	Repo       string `json:"repo,omitempty"`        // 仓库地址
 	DeployPath string `json:"deploy_path"`           // 部署路径
 	ConfigPath string `json:"config_path,omitempty"` // 配置文件路径
 	StartCmd   string `json:"start_cmd"`             // 启动命令
@@ -119,6 +121,7 @@ type CreateAppResp struct {
 type UpdateAppReq struct {
 	Id               string          `json:"id"`                          // 应用ID
 	Name             string          `json:"name"`                        // 应用名称
+	Repo             string          `json:"repo,optional"`               // 仓库地址
 	DeployPath       string          `json:"deploy_path"`                 // 部署路径
 	ConfigPath       string          `json:"config_path,optional"`        // 配置文件路径
 	StartCmd         string          `json:"start_cmd"`                   // 启动命令

@@ -30,6 +30,7 @@ const Apps: React.FC = () => {
   // 表单数据
   const [formData, setFormData] = useState<CreateAppReq>({
     name: '',
+    repo: '',
     deploy_path: '',
     config_path: '',
     start_cmd: '',
@@ -143,6 +144,7 @@ const Apps: React.FC = () => {
   const resetForm = () => {
     setFormData({
       name: '',
+      repo: '',
       deploy_path: '',
       config_path: '',
       start_cmd: '',
@@ -170,6 +172,7 @@ const Apps: React.FC = () => {
     setSelectedApp(app)
     setFormData({
       name: app.name,
+      repo: app.repo || '',
       deploy_path: app.deploy_path,
       config_path: app.config_path || '',
       start_cmd: app.start_cmd,
@@ -249,6 +252,7 @@ const Apps: React.FC = () => {
       () => appApi.updateApp(selectedApp.id, {
         id: selectedApp.id,
         name: selectedApp.name,
+        repo: selectedApp.repo,
         deploy_path: selectedApp.deploy_path,
         config_path: selectedApp.config_path,
         start_cmd: selectedApp.start_cmd,
@@ -465,6 +469,15 @@ const Apps: React.FC = () => {
                 />
               </div>
               <div className="form-group">
+                <label>仓库地址（可选）</label>
+                <input
+                  type="text"
+                  value={formData.repo}
+                  onChange={(e) => setFormData(prev => ({ ...prev, repo: e.target.value }))}
+                  placeholder="例如: https://github.com/owner/repo"
+                />
+              </div>
+              <div className="form-group">
                 <label>部署路径</label>
                 <input
                   type="text"
@@ -570,6 +583,15 @@ const Apps: React.FC = () => {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>仓库地址（可选）</label>
+                    <input
+                      type="text"
+                      value={formData.repo}
+                      onChange={(e) => setFormData(prev => ({ ...prev, repo: e.target.value }))}
+                      placeholder="例如: https://github.com/owner/repo"
                     />
                   </div>
                   <div className="form-group">
@@ -1367,6 +1389,10 @@ const Apps: React.FC = () => {
                   <div className="detail-item">
                     <label>应用名称:</label>
                     <span>{selectedApp.name}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>仓库地址:</label>
+                    <span>{selectedApp.repo || '-'}</span>
                   </div>
                   <div className="detail-item">
                     <label>版本:</label>

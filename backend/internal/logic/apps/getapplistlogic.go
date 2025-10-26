@@ -70,6 +70,7 @@ func (l *GetAppListLogic) GetAppList(req *types.GetAppListReq) (resp *types.GetA
 		apps = append(apps, types.Application{
 			Id:               app.Id,
 			Name:             app.Name,
+			Repo:             app.Repo,
 			DeployPath:       app.DeployPath,
 			ConfigPath:       app.ConfigPath,
 			StartCmd:         app.StartCmd,

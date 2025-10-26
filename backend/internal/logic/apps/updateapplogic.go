@@ -36,6 +36,9 @@ func (l *UpdateAppLogic) UpdateApp(req *types.UpdateAppReq) (resp *types.UpdateA
 
 	// 更新应用信息
 	existingApp.Name = req.Name
+	if req.Repo != "" {
+		existingApp.Repo = req.Repo
+	}
 	existingApp.DeployPath = req.DeployPath
 	if req.ConfigPath != "" {
 		existingApp.ConfigPath = req.ConfigPath

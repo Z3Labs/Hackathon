@@ -12,6 +12,7 @@ type (
 	Application struct {
 		Id                 string          `bson:"_id"                json:"id,omitempty"`        // mongo id
 		Name               string          `bson:"name"               json:"name"`                // 应用名称
+		Repo               string          `bson:"repo"               json:"repo"`                // 仓库地址
 		DeploymentPlatform PlatformType    `bson:"deploymentPlatform" json:"deployment_platform"` // 部署平台
 		DeployPath         string          `bson:"deployPath"         json:"deploy_path"`         // 部署路径
 		ConfigPath         string          `bson:"configPath"         json:"config_path"`         // 配置文件路径

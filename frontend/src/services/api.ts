@@ -55,6 +55,7 @@ export const appApi = {
   // 创建应用
   createApp: (data: {
     name: string
+    repo?: string
     deploy_path: string
     config_path?: string
     start_cmd: string
@@ -67,6 +68,7 @@ export const appApi = {
   updateApp: (id: string, data: {
     id: string
     name: string
+    repo?: string
     deploy_path: string
     config_path?: string
     start_cmd: string

@@ -1,7 +1,3 @@
-根据你的需求，我整理了一个 **3 天 Hackathon MVP 设计方案**，结合 Spinnaker 作为发布系统、VictoriaMetrics 做告警监控、支持 Kubernetes + 物理机、多版本灰度发布和自动回滚。下面是详细设计：
-
----
-
 ## **MVP 总体架构**
 
 ```
@@ -166,7 +162,3 @@ Alertmanager / 自定义告警服务
 * ✅ 异常告警触发多通道通知
 * ✅ 自动回滚至上一稳定版本
 * ✅ 最小可交付可在 3 天内完成
-
----
-
-我可以帮你画一份 **完整 Hackathon 流程图 + Spinnaker 部署 pipeline 示例**，把 GitHub → CI → Artifact → 发布 → 告警 → 回滚全链路可视化，便于团队快速理解和演示。

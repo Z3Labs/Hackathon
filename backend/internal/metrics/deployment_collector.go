@@ -11,10 +11,10 @@ import (
 
 type DeploymentCollector struct {
 	deploymentModel model.DeploymentModel
-	
+
 	deployingInfo   *prometheus.GaugeVec
 	rollingBackInfo *prometheus.GaugeVec
-	
+
 	mu sync.Mutex
 }
 
@@ -60,6 +60,10 @@ func (c *DeploymentCollector) Collect(ch chan<- prometheus.Metric) {
 	} else {
 		for _, deployment := range deployingDeployments {
 			for _, node := range deployment.NodeDeployments {
+				// 待发布，忽略
+				if node.NodeDeployStatus == model.NodeDeploymentStatusDeploying {
+					continue
+				}
 				c.deployingInfo.WithLabelValues(
 					node.Id,
 					deployment.AppName,

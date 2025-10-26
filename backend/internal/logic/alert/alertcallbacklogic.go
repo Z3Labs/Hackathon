@@ -27,7 +27,8 @@ func NewAlertCallBackLogic(ctx context.Context, svcCtx *svc.ServiceContext) Aler
 func (l *AlertCallBackLogic) AlertCallBack(req *types.PostAlertCallbackReq) error {
 
 	// TODO 其它逻辑
-
+	l.Infof("AlertCallBack req: %#v", req)
+	return nil
 	// 必要入参：
 	// Annotations["description"] 告警描述信息
 	// Labels["hostname"] 指标异常的主机名

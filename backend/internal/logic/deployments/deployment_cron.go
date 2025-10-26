@@ -24,7 +24,7 @@ func NewDeploymentCron(deploymentManager *DeploymentManager, rollbackManager *Ro
 }
 
 func (dc *DeploymentCron) Start() error {
-	_, err := dc.cron.AddFunc("@every 1m", func() {
+	_, err := dc.cron.AddFunc("@every 30s", func() {
 		ctx := context.Background()
 		if err := dc.deploymentManager.ContinueDeployingDeployments(ctx); err != nil {
 			fmt.Printf("continue deploying deployments error: %v\n", err)

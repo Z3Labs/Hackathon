@@ -16,8 +16,6 @@ type DeploymentManager struct {
 	deploymentModel  model.DeploymentModel
 	applicationModel model.ApplicationModel
 	executorFactory  executor.ExecutorFactoryInterface
-	taskRegistry     map[string]context.CancelFunc
-	taskMutex        sync.RWMutex
 	alertMonitor     *AlertMonitor
 }
 
@@ -35,7 +33,6 @@ func NewDeploymentManager(
 			deploymentModel:  svc.DeploymentModel,
 			applicationModel: svc.ApplicationModel,
 			executorFactory:  executor.NewExecutorFactory(),
-			taskRegistry:     make(map[string]context.CancelFunc),
 		}
 	})
 	return instance
@@ -47,35 +44,6 @@ func (dm *DeploymentManager) SetAlertMonitor(monitor *AlertMonitor) {
 
 func GetDeploymentManager() *DeploymentManager {
 	return instance
-}
-
-func (dm *DeploymentManager) registerTask(deploymentID string, cancel context.CancelFunc) {
-	dm.taskMutex.Lock()
-	defer dm.taskMutex.Unlock()
-
-	if oldCancel, exists := dm.taskRegistry[deploymentID]; exists {
-		oldCancel()
-	}
-
-	dm.taskRegistry[deploymentID] = cancel
-}
-
-func (dm *DeploymentManager) unregisterTask(deploymentID string) {
-	dm.taskMutex.Lock()
-	defer dm.taskMutex.Unlock()
-	delete(dm.taskRegistry, deploymentID)
-}
-
-func (dm *DeploymentManager) cancelTask(deploymentID string) bool {
-	dm.taskMutex.RLock()
-	cancel, exists := dm.taskRegistry[deploymentID]
-	dm.taskMutex.RUnlock()
-
-	if exists {
-		cancel()
-		return true
-	}
-	return false
 }
 
 func (dm *DeploymentManager) ExecuteDeployment(ctx context.Context, deploymentID string) error {
@@ -102,11 +70,9 @@ func (dm *DeploymentManager) ExecuteDeployment(ctx context.Context, deploymentID
 		}
 	}
 
-	taskCtx, cancel := context.WithCancel(context.Background())
-	dm.registerTask(deploymentID, cancel)
+	taskCtx, _ := context.WithCancel(context.Background())
 
 	go func() {
-		defer dm.unregisterTask(deploymentID)
 		dm.executeNodes(taskCtx, deployment)
 	}()
 
@@ -284,8 +250,6 @@ func (dm *DeploymentManager) CancelDeployment(ctx context.Context, deploymentID 
 		return err
 	}
 
-	dm.cancelTask(deploymentID)
-
 	return nil
 }
 
@@ -303,13 +267,14 @@ func (dm *DeploymentManager) ContinueDeployingDeployments(ctx context.Context) e
 		}
 
 		for _, deployment := range deployments {
-			taskCtx, cancel := context.WithCancel(context.Background())
-			dm.registerTask(deployment.Id, cancel)
+			taskCtx, _ := context.WithCancel(context.Background())
 
 			go func(dep *model.Deployment) {
 				logx.Infof("continuing deployment: %s", dep.Id)
-				defer dm.unregisterTask(dep.Id)
 				dm.executeNodes(taskCtx, dep)
+				if app, err := dm.applicationModel.FindById(ctx, dep.AppId); err == nil {
+					dm.alertMonitor.StartMonitoring(ctx, dep, app)
+				}
 			}(deployment)
 		}
 	}

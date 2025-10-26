@@ -34,22 +34,14 @@ func New(ctx context.Context, svcCtx *svc.ServiceContext, aiConfig config.AIConf
 func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (string, error) {
 	deploymentId := req.Labels["deploymentId"]
 
-	// TODO 锁，待优化
-	deploy, _ := c.reportModel.FindByDeploymentId(c.ctx, deploymentId)
-	if deploy != nil {
-		return "", fmt.Errorf("部署 %s 的诊断报告已存在，避免重复生成", deploymentId)
-	}
-
 	// 1. 先插入一条状态为"生成中"的记录
-	report := &model.Report{
+	if err := c.reportModel.Insert(c.ctx, &model.Report{
 		DeploymentId: deploymentId,
 		Content:      "",
 		Status:       model.ReportStatusGenerating,
 		CreatedTime:  time.Now(),
 		UpdatedTime:  time.Now(),
-	}
-
-	if err := c.reportModel.Insert(c.ctx, report); err != nil {
+	}); err != nil {
 		return "", fmt.Errorf("创建报告记录失败: %w", err)
 	}
 
@@ -57,6 +49,10 @@ func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (strin
 	prompt := buildPromptTemplate(req)
 
 	// 3. 调用 AI 接口（通过 MCP 查询指标并生成诊断报告）
+	report, err := c.reportModel.FindByDeploymentId(c.ctx, deploymentId)
+	if err != nil {
+		return "", fmt.Errorf("查询报告记录失败: %w", err)
+	}
 	reportContent, tokensUsed, err := c.aiClient.GenerateCompletion(c.ctx, prompt)
 	if err != nil {
 		// AI 调用失败，更新状态为失败

@@ -153,11 +153,11 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 
 	// 4. 构建 prompt
 	prompt := buildPromptTemplate(req)
-	t.Logf("Generated prompt:\n%s\n", prompt)
+	//t.Logf("Generated prompt:\n%s\n", prompt)
 
 	// 5. 调用 GenerateCompletion
 	ctx := context.Background()
-	report, tokensUsed, err := client.GenerateCompletion(ctx, prompt)
+	report, _, err := client.GenerateCompletion(ctx, prompt)
 
 	// 6. 验证结果
 	if err != nil {
@@ -168,7 +168,6 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 		t.Error("GenerateCompletion() returned empty report")
 	}
 
-	t.Logf("Tokens used: %d", tokensUsed)
 	t.Logf("\n================================================================================")
 	t.Logf("诊断报告")
 	t.Logf("================================================================================")

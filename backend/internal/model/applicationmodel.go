@@ -20,7 +20,6 @@ type (
 		StopCmd            string          `bson:"stopCmd"            json:"stop_cmd"`            // 停止命令
 		CurrentVersion     string          `bson:"currentVersion"     json:"currentVersion"`      // 当前版本
 		PrevVersion        string          `bson:"prevVersion"        json:"prev_version"`        // 上一个稳定版本
-		RepoAddress        string          `bson:"repoAddress"        json:"repoAddress"`         // 上一个稳定版本
 		MachineCount       int             `bson:"machineCount"       json:"machine_count"`       // 机器总数量
 		HealthCount        int             `bson:"healthCount"        json:"health_count"`        // 健康机器数量
 		ErrorCount         int             `bson:"errorCount"         json:"error_count"`         // 异常机器数量

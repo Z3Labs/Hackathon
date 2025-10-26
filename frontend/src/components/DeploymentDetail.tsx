@@ -1076,7 +1076,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
               }}>
                 <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 500, color: '#262626' }}>
-                  {redMetricsData['rate'].metric} (每秒请求数)
+                  {redMetricsData['rate'].metric} (请求数 qps)
                 </div>
                 <MonitorChart 
                   series={redMetricsData['rate'].series.map((s: any) => ({
@@ -1102,7 +1102,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
               }}>
                 <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 500, color: '#262626' }}>
-                  {redMetricsData['error'].metric} (错误率)
+                  {redMetricsData['error'].metric} (错误率 %)
                 </div>
                 <MonitorChart 
                   series={redMetricsData['error'].series.map((s: any) => ({
@@ -1128,7 +1128,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
               }}>
                 <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 500, color: '#262626' }}>
-                  {redMetricsData['duration'].metric} (响应时长)
+                  {redMetricsData['duration'].metric} (响应时长 ms)
                 </div>
                 <MonitorChart 
                   series={redMetricsData['duration'].series.map((s: any) => ({
@@ -1139,7 +1139,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   height={250} 
                   initialTimeRange={redMetricsTimeRange}
                   showTimeSelector={false}
-                  threshold={redMetrics?.health_threshold?.duration_p99_max}
+                  threshold={redMetrics?.health_threshold?.duration_p95_max}
                 />
               </div>
             )}

@@ -350,7 +350,7 @@ const DeploymentList: React.FC<DeploymentListProps> = ({ onSelectDeployment, onC
                             <div>
                               <REDMetricsMiniChart
                                 duration={redMetricsData[deployment.id].duration}
-                                durationThreshold={redMetricsConfigs[deployment.id].health_threshold?.duration_p99_max}
+                                durationThreshold={redMetricsConfigs[deployment.id].health_threshold?.duration_p95_max}
                                 metricName="Duration"
                               />
                             </div>

@@ -26,7 +26,6 @@ export interface MetricDefinition {
 export interface HealthThreshold {
   rate_min: number
   error_rate_max: number
-  duration_p99_max: number
   duration_p95_max: number
 }
 

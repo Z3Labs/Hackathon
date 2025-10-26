@@ -148,18 +148,17 @@ const MonitorChart: React.FC<MonitorChartProps> = ({
           });
           
           let result = `<div style="margin-bottom: 4px;"><strong>${timeStr}</strong></div>`;
-          const unit = series[0]?.unit || '';
           
           params.forEach((p: any) => {
             const value = p.value[1];
             let displayValue = value.toFixed(2);
-            result += `<div style="margin: 2px 0;">${p.marker} ${p.seriesName}: <strong>${displayValue}${unit}</strong></div>`;
+            result += `<div style="margin: 2px 0;">${p.marker} ${p.seriesName}: <strong>${displayValue}</strong></div>`;
           });
           
           // 如果有阈值，显示阈值
           if (threshold !== undefined && threshold !== null) {
             result += `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2);">`;
-            result += `<div style="margin: 2px 0; color: #ffccc7;">阈值: <strong>${threshold.toFixed(2)}${unit}</strong></div>`;
+            result += `<div style="margin: 2px 0; color: #ffccc7;">阈值: <strong>${threshold.toFixed(2)}</strong></div>`;
             result += `</div>`;
           }
           

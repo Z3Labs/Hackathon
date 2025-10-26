@@ -76,7 +76,6 @@ type MetricDefinition struct {
 type HealthThreshold struct {
 	RateMin        float64 `json:"rate_min"`         // 最低请求速率
 	ErrorRateMax   float64 `json:"error_rate_max"`   // 最大错误率
-	DurationP99Max float64 `json:"duration_p99_max"` // P99响应时长上限
 	DurationP95Max float64 `json:"duration_p95_max"` // P95响应时长上限
 }
 

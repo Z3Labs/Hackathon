@@ -8,6 +8,7 @@ type Config struct {
 	// AI 服务配置
 	AI    AIConfig
 	Qiniu QiniuConfig // 七牛云配置
+	VM    VMConfig    // VictoriaMetrics 配置
 }
 
 type MongoDBConfig struct {
@@ -28,4 +29,8 @@ type QiniuConfig struct {
 	SecretKey    string // 七牛云 Secret Key
 	Bucket       string // 七牛云存储桶名称
 	DownloadHost string
+}
+
+type VMConfig struct {
+	VMUIURL string `json:",optional"` // VictoriaMetrics UI URL
 }

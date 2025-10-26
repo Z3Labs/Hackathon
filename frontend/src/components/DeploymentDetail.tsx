@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { deploymentService } from '../services/deployment';
+import { monitoringService } from '../services/monitoring';
+import { PromQL } from '../utils/promql';
 import type { Deployment, NodeDeployment, Report } from '../types/deployment';
+import MonitorChart from './common/MonitorChart';
 
 interface DeploymentDetailProps {
   deploymentId: string;
@@ -16,6 +19,82 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const [countdown, setCountdown] = useState(5);
   const [report, setReport] = useState<Report | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // 监控数据相关状态
+  const [monitorMetric, setMonitorMetric] = useState<string>('cpu');
+  const [monitorTimeRange, setMonitorTimeRange] = useState<number>(30);
+  
+  // 每台机器的监控展开状态
+  const [expandedMonitorMachine, setExpandedMonitorMachine] = useState<string | null>(null);
+  const [machineMonitorData, setMachineMonitorData] = useState<Record<string, any>>({});
+  
+  // 自动刷新控制
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
+
+  // 获取单台机器的监控数据
+  const fetchMachineMonitorData = useCallback(async (machineIp: string, minutes: number = 30, metric?: string) => {
+    if (!deployment) return;
+    
+    // 使用传入的 metric 或当前的 monitorMetric
+    const currentMetric = metric || monitorMetric;
+    
+    try {
+      // TODO: 暂时查询所有数据，因为 VictoriaMetrics 中的 instance 标签值是 localhost:9301
+      // 而不是机器的 IP 地址。后续需要在机器配置中保存实际的监控 instance 值
+      let promQL;
+      let metricName;
+      let unit;
+      
+      switch (currentMetric) {
+        case 'cpu':
+          promQL = PromQL.cpuUsage(); // 暂时不传 IP，查询所有
+          metricName = 'CPU使用率';
+          unit = '%';
+          break;
+        case 'memory':
+          promQL = PromQL.memoryUsage();
+          metricName = '内存使用率';
+          unit = '%';
+          break;
+        case 'network':
+          promQL = PromQL.networkReceiveRate();
+          metricName = '网络接收速率';
+          unit = 'bytes/s';
+          break;
+        default:
+          promQL = PromQL.cpuUsage();
+          metricName = 'CPU使用率';
+          unit = '%';
+      }
+      const now = Math.floor(Date.now() / 1000);
+      const start = now - minutes * 60;
+      
+      const response = await monitoringService.queryMetrics({
+        query: promQL,
+        start: start.toString(),
+        end: now.toString(),
+        step: '60s',
+      });
+      
+      console.log(`[监控] 指标类型: ${currentMetric}, 单位: ${unit}, 数据点数: ${response.series.length}`);
+      
+      // 为每个 series 添加 metric 名称和单位
+      const enrichedSeries = response.series.map(s => ({
+        ...s,
+        metric: metricName,
+        unit: unit,
+      }));
+      
+      console.log(`[监控] 增强后的 series:`, enrichedSeries.map(s => ({ instance: s.instance, unit: s.unit })));
+      
+      setMachineMonitorData((prev) => ({
+        ...prev,
+        [machineIp]: enrichedSeries || [],
+      }));
+    } catch (err) {
+      console.error('获取机器监控数据失败:', err);
+    }
+  }, [deployment, monitorMetric, monitorTimeRange]);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -37,10 +116,17 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   }, [deploymentId]);
 
   useEffect(() => {
+    if (!autoRefresh) return;
+    
     const countdownTimer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           refreshDetail();
+          // 如果监控图表是展开的，也刷新监控数据
+          if (expandedMonitorMachine) {
+            // 使用最新的 monitorMetric 和 monitorTimeRange
+            fetchMachineMonitorData(expandedMonitorMachine, monitorTimeRange, monitorMetric);
+          }
           return 5;
         }
         return prev - 1;
@@ -48,7 +134,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
     }, 1000);
 
     return () => clearInterval(countdownTimer);
-  }, [deploymentId]);
+  }, [deploymentId, autoRefresh, expandedMonitorMachine, fetchMachineMonitorData, monitorMetric, monitorTimeRange]);
 
   const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -79,7 +165,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
   const getGrayMachineInfo = (machineId: string) => {
     if (!machineId || !deployment?.node_deployments) return '未设置';
     const machine = deployment.node_deployments.find(m => m.id === machineId);
-    return machine ? `${machine.id} (${machine.ip})` : machineId;
+    return machine ? `${machine.name} (${machine.ip})` : machineId;
   };
 
   const formatTime = (timestamp: number) => {
@@ -100,6 +186,11 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
       setDeployment(response.deployment);
       setReport(response.report ?? null);
       setCountdown(5);
+      
+      // 如果监控图表是展开的，也刷新监控数据
+      if (expandedMonitorMachine) {
+        fetchMachineMonitorData(expandedMonitorMachine, monitorTimeRange, monitorMetric);
+      }
     } catch (err) {
       console.error('刷新详情失败:', err);
       alert('刷新详情失败');
@@ -293,6 +384,82 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
 
   const canOperate = !['canceled', 'rolled_back'].includes(deployment?.status || '');
 
+  // 切换机器监控展开/收起
+  const toggleMachineMonitor = (machineIp: string) => {
+    if (expandedMonitorMachine === machineIp) {
+      setExpandedMonitorMachine(null);
+    } else {
+      setExpandedMonitorMachine(machineIp);
+      // 加载该机器的监控数据，使用当前的 monitorTimeRange
+      fetchMachineMonitorData(machineIp, monitorTimeRange, monitorMetric);
+    }
+  };
+
+  // 渲染单台机器的监控图表
+  const renderMachineMonitorChart = (machineIp: string) => {
+    const data = machineMonitorData[machineIp] || [];
+    
+    return (
+      <div style={{ 
+        background: '#ffffff', 
+        border: '1px solid #e6f0ff',
+        borderRadius: '8px',
+        padding: '16px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+      }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          {['cpu', 'memory', 'network'].map((metric) => (
+            <button
+              key={metric}
+              onClick={async () => {
+                // 先清空旧数据，避免显示错误
+                setMachineMonitorData((prev) => ({
+                  ...prev,
+                  [machineIp]: [],
+                }));
+                // 更新指标类型
+                setMonitorMetric(metric);
+                // 立即使用新的 metric 加载数据，使用当前的 monitorTimeRange
+                fetchMachineMonitorData(machineIp, monitorTimeRange, metric);
+              }}
+              style={{
+                padding: '6px 16px',
+                border: `1px solid ${monitorMetric === metric ? '#1890ff' : '#d9d9d9'}`,
+                borderRadius: '6px',
+                background: monitorMetric === metric ? '#1890ff' : '#ffffff',
+                color: monitorMetric === metric ? 'white' : '#666',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: monitorMetric === metric ? 500 : 400,
+                transition: 'all 0.2s',
+              }}
+            >
+              {metric === 'cpu' ? 'CPU' : metric === 'memory' ? '内存' : '网络'}
+            </button>
+          ))}
+        </div>
+        
+        {data.length > 0 ? (
+          <MonitorChart 
+            series={data} 
+            height={400} 
+            initialTimeRange={monitorTimeRange}
+            onTimeRangeChange={(minutes) => {
+              // 更新时间范围状态并重新加载数据
+              setMonitorTimeRange(minutes);
+              fetchMachineMonitorData(machineIp, minutes, monitorMetric);
+            }}
+          />
+        ) : (
+          <div style={{ padding: '60px', textAlign: 'center', color: '#8c8c8c', fontSize: '14px' }}>
+            <div style={{ fontSize: '32px', marginBottom: '12px' }}>📊</div>
+            <div>加载监控数据中...</div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
     return <div style={{ padding: '20px' }}>加载中...</div>;
   }
@@ -413,7 +580,28 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0' }}>
         <h3 style={{ margin: 0, fontSize: '16px' }}>发布机器列表</h3>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <a
+            onClick={(e) => {
+              e.preventDefault();
+              setAutoRefresh(!autoRefresh);
+            }}
+            href="#"
+            style={{
+              color: autoRefresh ? '#1890ff' : '#666',
+              cursor: 'pointer',
+              fontSize: '13px',
+              textDecoration: 'none',
+              display: 'inline-block',
+              lineHeight: '32px',
+            }}
+          >
+            {autoRefresh ? (
+              <span>✓ 自动刷新</span>
+            ) : (
+              <span>○ 自动刷新</span>
+            )}
+          </a>
           <button
             onClick={refreshDetail}
             disabled={actionLoading}
@@ -426,7 +614,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
               fontSize: '14px',
             }}
           >
-            刷新 ({countdown}s)
+            {autoRefresh ? `刷新 (${countdown}s)` : '刷新'}
           </button>
           {canOperate && (
             <>
@@ -510,15 +698,17 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                   style={{ cursor: canOperate ? 'pointer' : 'not-allowed' }}
                 />
               </th>
-              <th style={{ padding: '12px', textAlign: 'left' }}>机器 ID</th>
+              <th style={{ padding: '12px', textAlign: 'left' }}>机器名称</th>
               <th style={{ padding: '12px', textAlign: 'left' }}>IP 地址</th>
               <th style={{ padding: '12px', textAlign: 'left' }}>发布状态</th>
               <th style={{ padding: '12px', textAlign: 'left' }}>发布日志</th>
+              <th style={{ padding: '12px', textAlign: 'left', width: '140px' }}>操作</th>
             </tr>
           </thead>
           <tbody>
             {deployment.node_deployments.map((machine: NodeDeployment) => (
-              <tr key={machine.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+              <React.Fragment key={machine.id}>
+                <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
                 <td style={{ padding: '12px' }}>
                   <input
                     type="checkbox"
@@ -528,7 +718,7 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                     style={{ cursor: canOperate && machine.node_deploy_status !== 'deploying' ? 'pointer' : 'not-allowed' }}
                   />
                 </td>
-                <td style={{ padding: '12px' }}>{machine.id}</td>
+                <td style={{ padding: '12px' }}>{machine.name}</td>
                 <td style={{ padding: '12px' }}>{machine.ip}</td>
                 <td style={{ padding: '12px' }}>
                   <span
@@ -546,7 +736,38 @@ const DeploymentDetail: React.FC<DeploymentDetailProps> = ({ deploymentId, onClo
                 <td style={{ padding: '12px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {machine.release_log || '-'}
                 </td>
-              </tr>
+                <td style={{ padding: '12px' }}>
+                  <button
+                    onClick={() => toggleMachineMonitor(machine.ip)}
+                    style={{
+                      padding: '4px 12px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      background: '#1890ff',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    {expandedMonitorMachine === machine.ip ? (
+                      <>收起 <span style={{ fontSize: '10px' }}>▽</span></>
+                    ) : (
+                      <>指标监控 <span style={{ fontSize: '10px' }}>▶</span></>
+                    )}
+                  </button>
+                </td>
+                </tr>
+                {expandedMonitorMachine === machine.ip && (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '12px', background: '#fafafa' }}>
+                      {renderMachineMonitorChart(machine.ip)}
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>

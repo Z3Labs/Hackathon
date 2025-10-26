@@ -37,6 +37,7 @@ func (l *GetDeploymentDetailLogic) GetDeploymentDetail(req *types.GetDeploymentD
 	for _, machine := range deployment.NodeDeployments {
 		nodeDeployments = append(nodeDeployments, types.NodeDeployment{
 			Id:               machine.Id,
+			Name:             machine.Name,
 			Ip:               machine.Ip,
 			NodeDeployStatus: string(machine.NodeDeployStatus),
 			ReleaseLog:       machine.ReleaseLog,

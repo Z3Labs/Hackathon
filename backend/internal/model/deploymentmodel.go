@@ -39,6 +39,7 @@ type (
 	// 发布机器信息（嵌套结构体）
 	NodeDeployment struct {
 		Id               string               `bson:"id"               json:"id"`                // 机器唯一标识
+		Name             string               `bson:"name"             json:"name"`              // 机器名称
 		Ip               string               `bson:"ip"               json:"ip"`                // IP地址
 		NodeDeployStatus NodeDeploymentStatus `bson:"releaseStatus"    json:"release_status"`    // 节点发布状态
 		ReleaseLog       string               `bson:"releaseLog"       json:"release_log"`       // 发布日志

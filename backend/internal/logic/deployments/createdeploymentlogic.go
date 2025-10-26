@@ -53,6 +53,7 @@ func (l *CreateDeploymentLogic) CreateDeployment(req *types.CreateDeploymentReq)
 		now := time.Now()
 		deploymentMachine := model.NodeDeployment{
 			Id:               machine.Id,
+			Name:             machine.Name,
 			Ip:               machine.Ip,
 			NodeDeployStatus: model.NodeDeploymentStatusPending,
 			Platform:         platform,

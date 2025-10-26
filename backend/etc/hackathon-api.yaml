@@ -17,3 +17,7 @@ Qiniu:
   AccessKey: ${QINIU_ACCESS_KEY}    # 七牛云 Access Key
   SecretKey: ${QINIU_SECRET_KEY}    # 七牛云 Secret Key
   Bucket: ${QINIU_BUCKET}           # 七牛云存储桶名称
+  DownloadHost: https://materials.niulinkcloud.com
+
+VM:
+  VMUIURL: http://150.158.152.112:9300 

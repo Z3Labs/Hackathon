@@ -62,7 +62,10 @@ func (rm *RollbackManager) rollbackNode(ctx context.Context, deployment *model.D
 	if nodeIndex < 0 {
 		return fmt.Errorf("node index out of range")
 	}
-
+	if preVersion == "" {
+		logx.Info("bad version, version = %s", preVersion)
+		return fmt.Errorf("invalid prev version")
+	}
 	node := &deployment.NodeDeployments[nodeIndex]
 	executor, err := rm.executorFactory.CreateExecutor(ctx, executor.ExecutorConfig{
 		Platform:    string(node.Platform),

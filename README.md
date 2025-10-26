@@ -16,7 +16,7 @@
 - [项目启动会议记录](doc/project_kickoff.md) - 议题讨论、AI 工具选择和团队分工
 
 ### MVP 设计
-- [MVP 设计与实现计划](doc/design.md) - 正乾整理的 3 天 Hackathon MVP 方案
+- [MVP 设计与实现计划](doc/design.md) - 对如何 3 天实现基本能力进行规划
 
 ### 架构设计
 - [运行时架构描述](doc/system_runtime_architecture.txt)

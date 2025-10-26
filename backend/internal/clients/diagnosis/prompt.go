@@ -97,7 +97,7 @@ func buildPromptTemplate(req *types.PostAlertCallbackReq) string {
 		req.IsEmergent,
 		labelsStr,
 		annotationsStr,
-		github_search_prompt,
+		fmt.Sprintf(github_search_prompt, req.RepoAddress),
 	)
 
 	return prompt
@@ -105,7 +105,7 @@ func buildPromptTemplate(req *types.PostAlertCallbackReq) string {
 
 // 若问题不存在则输出分析结果
 var github_search_prompt = `根据以上排查信息，
-若确定问题的存在，则进一步分析 GitHub 仓库 Z3Labs/MockServer 最新 release 中的潜在 bug：
+若确定问题的存在，则进一步分析 GitHub 仓库 "%s" 最新 release 中的潜在 bug：
 
   1. 用 "get_latest_release" 获取最新 release，从 body 中提取该次发布的 PR 编号，若该次发布存在pr，则继续，否则结束分析。
 

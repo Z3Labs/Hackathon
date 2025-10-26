@@ -28,7 +28,15 @@ func (l *AlertCallBackLogic) AlertCallBack(req *types.PostAlertCallbackReq) erro
 
 	// TODO 其它逻辑
 
-	diagnosis.New(l.ctx, l.svcCtx, l.svcCtx.Config.AI).GenerateReport(req)
+	// 必要入参：
+	// RepoAddress 检查的github 仓库地址
+	// Annotations["description"] 告警描述信息
+	// Labels["hostname"] 指标异常的主机名
+	_, err := diagnosis.New(context.Background(), l.svcCtx, l.svcCtx.Config.AI).GenerateReport(req)
+	if err != nil {
+		l.Errorf("GenerateReport error: %v", err)
+		return err
+	}
 
 	return nil
 }

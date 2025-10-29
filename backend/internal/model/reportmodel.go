@@ -6,7 +6,13 @@ import (
 
 	"github.com/zeromicro/go-zero/core/stores/mon"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+func NewReportId() string {
+	return primitive.NewObjectID().Hex()
+}
 
 type (
 	// Report 存储 AI 生成的诊断报告
@@ -21,7 +27,8 @@ type (
 
 	ReportModel interface {
 		Insert(ctx context.Context, report *Report) error
-		FindByDeploymentId(ctx context.Context, deploymentId string) (*Report, error)
+		FindById(ctx context.Context, id string) (*Report, error)
+		FindByDeploymentId(ctx context.Context, deploymentId string) ([]*Report, error)
 		Update(ctx context.Context, report *Report) error
 		DeleteByDeploymentId(ctx context.Context, deploymentId string) error
 	}
@@ -38,6 +45,9 @@ func NewReportModel(url, db string) ReportModel {
 }
 
 func (m *defaultReportModel) Insert(ctx context.Context, report *Report) error {
+	if report.Id == "" {
+		report.Id = NewReportId()
+	}
 	report.CreatedTime = time.Now()
 	report.UpdatedTime = time.Now()
 
@@ -45,13 +55,27 @@ func (m *defaultReportModel) Insert(ctx context.Context, report *Report) error {
 	return err
 }
 
-func (m *defaultReportModel) FindByDeploymentId(ctx context.Context, deploymentId string) (*Report, error) {
+func (m *defaultReportModel) FindById(ctx context.Context, id string) (*Report, error) {
 	var report Report
-	err := m.model.FindOne(ctx, &report, bson.M{"deploymentId": deploymentId})
+	err := m.model.FindOne(ctx, &report, bson.M{"_id": id})
 	if err != nil {
 		return nil, err
 	}
 	return &report, nil
+}
+
+func (m *defaultReportModel) FindByDeploymentId(ctx context.Context, deploymentId string) ([]*Report, error) {
+	var reports []*Report
+	
+	// 使用数据库排序，按创建时间倒序（最新的在前）
+	opts := options.Find().SetSort(bson.D{{Key: "createdTime", Value: -1}})
+	
+	err := m.model.Find(ctx, &reports, bson.M{"deploymentId": deploymentId}, opts)
+	if err != nil {
+		return nil, err
+	}
+	
+	return reports, nil
 }
 
 func (m *defaultReportModel) Update(ctx context.Context, report *Report) error {

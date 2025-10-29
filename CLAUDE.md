@@ -20,13 +20,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - 使用技巧示例：
     文件名搜索
 
-### mcp server context7
-context7: 编程库/SDK/API 文档检索
-- **触发条件**：任何关于编程库、框架、SDK、API 的问题
-- **调用方式**：
-  1. 首先调用 `resolve-library-id` 获取 Context7 兼容的库 ID
-  2. 然后调用 `get-library-docs` 获取文档（可选 topic 参数聚焦）
-
 ##### ```bash
 desktop-commander.start_search searchType="files" pattern="关键词"
 ##### ```
@@ -41,6 +34,13 @@ literalSearch=true contextLines=5
 - **目标**：找到关键实现位置
 - **记录**：找到X处实现，重点分析 [file:line, file:line]
 - **技巧**：使用精确代码片段搜索，获取上下文
+
+### mcp server context7
+context7: 编程库/SDK/API 文档检索
+- **触发条件**：任何关于编程库、框架、SDK、API 的问题
+- **调用方式**：
+  1. 首先调用 `resolve-library-id` 获取 Context7 兼容的库 ID
+  2. 然后调用 `get-library-docs` 获取文档（可选 topic 参数聚焦）
 
 ## 项目概述
 

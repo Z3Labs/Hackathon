@@ -116,10 +116,10 @@ func (c *mcpClient) GenerateCompletion(ctx context.Context, prompt string) (stri
 	// MCP 模式下无法获取准确的 token 使用量，返回 0
 	if len(split) > 1 {
 		c.logger.Infof("Python 脚本执行成功，执行日志: \n%s", split[0])
+		c.logger.Infof("report: \n%s", split[1])
 		returnValue := strings.Trim(strings.TrimSpace(strings.Join(split[1:], pyReturnSplit)), "\n")
 		findString := jsonRegex.FindString(returnValue)
 		if findString != "" {
-			fmt.Println("123find")
 			return findString, 0, nil
 		}
 		return "", 0, fmt.Errorf(returnValue)

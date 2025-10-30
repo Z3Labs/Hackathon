@@ -8,22 +8,12 @@ import (
 	"testing"
 
 	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/Z3Labs/Hackathon/backend/internal/config"
+	"github.com/Z3Labs/Hackathon/backend/internal/svc"
 	"github.com/Z3Labs/Hackathon/backend/internal/types"
 )
-
-// loadEnvForTest 加载测试环境变量
-func loadEnvForTest(t *testing.T) {
-	// 从 py/.env 文件加载环境变量（相对于测试文件所在目录）
-	envPath := filepath.Join("py", ".env")
-	absPath, _ := filepath.Abs(envPath)
-	if err := godotenv.Load(envPath); err != nil {
-		log.Printf("Warning: Could not load .env file from %s (abs: %s): %v", envPath, absPath, err)
-	} else {
-		log.Printf("Successfully loaded .env from %s", absPath)
-	}
-}
 
 // TestBuildPromptTemplate 测试 prompt 构建
 func TestBuildPromptTemplate(t *testing.T) {
@@ -68,6 +58,51 @@ func TestBuildPromptTemplate(t *testing.T) {
 	t.Logf("Generated prompt:\n%s", prompt)
 }
 
+func Test_GenerateReport(t *testing.T) {
+	svcCtx := svc.NewUTServiceContext(config.Config{
+		Mongo: config.MongoDBConfig{
+			URL:      "mongodb://localhost:27017",
+			Database: "hackathon_test",
+		},
+		AI: getTestAiConfig(t),
+	})
+	client := New(context.Background(), svcCtx, svcCtx.Config.AI)
+
+	deployId := "68fdfbc0e2a7092445d8f9e7"
+	reportContent, err := client.GenerateReport(&types.PostAlertCallbackReq{
+		Key:          "68fdfbc0e2a7092445d8f9e7-发布期间 非 200占比异常-1761480709",
+		Status:       "firing",
+		Alertname:    "发布期间 非 200占比异常",
+		Severity:     "critical",
+		Desc:         "灰度节点非200 占比超过 5%",
+		StartsAt:     "2025-10-26T20:10:19+08:00",
+		ReceiveAt:    "2025-10-26T20:11:49+08:00",
+		EndsAt:       "",
+		Values:       3.964133333333383,
+		GeneratorURL: "http://127.0.0.1:9300/graph?g0.expr=...",
+		NeedHandle:   true,
+		IsEmergent:   true,
+		RepoAddress:  "Z3Labs/MockServer",
+		Tag:          "v1.0.3",
+		Labels: map[string]string{
+			"hostname":     "VM-12-17-ubuntu,VM-16-7-ubuntu",
+			"appName":      "node_exporter",
+			"deploymentId": deployId,
+		},
+		Annotations: map[string]string{
+			"description": "灰度节点非200 占比超过 5%",
+		},
+	})
+	reports, err := svcCtx.ReportModel.FindByDeploymentId(context.Background(), deployId)
+	assert.Nil(t, err)
+	assert.True(t, len(reports) > 0, "应该至少有一条报告记录")
+	
+	// 获取最新的报告（已按创建时间倒序排列）
+	report := reports[0]
+	assert.Equal(t, reportContent, report.Content)
+	t.Logf(reportContent)
+}
+
 // TestMCPClient_GenerateCompletion 集成测试 - 测试完整的 MCP 调用流程
 // 注意：这是一个集成测试，需要：
 // 1. Docker 环境（运行 MCP Server）
@@ -81,49 +116,8 @@ func TestMCPClient_GenerateCompletion(t *testing.T) {
 		t.Skip("Skipping integration test in short mode")
 	}
 
-	// 加载环境变量
-	loadEnvForTest(t)
-
-	// 1. 配置初始化（从环境变量读取）
-	apiKey := os.Getenv("CUSTOM_ANTHROPIC_API_KEY")
-	if apiKey == "" {
-		t.Fatal("CUSTOM_ANTHROPIC_API_KEY environment variable is required")
-	}
-
-	baseURL := os.Getenv("CUSTOM_ANTHROPIC_BASE_URL")
-	if baseURL == "" {
-		t.Fatal("AI_BASE_URL environment variable is required")
-	}
-
-	model := os.Getenv("CUSTOM_CLAUDE_MODEL")
-	if model == "" {
-		model = "gpt-4" // 使用默认值
-	}
-
-	prometheusURL := os.Getenv("PROMETHEUS_URL")
-	if prometheusURL == "" {
-		t.Fatal("PROMETHEUS_URL environment variable is required")
-	}
-
-	// GitHub MCP 配置（可选，提供 token 后自动启用）
-	githubToken := os.Getenv("GITHUB_TOKEN")
-	githubToolsets := os.Getenv("GITHUB_TOOLSETS")
-	if githubToolsets == "" {
-		githubToolsets = "repos,issues,pull_requests,releases"
-	}
-
-	cfg := config.AIConfig{
-		APIKey:         apiKey,
-		BaseURL:        baseURL,
-		Model:          model,
-		PrometheusURL:  prometheusURL,
-		GitHubToken:    githubToken, // 提供后自动启用 GitHub MCP
-		GitHubToolsets: githubToolsets,
-		Timeout:        120,
-	}
-
 	// 2. 创建 MCP 客户端
-	client := NewMCPClient(cfg)
+	client := NewMCPClient(getTestAiConfig(t))
 
 	// 3. Mock 告警数据
 	req := &types.PostAlertCallbackReq{
@@ -190,4 +184,60 @@ func findSubstring(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// loadEnvForTest 加载测试环境变量
+func loadEnvForTest() {
+	// 从 py/.env 文件加载环境变量（相对于测试文件所在目录）
+	envPath := filepath.Join("py", ".env")
+	absPath, _ := filepath.Abs(envPath)
+	if err := godotenv.Load(envPath); err != nil {
+		log.Printf("Warning: Could not load .env file from %s (abs: %s): %v", envPath, absPath, err)
+	} else {
+		log.Printf("Successfully loaded .env from %s", absPath)
+	}
+}
+
+func getTestAiConfig(t *testing.T) config.AIConfig {
+	// 加载环境变量
+	loadEnvForTest()
+
+	// 1. 配置初始化（从环境变量读取）
+	apiKey := os.Getenv("CUSTOM_ANTHROPIC_API_KEY")
+	if apiKey == "" {
+		t.Fatal("CUSTOM_ANTHROPIC_API_KEY environment variable is required")
+	}
+
+	baseURL := os.Getenv("CUSTOM_ANTHROPIC_BASE_URL")
+	if baseURL == "" {
+		t.Fatal("AI_BASE_URL environment variable is required")
+	}
+
+	model := os.Getenv("CUSTOM_CLAUDE_MODEL")
+	if model == "" {
+		model = "gpt-4" // 使用默认值
+	}
+
+	prometheusURL := os.Getenv("PROMETHEUS_URL")
+	if prometheusURL == "" {
+		t.Fatal("PROMETHEUS_URL environment variable is required")
+	}
+
+	// GitHub MCP 配置（可选，提供 token 后自动启用）
+	githubToken := os.Getenv("GITHUB_TOKEN")
+	githubToolsets := os.Getenv("GITHUB_TOOLSETS")
+	if githubToolsets == "" {
+		githubToolsets = "repos,issues,pull_requests,releases"
+	}
+
+	cfg := config.AIConfig{
+		APIKey:         apiKey,
+		BaseURL:        baseURL,
+		Model:          model,
+		PrometheusURL:  prometheusURL,
+		GitHubToken:    githubToken, // 提供后自动启用 GitHub MCP
+		GitHubToolsets: githubToolsets,
+		Timeout:        120,
+	}
+	return cfg
 }

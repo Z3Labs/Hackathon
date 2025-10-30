@@ -35,7 +35,9 @@ func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (strin
 	deploymentId := req.Labels["deploymentId"]
 
 	// 1. 先插入一条状态为"生成中"的记录
+	reportId := model.NewReportId()
 	if err := c.reportModel.Insert(c.ctx, &model.Report{
+		Id:           reportId,
 		DeploymentId: deploymentId,
 		Content:      "",
 		Status:       model.ReportStatusGenerating,
@@ -49,7 +51,7 @@ func (c *diagnosisClient) GenerateReport(req *types.PostAlertCallbackReq) (strin
 	prompt := buildPromptTemplate(req)
 
 	// 3. 调用 AI 接口（通过 MCP 查询指标并生成诊断报告）
-	report, err := c.reportModel.FindByDeploymentId(c.ctx, deploymentId)
+	report, err := c.reportModel.FindById(c.ctx, reportId)
 	if err != nil {
 		return "", fmt.Errorf("查询报告记录失败: %w", err)
 	}

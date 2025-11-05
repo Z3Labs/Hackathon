@@ -73,9 +73,6 @@
 - [AI 诊断实现](doc/diagnosis_implementation.md)
 - [Prometheus MCP 集成](doc/prometheus-mcp-server.md)
 
-### 集成环境
-http://118.89.104.170:13354/
-
 ### demo视频
 https://meeting.tencent.com/crm/29e64vLxd8
 
